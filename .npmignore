@@ -1,0 +1,5 @@
+.eslintrc.json
+.travis.yml
+.vscode/
+_config.yml
+npm-release*
