@@ -20,7 +20,7 @@ confirm() {
 execute() {
     if git checkout ${DEV_BRANCH_NAME} &&
         git fetch origin ${DEV_BRANCH_NAME} &&
-        [ `git rev-list HEAD...origin/${DEV_BRANCH_NAME} --count` != 0 ] &&
+        [ `git rev-list HEAD origin/${DEV_BRANCH_NAME} --count` != 0 ] &&
         git merge origin/${DEV_BRANCH_NAME}
     then
         echo "Performing ${RELEASE_TYPE} release preparations..."
