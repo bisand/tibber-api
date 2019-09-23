@@ -4,7 +4,10 @@
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/test*.js"
+    "test": "mocha tests/test*.js",
+    "preversion": "npm test",
+    "version": "",
+    "postversion": ""
   },
   "repository": {
     "type": "git",
