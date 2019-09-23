@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-const TibberFeed = require("../nodes/TibberFeed");
+const TibberFeed = require("../index").TibberFeed;
 const assert = require("assert");
 const WebSocket = require("ws");
 
