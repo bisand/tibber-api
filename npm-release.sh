@@ -8,7 +8,7 @@ confirm() {
     # call with a prompt string or use a default
     read -r -p "${1:-Are you sure? [y/N]} " response
     case "$response" in
-        [yY][eE][sS]|[yY]) 
+        [yY][eE][sS]|[yY])
             true
             ;;
         *)
@@ -27,16 +27,16 @@ execute() {
         if npm version ${RELEASE_TYPE} -m "Release version %s"
         then
             echo "NPM version done. Proceeding with git operations..."
-            if git add . && 
-                git push && 
-                git checkout ${MASTER_BRANCH_NAME} && 
-                git pull && 
-                git merge ${DEV_BRANCH_NAME} && 
-                git push && 
+            if git add . &&
+                git push &&
+                git checkout ${MASTER_BRANCH_NAME} &&
+                git pull &&
+                git merge ${DEV_BRANCH_NAME} &&
+                git push &&
                 git push --tags
             then
-                git checkout ${DEV_BRANCH_NAME} &&
-                git merge ${MASTER_BRANCH_NAME} &&
+                git checkout ${DEV_BRANCH_NAME}
+                git merge ${MASTER_BRANCH_NAME}
                 git push
                 echo "Changes merged to ${MASTER_BRANCH_NAME} branch and pushed to origin."
                 true
