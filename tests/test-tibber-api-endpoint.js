@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-let urlValidator = require('../nodes/tools').urlValidator;
+let urlValidator = require('../index').urlValidator;
 let assert = require('assert');
 describe('tibber-api-endpoint', function () {
   describe('Validate Url', function () {
