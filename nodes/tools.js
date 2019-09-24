@@ -7,7 +7,4 @@ const urlValidator = function (url) {
     return new RegExp(regExp).test(url);
 }
 
-if (module)
-    module.exports = {
-        urlValidator: urlValidator
-    };
+module.exports = urlValidator;
