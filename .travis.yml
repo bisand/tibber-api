@@ -4,9 +4,8 @@ node_js:
 - '10'
 deploy:
   provider: npm
-  email: andre@biseth.net
-  api_key:
-    secure: yNeVq6/ZJkzbyW39kKN89qur1lNJZSA34kZ6K9HtTN6RUbvchR46cfVEluJWSXENzgsA6xO+uL7tTOfs/oQq8Df+L/9VouziOC4AanHMUFMz+agCTKv7DpHRoNw4mVtGHmHmVX09lwX/eiAyTBuNhDj3ar+uakwZjCNzs1pXITNiMqSfJL50AC6y2sd9mFRH3iE61tSQex6KOtWaaBuIRnWk69fTOAWMZAlkZ1JOjfFJQAxI1/s2e+EjvMOKD+TLlY9SF/Db7LySLxGsHwgfNGUIACn8anp9HBfn79vEE03MJ61d/xdHdT3L9ngdxDqfDPjxqIW0W1Iwrv1PoHfaQzByvxu+KObQDO4zfiEKtIg8tXQDQsFE7qU/scDU3uQoJTtTfWYXDwd48wYQXTM91FmzRGuG5bCXT1R3M/shHiA1yzRILJmLz23+oFrD6b+hJyBHxjYubcPaSqz6PW6UdEYXxz9Y2Aq7pkYx2loBrogIE0jn++WvnGgh4cBliQDjKMuD+40bFoF+4rmljfnqvNZbAeqUnUWIuEg2sjZP9Hk2ICyWsCVPxFe2RZ3RTnyRBKCjWjfnr07lzqqB9ndd4NfogC8l9Tc1kKtby6c0w0xF0Cl+6roxgx8etfOjlG3AIQ63XW5mz2GiFxvxiqfP0FI4hyXHx7WfgTPFLCxPuu0=
+  email: "$NPM_EMAIL"
+  api_key: "$NPM_TOKEN"
   on:
     branch: master
     tags: true
