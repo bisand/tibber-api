@@ -34,10 +34,10 @@ execute() {
                 git merge ${DEV_BRANCH_NAME} && 
                 git push && 
                 git push --tags
+            then
                 git checkout ${DEV_BRANCH_NAME} &&
                 git merge ${MASTER_BRANCH_NAME} &&
                 git push
-            then
                 echo "Changes merged to ${MASTER_BRANCH_NAME} branch and pushed to origin."
                 true
             else
