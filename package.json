@@ -23,7 +23,6 @@
     "eslint": "^6.4.0"
   },
   "directories": {
-    "test": "tests",
     "nodes": "nodes"
   },
   "keywords": [
