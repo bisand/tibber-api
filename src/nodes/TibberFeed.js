@@ -1,43 +1,38 @@
-import { EventEmitter } from 'events';
-import { IConfig } from '../models/config';
-import WebSocket from 'ws';
-
-export class TibberFeed extends EventEmitter {
-    private _timeout!: number | 30000;
-    private _config!: IConfig;
-    private _active?: boolean | false;
-    private _hearbeatTimeouts!: NodeJS.Timeout[];
-    private _isConnected!: boolean;
-    private _query!: {
-        id: string;
-        type: string;
-        payload: {
-            variables: {};
-            extensions: {};
-            operationName: null;
-            query: string;
-        };
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     };
-    private _webSocket!: WebSocket;
-
-    constructor(config: IConfig, timeout = 30000) {
-        super();
-
-        const node = this;
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+exports.__esModule = true;
+var events_1 = require("events");
+var ws_1 = require("ws");
+var TibberFeed = /** @class */ (function (_super) {
+    __extends(TibberFeed, _super);
+    function TibberFeed(config, timeout) {
+        if (timeout === void 0) { timeout = 30000; }
+        var _this = _super.call(this) || this;
+        var node = _this;
         node._timeout = timeout;
         node._config = config;
         node._active = config.active;
         node._hearbeatTimeouts = [];
         node._isConnected = false;
-
         if (!config.apiEndpoint || !config.apiEndpoint.apiKey || !config.homeId || !config.apiEndpoint.feedUrl) {
             node._active = false;
             config.active = false;
             node.warn('Missing mandatory parameters. Execution will halt.');
-            return;
+            return _this;
         }
-
-        let _gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
+        var _gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
         if (node._config.timestamp) {
             _gql += 'timestamp ';
         }
@@ -111,78 +106,76 @@ export class TibberFeed extends EventEmitter {
                 extensions: {},
                 operationName: null,
                 query: _gql,
-                variables: {},
+                variables: {}
             },
-            type: 'start',
+            type: 'start'
         };
+        return _this;
     }
-
-    get active() {
-        return this._active;
-    }
-
-    set active(active) {
-        if (active === this._active) {
-            return;
-        }
-        this._active = active;
-        if (this._active) {
-            this.connect();
-        } else {
-            this.close();
-        }
-    }
-
-    public connect() {
-        const node = this;
-        node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
-
-        node._webSocket.on('open', () => {
+    Object.defineProperty(TibberFeed.prototype, "active", {
+        get: function () {
+            return this._active;
+        },
+        set: function (active) {
+            if (active === this._active) {
+                return;
+            }
+            this._active = active;
+            if (this._active) {
+                this.connect();
+            }
+            else {
+                this.close();
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    TibberFeed.prototype.connect = function () {
+        var node = this;
+        node._webSocket = new ws_1["default"](String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
+        node._webSocket.on('open', function () {
             if (!node._webSocket) {
                 return;
             }
-            node._webSocket.send(
-                '{"type":"connection_init","payload":"token=' + node._config.apiEndpoint.apiKey + '"}',
-            );
+            node._webSocket.send('{"type":"connection_init","payload":"token=' + node._config.apiEndpoint.apiKey + '"}');
             node.emit('connected', 'Connected to Tibber feed.');
         });
-
-        node._webSocket.on('message', (message: string) => {
+        node._webSocket.on('message', function (message) {
             if (message.startsWith('{')) {
-                const msg = JSON.parse(message);
+                var msg = JSON.parse(message);
                 if (msg.type === 'connection_ack') {
                     node._isConnected = true;
                     node.emit('connection_ack', msg);
-                    const str = JSON.stringify(node._query);
+                    var str = JSON.stringify(node._query);
                     if (node._webSocket) {
                         node._webSocket.send(str);
                     }
-                } else if (msg.type === 'connection_error') {
+                }
+                else if (msg.type === 'connection_error') {
                     node.error(msg);
                     node.close();
-                } else if (msg.type === 'data') {
+                }
+                else if (msg.type === 'data') {
                     if (!msg.payload.data) {
                         return;
                     }
-                    const data = msg.payload.data.liveMeasurement;
+                    var data = msg.payload.data.liveMeasurement;
                     node.emit('data', data);
                 }
             }
         });
-
-        node._webSocket.on('close', () => {
+        node._webSocket.on('close', function () {
             node._isConnected = false;
             node.emit('disconnected', 'Disconnected from Tibber feed');
         });
-
-        node._webSocket.on('error', (error: any) => {
+        node._webSocket.on('error', function (error) {
             node.error(error);
         });
-    }
-
-    public close() {
-        const node = this;
-        node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
+    };
+    TibberFeed.prototype.close = function () {
+        var node = this;
+        node._hearbeatTimeouts.forEach(function (timeout) {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
@@ -191,48 +184,47 @@ export class TibberFeed extends EventEmitter {
             }
         }
         node.log('Closed Tibber Feed.');
-    }
-
-    public heartbeat() {
-        const node = this;
-        for (let i = 0; i < node._hearbeatTimeouts.length; i++) {
-            const timeout = node._hearbeatTimeouts[i];
+    };
+    TibberFeed.prototype.heartbeat = function () {
+        var node = this;
+        for (var i = 0; i < node._hearbeatTimeouts.length; i++) {
+            var timeout = node._hearbeatTimeouts[i];
             clearTimeout(timeout);
             node._hearbeatTimeouts.shift();
             i--;
         }
-        node._hearbeatTimeouts.push(
-            setTimeout(() => {
-                if (node._webSocket) {
-                    node._webSocket.terminate();
-                    node.warn('Connection timed out after ' + node._timeout + ' ms. Reconnecting...');
-                    node.connect();
-                }
-            }, node._timeout),
-        );
-    }
-
-    private log(message: string) {
+        node._hearbeatTimeouts.push(setTimeout(function () {
+            if (node._webSocket) {
+                node._webSocket.terminate();
+                node.warn('Connection timed out after ' + node._timeout + ' ms. Reconnecting...');
+                node.connect();
+            }
+        }, node._timeout));
+    };
+    TibberFeed.prototype.log = function (message) {
         try {
             this.emit('log', message);
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
         }
-    }
-
-    private warn(message: string) {
+    };
+    TibberFeed.prototype.warn = function (message) {
         try {
             this.emit('warn', message);
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
         }
-    }
-
-    private error(message: any) {
+    };
+    TibberFeed.prototype.error = function (message) {
         try {
             this.emit('error', message);
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
         }
-    }
-}
+    };
+    return TibberFeed;
+}(events_1.EventEmitter));
+exports.TibberFeed = TibberFeed;
