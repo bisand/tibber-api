@@ -2,9 +2,10 @@
   "name": "tibber-api",
   "version": "0.1.0",
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
+    "build": "tsc",
     "test": "mocha tests/test*.js",
     "prepublish": "tsc",
     "preversion": "npm test",
@@ -22,10 +23,13 @@
     "ws": "^7.1.2"
   },
   "devDependencies": {
-    "typescript": "^3.6.3",
+    "eslint": "^6.4.0",
     "mocha": "^6.2.0",
-    "websocket": "^1.0.30",
-    "eslint": "^6.4.0"
+    "prettier": "^1.18.2",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.6.3",
+    "websocket": "^1.0.30"
   },
   "directories": {
     "nodes": "nodes"
