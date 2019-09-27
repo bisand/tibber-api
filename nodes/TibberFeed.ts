@@ -1,10 +1,27 @@
-const WebSocket = require('ws');
-const EventEmitter = require('events').EventEmitter;
+import WebSocket from 'ws';
+import { Config } from '../models/config';
+import { EventEmitter } from 'events';
 
-class TibberFeed extends EventEmitter {
+export class TibberFeed extends EventEmitter {
+    _timeout!: number;
+    _config!: Config;
+    _active!: boolean;
+    _hearbeatTimeouts!: number[];
+    _isConnected!: boolean;
+    _query!: {
+        id: string;
+        type: string;
+        payload: {
+            variables: {};
+            extensions: {};
+            operationName: null;
+            query: string;
+        };
+    };
+    _webSocket!: WebSocket;
 
-    constructor(config, timeout = 30000) {
-        
+    constructor(config: Config, timeout = 30000) {
+
         super();
 
         var node = this;
@@ -22,49 +39,49 @@ class TibberFeed extends EventEmitter {
         }
 
         var _gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
-        if (node._config.timestamp == 1)
+        if (node._config.timestamp)
             _gql += 'timestamp ';
-        if (node._config.power == 1)
+        if (node._config.power)
             _gql += 'power ';
-        if (node._config.lastMeterConsumption == 1)
+        if (node._config.lastMeterConsumption)
             _gql += 'lastMeterConsumption ';
-        if (node._config.accumulatedConsumption == 1)
+        if (node._config.accumulatedConsumption)
             _gql += 'accumulatedConsumption ';
-        if (node._config.accumulatedProduction == 1)
+        if (node._config.accumulatedProduction)
             _gql += 'accumulatedProduction ';
-        if (node._config.accumulatedCost == 1)
+        if (node._config.accumulatedCost)
             _gql += 'accumulatedCost ';
-        if (node._config.accumulatedReward == 1)
+        if (node._config.accumulatedReward)
             _gql += 'accumulatedReward ';
-        if (node._config.currency == 1)
+        if (node._config.currency)
             _gql += 'currency ';
-        if (node._config.minPower == 1)
+        if (node._config.minPower)
             _gql += 'minPower ';
-        if (node._config.averagePower == 1)
+        if (node._config.averagePower)
             _gql += 'averagePower ';
-        if (node._config.maxPower == 1)
+        if (node._config.maxPower)
             _gql += 'maxPower ';
-        if (node._config.powerProduction == 1)
+        if (node._config.powerProduction)
             _gql += 'powerProduction ';
-        if (node._config.minPowerProduction == 1)
+        if (node._config.minPowerProduction)
             _gql += 'minPowerProduction ';
-        if (node._config.maxPowerProduction == 1)
+        if (node._config.maxPowerProduction)
             _gql += 'maxPowerProduction ';
-        if (node._config.lastMeterProduction == 1)
+        if (node._config.lastMeterProduction)
             _gql += 'lastMeterProduction ';
-        if (node._config.powerFactor == 1)
+        if (node._config.powerFactor)
             _gql += 'powerFactor ';
-        if (node._config.voltagePhase1 == 1)
+        if (node._config.voltagePhase1)
             _gql += 'voltagePhase1 ';
-        if (node._config.voltagePhase2 == 1)
+        if (node._config.voltagePhase2)
             _gql += 'voltagePhase2 ';
-        if (node._config.voltagePhase3 == 1)
+        if (node._config.voltagePhase3)
             _gql += 'voltagePhase3 ';
-        if (node._config.currentPhase1 == 1)
+        if (node._config.currentPhase1)
             _gql += 'currentPhase1 ';
-        if (node._config.currentPhase2 == 1)
+        if (node._config.currentPhase2)
             _gql += 'currentPhase2 ';
-        if (node._config.currentPhase3 == 1)
+        if (node._config.currentPhase3)
             _gql += 'currentPhase3 ';
         _gql += '}}';
         node._query = {
@@ -104,7 +121,7 @@ class TibberFeed extends EventEmitter {
             node.emit('connected', "Connected to Tibber feed.");
         });
 
-        node._webSocket.on('message', function (message) {
+        node._webSocket.on('message', function (message: string) {
             if (message.startsWith('{')) {
                 var msg = JSON.parse(message);
                 if (msg.type == 'connection_ack') {
@@ -119,7 +136,7 @@ class TibberFeed extends EventEmitter {
                 } else if (msg.type == "data") {
                     if (!msg.payload.data)
                         return;
-                    var data = msg.payload.data.liveMeasurement;
+                    let data = msg.payload.data.liveMeasurement;
                     node.emit('data', data);
                 }
             }
@@ -130,20 +147,19 @@ class TibberFeed extends EventEmitter {
             node.emit('disconnected', "Disconnected from Tibber feed");
         });
 
-        node._webSocket.on('error', function (error) {
+        node._webSocket.on('error', function (error: any) {
             node.error(error);
         });
     }
 
     close() {
         var node = this;
-        node._hearbeatTimeouts.forEach(timeout => {
+        node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
             if (node._isConnected) {
                 node._webSocket.close();
-                node._webSocket = null;
             }
         }
         node.log('Closed Tibber Feed.');
@@ -160,14 +176,13 @@ class TibberFeed extends EventEmitter {
         node._hearbeatTimeouts.push(setTimeout(() => {
             if (node._webSocket) {
                 node._webSocket.terminate();
-                node._webSocket = null;
                 node.warn('Connection timed out after ' + node._timeout + ' ms. Reconnecting...');
                 node.connect();
             }
         }, node._timeout));
     }
 
-    log(message) {
+    log(message: string) {
         try {
             this.emit('log', message);
         } catch (error) {
@@ -175,7 +190,7 @@ class TibberFeed extends EventEmitter {
         }
     }
 
-    warn(message) {
+    warn(message: string) {
         try {
             this.emit('warn', message);
         } catch (error) {
@@ -183,7 +198,7 @@ class TibberFeed extends EventEmitter {
         }
     }
 
-    error(message) {
+    error(message: any) {
         try {
             this.emit('error', message);
         } catch (error) {

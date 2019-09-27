@@ -1,7 +1,13 @@
-const { GraphQLClient } = require('graphql-request');
+import { Config } from "../models/config";
+import { GraphQLClient } from "graphql-request";
 
-class TibberQuery {
-    constructor(config) {
+// const { GraphQLClient } = require('graphql-request');
+
+export class TibberQuery {
+    _config!: Config;
+    active: boolean = false;
+    client: any;
+    constructor(config: Config) {
         var node = this;
         node._config = config;
         node.active = false;
@@ -12,7 +18,7 @@ class TibberQuery {
         });
     }
 
-    async query(query) {
+    async query(query: any) {
         try {
             return await this.client.request(query);
         } catch (error) {
