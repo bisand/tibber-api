@@ -4,10 +4,12 @@
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "files": ["lib/**/*"],
+  "files": [
+    "lib/**/*"
+  ],
   "scripts": {
     "build": "tsc",
-    "test": "mocha tests/test*.js",
+    "test": "jest --config jestconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "prepublish": "tsc",
@@ -26,9 +28,10 @@
     "ws": "^7.1.2"
   },
   "devDependencies": {
-    "eslint": "^6.4.0",
-    "mocha": "^6.2.0",
+    "@types/jest": "^24.0.18",
+    "jest": "^24.9.0",
     "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.6.3",

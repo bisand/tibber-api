@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const TibberFeed = require('../index').TibberFeed;
-const assert = require('assert');
-const WebSocket = require('ws');
+import assert from 'assert';
+import WebSocket from 'ws';
 
 describe('TibberFeed', function() {
     let server = undefined;

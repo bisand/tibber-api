@@ -3,9 +3,9 @@ import { IConfig } from '../models/config';
 import WebSocket from 'ws';
 
 export class TibberFeed extends EventEmitter {
-    private _timeout!: number;
+    private _timeout!: number | 30000;
     private _config!: IConfig;
-    private _active!: boolean;
+    private _active?: boolean | false;
     private _hearbeatTimeouts!: NodeJS.Timeout[];
     private _isConnected!: boolean;
     private _query!: {
@@ -135,7 +135,7 @@ export class TibberFeed extends EventEmitter {
 
     public connect() {
         const node = this;
-        node._webSocket = new WebSocket(node._config.apiEndpoint.feedUrl, ['graphql-ws']);
+        node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
 
         node._webSocket.on('open', () => {
             if (!node._webSocket) {
@@ -236,5 +236,3 @@ export class TibberFeed extends EventEmitter {
         }
     }
 }
-
-module.exports = TibberFeed;

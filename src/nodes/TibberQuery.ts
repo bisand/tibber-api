@@ -6,25 +6,22 @@ import { GraphQLClient } from 'graphql-request';
 export class TibberQuery {
     public active: boolean = false;
     private _config!: IConfig;
-    private client: any;
+    private _client: any;
     constructor(config: IConfig) {
-        const node = this;
-        node._config = config;
-        node.active = false;
-        node.client = new GraphQLClient(config.apiEndpoint.queryUrl, {
+        this._config = config;
+        this.active = false;
+        this._client = new GraphQLClient(String(this._config.apiEndpoint.queryUrl), {
             headers: {
-                authorization: 'Bearer ' + config.apiEndpoint.apiKey,
+                authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
             },
         });
     }
 
     public async query(query: any) {
         try {
-            return await this.client.request(query);
+            return await this._client.request(query);
         } catch (error) {
             return { error: error };
         }
     }
 }
-
-module.exports = TibberQuery;
