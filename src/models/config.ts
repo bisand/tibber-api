@@ -1,13 +1,13 @@
-export interface ApiEndpoint {
+export interface IApiEndpoint {
     feedUrl: string;
     queryUrl: string;
     apiKey: string;
 }
 
-export interface Config {
+export interface IConfig {
     active: boolean;
     // Endpoint configuration.
-    apiEndpoint: ApiEndpoint;
+    apiEndpoint: IApiEndpoint;
     // Query configuration.
     homeId: string;
     timestamp: boolean;

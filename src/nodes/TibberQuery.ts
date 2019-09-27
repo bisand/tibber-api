@@ -1,14 +1,14 @@
-import { Config } from "../models/config";
-import { GraphQLClient } from "graphql-request";
+import { IConfig } from '../models/config';
+import { GraphQLClient } from 'graphql-request';
 
 // const { GraphQLClient } = require('graphql-request');
 
 export class TibberQuery {
-    _config!: Config;
-    active: boolean = false;
-    client: any;
-    constructor(config: Config) {
-        var node = this;
+    public active: boolean = false;
+    private _config!: IConfig;
+    private client: any;
+    constructor(config: IConfig) {
+        const node = this;
         node._config = config;
         node.active = false;
         node.client = new GraphQLClient(config.apiEndpoint.queryUrl, {
@@ -18,7 +18,7 @@ export class TibberQuery {
         });
     }
 
-    async query(query: any) {
+    public async query(query: any) {
         try {
             return await this.client.request(query);
         } catch (error) {

@@ -1,17 +1,17 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberQuery = require("tibber-api").TibberFeed;
 
-const TibberFeed = require("../index").TibberFeed;
+const TibberFeed = require('../index').TibberFeed;
 
 // Config object needed when instantiating TibberQuery
 let config = {
     // Endpoint configuration.
     apiEndpoint: {
-        feedUrl: "wss://api.tibber.com/v1-beta/gql/subscriptions",
-        apiKey: "d1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a" // Demo token
+        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
     },
     // Query configuration.
-    homeId: "c70dcbe5-4485-4821-933d-a8a86452737b",
+    homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
     timestamp: true,
     power: true,
     lastMeterConsumption: true,
@@ -37,25 +37,25 @@ let config = {
 };
 
 let tibberFeed = new TibberFeed(config);
-tibberFeed.on("connected", () => {
-    console.log("Connected to Tibber!");
+tibberFeed.on('connected', () => {
+    console.log('Connected to Tibber!');
 });
-tibberFeed.on("connection_ack", () => {
-    console.log("Connection acknowledged!");
+tibberFeed.on('connection_ack', () => {
+    console.log('Connection acknowledged!');
 });
-tibberFeed.on("disconnected", () => {
-    console.log("Disconnected from Tibber!");
+tibberFeed.on('disconnected', () => {
+    console.log('Disconnected from Tibber!');
 });
-tibberFeed.on("error", (error) => {
+tibberFeed.on('error', error => {
     console.error(error);
 });
-tibberFeed.on("warn", (warn) => {
+tibberFeed.on('warn', warn => {
     console.warn(warn);
 });
-tibberFeed.on("log", (log) => {
+tibberFeed.on('log', log => {
     console.log(log);
 });
-tibberFeed.on("data", (data) => {
+tibberFeed.on('data', data => {
     console.log(data);
 });
 tibberFeed.connect();

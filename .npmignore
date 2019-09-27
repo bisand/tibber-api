@@ -3,7 +3,7 @@
 .vscode/
 _config.yml
 npm-release*
-tests/
-tibber-api-*.tgz
-examples/node_modules/
-examples/package-lock.json
+src
+tsconfig.json
+tslint.json
+.prettierrc

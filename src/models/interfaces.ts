@@ -1,65 +1,65 @@
-export enum Level {
-    Cheap = "CHEAP",
-    Expensive = "EXPENSIVE",
-    High = "HIGH",
-    Normal = "NORMAL",
-    VeryCheap = "VERY_CHEAP",
-    VeryExpensive = "VERY_EXPENSIVE",
+export enum ILevel {
+    Cheap = 'CHEAP',
+    Expensive = 'EXPENSIVE',
+    High = 'HIGH',
+    Normal = 'NORMAL',
+    VeryCheap = 'VERY_CHEAP',
+    VeryExpensive = 'VERY_EXPENSIVE',
 }
 
-export interface LiveMeasurement {
-    timestamp:              string;
-    power:                  number;
-    lastMeterConsumption:   number;
+export interface ILiveMeasurement {
+    timestamp: string;
+    power: number;
+    lastMeterConsumption: number;
     accumulatedConsumption: number;
-    accumulatedProduction:  number;
-    accumulatedCost:        number;
-    accumulatedReward:      number;
-    currency:               string;
-    minPower:               number;
-    averagePower:           number;
-    maxPower:               number;
-    powerProduction:        number;
-    minPowerProduction:     number;
-    maxPowerProduction:     number;
-    lastMeterProduction:    number;
-    powerFactor:            number;
-    voltagePhase1:          number;
-    voltagePhase2:          number;
-    voltagePhase3:          number;
-    currentPhase1:          number;
-    currentPhase2:          number;
-    currentPhase3:          number;
+    accumulatedProduction: number;
+    accumulatedCost: number;
+    accumulatedReward: number;
+    currency: string;
+    minPower: number;
+    averagePower: number;
+    maxPower: number;
+    powerProduction: number;
+    minPowerProduction: number;
+    maxPowerProduction: number;
+    lastMeterProduction: number;
+    powerFactor: number;
+    voltagePhase1: number;
+    voltagePhase2: number;
+    voltagePhase3: number;
+    currentPhase1: number;
+    currentPhase2: number;
+    currentPhase3: number;
 }
 
-export interface Address {
-    address1:   string;
-    address2:   string;
-    address3:   string;
+export interface IAddress {
+    address1: string;
+    address2: string;
+    address3: string;
     postalCode: string;
-    city:       string;
-    country:    string;
-    latitude:   string;
-    longitude:  string;
+    city: string;
+    country: string;
+    latitude: string;
+    longitude: string;
 }
 
-export interface CurrentSubscription {
-    id:        string;
+export interface ICurrentSubscription {
+    id: string;
     validFrom: string;
-    validTo:   null;
-    status:    string;
-    priceInfo: PriceInfo;
+    validTo: null;
+    status: string;
+    priceInfo: IPriceInfo;
 }
 
-export interface PriceInfo {
-    total:    number;
-    energy:   number;
-    tax:      number;
+export interface IPriceInfo {
+    total: number;
+    energy: number;
+    tax: number;
     startsAt: string;
-    level?:   Level;
+    level?: ILevel;
 }
 
-interface Consumption {
+interface IConsumption {
     from?: string;
     to?: string;
     unitPrice: number;
@@ -70,35 +70,35 @@ interface Consumption {
     currency: string;
 }
 
-export interface ContactInfo {
-    email:  string;
+export interface IContactInfo {
+    email: string;
     mobile: string;
 }
 
-export interface Home {
-    id:                   string;
-    timeZone:             string;
-    appNickname:          string;
-    appAvatar:            string;
-    size:                 number;
-    type:                 string;
-    numberOfResidents:    number;
+export interface IHome {
+    id: string;
+    timeZone: string;
+    appNickname: string;
+    appAvatar: string;
+    size: number;
+    type: string;
+    numberOfResidents: number;
     primaryHeatingSource: string;
     hasVentilationSystem: boolean;
-    mainFuseSize:         number;
-    owner:                LegalEntity;
-    address:              Address;
+    mainFuseSize: number;
+    owner: ILegalEntity;
+    address: IAddress;
 }
 
-export interface LegalEntity {
-    id:             string;
-    firstName:      string;
-    isCompany:      boolean;
-    name:           string;
-    middleName:     string;
-    lastName:       string;
+export interface ILegalEntity {
+    id: string;
+    firstName: string;
+    isCompany: boolean;
+    name: string;
+    middleName: string;
+    lastName: string;
     organizationNo: string;
-    language:       string;
-    contactInfo:    ContactInfo;
-    address:        Address;
+    language: string;
+    contactInfo: IContactInfo;
+    address: IAddress;
 }

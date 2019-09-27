@@ -1,5 +1,5 @@
-const TibberFeed = require("./nodes/TibberFeed");
-const TibberQuery = require("./nodes/TibberQuery");
-const urlValidator = require("./nodes/tools");
+import { TibberFeed } from './nodes/TibberFeed';
+import { TibberQuery } from './nodes/TibberQuery';
+import { UrlTools } from './nodes/tools';
 
-module.exports = { TibberFeed, TibberQuery, urlValidator };
+module.exports = { TibberFeed, TibberQuery, UrlTools };
