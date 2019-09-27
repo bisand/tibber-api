@@ -6,58 +6,60 @@ let server: WebSocket.Server;
 
 beforeAll(() => {
     server = new WebSocket.Server({ port: 1337 });
-    server.on('connection', function(socket: any) {
-        socket.on('message', function(msg: string) {
+    server.on('connection', socket => {
+        socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);
-            if (obj.type == 'connection_init' && obj.payload == 'token=1337') {
+            if (obj.type === 'connection_init' && obj.payload === 'token=1337') {
                 obj.type = 'connection_ack';
                 socket.send(JSON.stringify(obj));
             } else if (
-                obj.type == 'start' &&
+                obj.type === 'start' &&
                 obj.payload.query.startsWith('subscription{liveMeasurement(homeId:"1337"){')
             ) {
                 obj = {
-                    type: 'data',
                     payload: { data: { liveMeasurement: { value: 1337 } } },
+                    type: 'data',
                 };
                 socket.send(JSON.stringify(obj));
             }
         });
-        socket.on('close', function() {});
+        socket.on('close', () => {
+            return;
+        });
     });
 });
 
 afterAll(() => {
     if (server) {
         server.close();
-        server = undefined;
+        // server = undefined;
     }
 });
 
-test('TibberFeed - Should be created', function() {
-    expect(function() {
-        let feed = new TibberFeed({
+test('TibberFeed - Should be created', () => {
+    expect(() => {
+        const feed = new TibberFeed({
+            active: true,
             apiEndpoint: {
-                feedUrl: 'http://localhost:1337',
                 apiKey: '1337',
+                feedUrl: 'http://localhost:1337',
             },
             homeId: '1337',
-            active: true,
         });
         return feed;
-    }).toBeDefined;
+    }).toBeDefined();
 });
 
 test('TibberFeed -should be connected', done => {
-    let feed = new TibberFeed({
+    const feed = new TibberFeed({
+        active: true,
         apiEndpoint: {
-            feedUrl: 'http://localhost:1337',
             apiKey: '1337',
+            feedUrl: 'http://localhost:1337',
         },
         homeId: '1337',
-        active: true,
     });
-    feed.on('connection_ack', function(data: any) {
+    feed.on('connection_ack', (data: any) => {
         expect(data).toBeDefined();
         expect(data.payload).toBe('token=1337');
         feed.close();
@@ -67,15 +69,15 @@ test('TibberFeed -should be connected', done => {
 });
 
 test('TibberFeed - Should receive data', done => {
-    let feed = new TibberFeed({
+    const feed = new TibberFeed({
+        active: true,
         apiEndpoint: {
-            feedUrl: 'http://localhost:1337',
             apiKey: '1337',
+            feedUrl: 'http://localhost:1337',
         },
         homeId: '1337',
-        active: true,
     });
-    feed.on('data', function(data) {
+    feed.on('data', data => {
         expect(data).toBeDefined();
         expect(data.value).toBe(1337);
         feed.close();
@@ -85,40 +87,40 @@ test('TibberFeed - Should receive data', done => {
 });
 
 test('TibberFeed - Should be active', () => {
-    let feed = new TibberFeed({
+    const feed = new TibberFeed({
+        active: true,
         apiEndpoint: {
-            feedUrl: 'http://localhost:1337',
             apiKey: '1337',
+            feedUrl: 'http://localhost:1337',
         },
         homeId: '1337',
-        active: true,
     });
     expect(feed.active).toBe(true);
 });
 
-test('TibberFeed - Should be inactive', function() {
-    let feed = new TibberFeed({});
+test('TibberFeed - Should be inactive', () => {
+    const feed = new TibberFeed({ active: false, apiEndpoint: {} });
     expect(feed.active).toBe(false);
 });
 
 test('TibberFeed - Should timeout after 3 sec', done => {
-    this.timeout(10000);
-    let feed = new TibberFeed(
+    jest.setTimeout(10000);
+    const feed = new TibberFeed(
         {
+            active: true,
             apiEndpoint: {
-                feedUrl: 'http://localhost:1337',
                 apiKey: '1337',
+                feedUrl: 'http://localhost:1337',
             },
             homeId: '1337',
-            active: true,
         },
         3000,
     );
     let called = false;
-    feed.on('connection_ack', function(data) {
+    feed.on('connection_ack', data => {
         feed.heartbeat();
     });
-    feed.on('disconnected', function(data) {
+    feed.on('disconnected', data => {
         expect(data).toBeDefined();
         if (!called) {
             called = true;
@@ -130,27 +132,27 @@ test('TibberFeed - Should timeout after 3 sec', done => {
 });
 
 test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
-    this.timeout(10000);
-    let feed = new TibberFeed(
+    jest.setTimeout(10000);
+    const feed = new TibberFeed(
         {
+            active: true,
             apiEndpoint: {
-                feedUrl: 'http://localhost:1337',
                 apiKey: '1337',
+                feedUrl: 'http://localhost:1337',
             },
             homeId: '1337',
-            active: true,
         },
         1000,
     );
     let callCount = 0;
-    feed.on('connection_ack', function(data) {
+    feed.on('connection_ack', data => {
         expect(data).toBeDefined();
         expect(data.payload).toBe('token=1337');
         feed.heartbeat();
     });
-    feed.on('disconnected', function(data) {
-        expect(data).toBeDefined;
-        if (callCount == 4) {
+    feed.on('disconnected', data => {
+        expect(data).toBeDefined();
+        if (callCount === 4) {
             done();
             feed.close();
         }
