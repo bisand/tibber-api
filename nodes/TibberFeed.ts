@@ -6,7 +6,7 @@ export class TibberFeed extends EventEmitter {
     _timeout!: number;
     _config!: Config;
     _active!: boolean;
-    _hearbeatTimeouts!: number[];
+    _hearbeatTimeouts!: NodeJS.Timeout[];
     _isConnected!: boolean;
     _query!: {
         id: string;
