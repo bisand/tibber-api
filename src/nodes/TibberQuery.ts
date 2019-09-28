@@ -1,7 +1,8 @@
 import { IConfig } from '../models/config';
 import { GraphQLClient } from 'graphql-request';
-import { IHome } from '../models/interfaces';
+import { IHome } from "../models/IHome";
 import { homesGql } from '../gql/homes.gql';
+import { print } from 'graphql';
 
 export class TibberQuery {
     public active: boolean = false;
@@ -25,13 +26,8 @@ export class TibberQuery {
         }
     }
 
-    public async getHomes() {
-        const result = await this.query(homesGql);
-        return this.getObjectFromJSON<IHome>(result);
+    public async getHomes(): Promise<IHome[]> {
+        const result = await this.query(print(homesGql));
+        return result.viewer.homes;
     }
-
-    private getObjectFromJSON = <T>(json: string) : T => {
-        return JSON.parse(json);
-    }
-
 }

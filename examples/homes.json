@@ -1,0 +1,919 @@
+[
+    {
+      "id": "c70dcbe5-4485-4821-933d-a8a86452737b",
+      "timeZone": "Europe/Stockholm",
+      "appNickname": "Testvägen 72",
+      "appAvatar": "CASTLE",
+      "size": 250,
+      "type": "HOUSE",
+      "numberOfResidents": 4,
+      "primaryHeatingSource": "ELECTRICITY",
+      "hasVentilationSystem": false,
+      "mainFuseSize": null,
+      "address": {
+        "address1": "Kungsgatan 8",
+        "address2": null,
+        "address3": null,
+        "postalCode": "11759",
+        "city": "Stockholm",
+        "country": "SE",
+        "latitude": "59.3362066",
+        "longitude": "18.0675126"
+      },
+      "owner": {
+        "id": "fb97b1b6-8ca4-4c6c-a2a5-34acad93a73e",
+        "firstName": "Arya",
+        "isCompany": null,
+        "name": "Arya Stark",
+        "middleName": null,
+        "lastName": "Stark",
+        "organizationNo": null,
+        "language": "sv-SE",
+        "contactInfo": {
+          "email": "arya.stark@winterfell.com",
+          "mobile": null
+        },
+        "address": {
+          "address1": "Kungsgatan 8",
+          "address2": null,
+          "address3": null,
+          "city": "Stockholm",
+          "postalCode": "11759",
+          "country": "SE",
+          "latitude": "59.3362066",
+          "longitude": "18.0675126"
+        }
+      },
+      "meteringPointData": {
+        "consumptionEan": "demo-meteringpoint-2",
+        "gridCompany": "Ellevio AB",
+        "gridAreaCode": "STH",
+        "priceAreaCode": "SE3",
+        "productionEan": null,
+        "energyTaxType": "normal",
+        "vatType": "normal",
+        "estimatedAnnualConsumption": 16500
+      },
+      "currentSubscription": {
+        "id": "46459300-617a-47e9-8311-2ff522e7f206",
+        "subscriber": {
+          "id": "fb97b1b6-8ca4-4c6c-a2a5-34acad93a73e",
+          "firstName": "Arya",
+          "isCompany": null,
+          "name": "Arya Stark",
+          "middleName": null,
+          "lastName": "Stark",
+          "organizationNo": null,
+          "language": "sv-SE",
+          "contactInfo": {
+            "email": "arya.stark@winterfell.com",
+            "mobile": null
+          },
+          "address": {
+            "address1": "Kungsgatan 8",
+            "address2": null,
+            "address3": null,
+            "city": "Stockholm",
+            "postalCode": "11759",
+            "country": "SE",
+            "latitude": "59.3362066",
+            "longitude": "18.0675126"
+          }
+        },
+        "validFrom": "2016-04-30T22:00:00+00:00",
+        "validTo": null,
+        "status": "running",
+        "priceInfo": {
+          "current": {
+            "total": 0.4911,
+            "energy": 0.3629,
+            "tax": 0.1282,
+            "startsAt": "2019-09-28T19:00:00+02:00",
+            "level": "NORMAL",
+            "currency": "SEK"
+          },
+          "today": [
+            {
+              "total": 0.4596,
+              "energy": 0.3376,
+              "tax": 0.122,
+              "startsAt": "2019-09-28T00:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4551,
+              "energy": 0.3341,
+              "tax": 0.121,
+              "startsAt": "2019-09-28T01:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4368,
+              "energy": 0.3194,
+              "tax": 0.1174,
+              "startsAt": "2019-09-28T02:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4226,
+              "energy": 0.3081,
+              "tax": 0.1145,
+              "startsAt": "2019-09-28T03:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4236,
+              "energy": 0.3088,
+              "tax": 0.1148,
+              "startsAt": "2019-09-28T04:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4448,
+              "energy": 0.3259,
+              "tax": 0.1189,
+              "startsAt": "2019-09-28T05:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4357,
+              "energy": 0.3186,
+              "tax": 0.1171,
+              "startsAt": "2019-09-28T06:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.439,
+              "energy": 0.3212,
+              "tax": 0.1178,
+              "startsAt": "2019-09-28T07:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4779,
+              "energy": 0.3523,
+              "tax": 0.1256,
+              "startsAt": "2019-09-28T08:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4838,
+              "energy": 0.357,
+              "tax": 0.1268,
+              "startsAt": "2019-09-28T09:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4669,
+              "energy": 0.3435,
+              "tax": 0.1234,
+              "startsAt": "2019-09-28T10:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4613,
+              "energy": 0.339,
+              "tax": 0.1223,
+              "startsAt": "2019-09-28T11:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.458,
+              "energy": 0.3364,
+              "tax": 0.1216,
+              "startsAt": "2019-09-28T12:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4555,
+              "energy": 0.3344,
+              "tax": 0.1211,
+              "startsAt": "2019-09-28T13:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4534,
+              "energy": 0.3327,
+              "tax": 0.1207,
+              "startsAt": "2019-09-28T14:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4529,
+              "energy": 0.3323,
+              "tax": 0.1206,
+              "startsAt": "2019-09-28T15:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.457,
+              "energy": 0.3356,
+              "tax": 0.1214,
+              "startsAt": "2019-09-28T16:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4693,
+              "energy": 0.3454,
+              "tax": 0.1239,
+              "startsAt": "2019-09-28T17:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4871,
+              "energy": 0.3597,
+              "tax": 0.1274,
+              "startsAt": "2019-09-28T18:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4911,
+              "energy": 0.3629,
+              "tax": 0.1282,
+              "startsAt": "2019-09-28T19:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4778,
+              "energy": 0.3522,
+              "tax": 0.1256,
+              "startsAt": "2019-09-28T20:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4455,
+              "energy": 0.3264,
+              "tax": 0.1191,
+              "startsAt": "2019-09-28T21:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4348,
+              "energy": 0.3178,
+              "tax": 0.117,
+              "startsAt": "2019-09-28T22:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4368,
+              "energy": 0.3194,
+              "tax": 0.1174,
+              "startsAt": "2019-09-28T23:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            }
+          ],
+          "tomorrow": [
+            {
+              "total": 0.4492,
+              "energy": 0.3293,
+              "tax": 0.1199,
+              "startsAt": "2019-09-29T00:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4406,
+              "energy": 0.3225,
+              "tax": 0.1181,
+              "startsAt": "2019-09-29T01:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4205,
+              "energy": 0.3064,
+              "tax": 0.1141,
+              "startsAt": "2019-09-29T02:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4051,
+              "energy": 0.2941,
+              "tax": 0.111,
+              "startsAt": "2019-09-29T03:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4088,
+              "energy": 0.2971,
+              "tax": 0.1117,
+              "startsAt": "2019-09-29T04:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4174,
+              "energy": 0.3039,
+              "tax": 0.1135,
+              "startsAt": "2019-09-29T05:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.424,
+              "energy": 0.3092,
+              "tax": 0.1148,
+              "startsAt": "2019-09-29T06:00:00+02:00",
+              "level": "CHEAP",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4331,
+              "energy": 0.3165,
+              "tax": 0.1166,
+              "startsAt": "2019-09-29T07:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4442,
+              "energy": 0.3254,
+              "tax": 0.1188,
+              "startsAt": "2019-09-29T08:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4595,
+              "energy": 0.3376,
+              "tax": 0.1219,
+              "startsAt": "2019-09-29T09:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4663,
+              "energy": 0.343,
+              "tax": 0.1233,
+              "startsAt": "2019-09-29T10:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4648,
+              "energy": 0.3419,
+              "tax": 0.1229,
+              "startsAt": "2019-09-29T11:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4635,
+              "energy": 0.3408,
+              "tax": 0.1227,
+              "startsAt": "2019-09-29T12:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4612,
+              "energy": 0.339,
+              "tax": 0.1222,
+              "startsAt": "2019-09-29T13:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4615,
+              "energy": 0.3392,
+              "tax": 0.1223,
+              "startsAt": "2019-09-29T14:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4602,
+              "energy": 0.3381,
+              "tax": 0.1221,
+              "startsAt": "2019-09-29T15:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4624,
+              "energy": 0.34,
+              "tax": 0.1224,
+              "startsAt": "2019-09-29T16:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4721,
+              "energy": 0.3477,
+              "tax": 0.1244,
+              "startsAt": "2019-09-29T17:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4856,
+              "energy": 0.3585,
+              "tax": 0.1271,
+              "startsAt": "2019-09-29T18:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4947,
+              "energy": 0.3658,
+              "tax": 0.1289,
+              "startsAt": "2019-09-29T19:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4907,
+              "energy": 0.3626,
+              "tax": 0.1281,
+              "startsAt": "2019-09-29T20:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4784,
+              "energy": 0.3527,
+              "tax": 0.1257,
+              "startsAt": "2019-09-29T21:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4654,
+              "energy": 0.3423,
+              "tax": 0.1231,
+              "startsAt": "2019-09-29T22:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            {
+              "total": 0.4354,
+              "energy": 0.3183,
+              "tax": 0.1171,
+              "startsAt": "2019-09-29T23:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            }
+          ]
+        }
+      },
+      "subscriptions": [
+        {
+          "id": "46459300-617a-47e9-8311-2ff522e7f206",
+          "subscriber": {
+            "id": "fb97b1b6-8ca4-4c6c-a2a5-34acad93a73e",
+            "firstName": "Arya",
+            "isCompany": null,
+            "name": "Arya Stark",
+            "middleName": null,
+            "lastName": "Stark",
+            "organizationNo": null,
+            "language": "sv-SE",
+            "contactInfo": {
+              "email": "arya.stark@winterfell.com",
+              "mobile": null
+            },
+            "address": {
+              "address1": "Kungsgatan 8",
+              "address2": null,
+              "address3": null,
+              "city": "Stockholm",
+              "postalCode": "11759",
+              "country": "SE",
+              "latitude": "59.3362066",
+              "longitude": "18.0675126"
+            }
+          },
+          "validFrom": "2016-04-30T22:00:00+00:00",
+          "validTo": null,
+          "status": "running",
+          "priceInfo": {
+            "current": {
+              "total": 0.4911,
+              "energy": 0.3629,
+              "tax": 0.1282,
+              "startsAt": "2019-09-28T19:00:00+02:00",
+              "level": "NORMAL",
+              "currency": "SEK"
+            },
+            "today": [
+              {
+                "total": 0.4596,
+                "energy": 0.3376,
+                "tax": 0.122,
+                "startsAt": "2019-09-28T00:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4551,
+                "energy": 0.3341,
+                "tax": 0.121,
+                "startsAt": "2019-09-28T01:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4368,
+                "energy": 0.3194,
+                "tax": 0.1174,
+                "startsAt": "2019-09-28T02:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4226,
+                "energy": 0.3081,
+                "tax": 0.1145,
+                "startsAt": "2019-09-28T03:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4236,
+                "energy": 0.3088,
+                "tax": 0.1148,
+                "startsAt": "2019-09-28T04:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4448,
+                "energy": 0.3259,
+                "tax": 0.1189,
+                "startsAt": "2019-09-28T05:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4357,
+                "energy": 0.3186,
+                "tax": 0.1171,
+                "startsAt": "2019-09-28T06:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.439,
+                "energy": 0.3212,
+                "tax": 0.1178,
+                "startsAt": "2019-09-28T07:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4779,
+                "energy": 0.3523,
+                "tax": 0.1256,
+                "startsAt": "2019-09-28T08:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4838,
+                "energy": 0.357,
+                "tax": 0.1268,
+                "startsAt": "2019-09-28T09:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4669,
+                "energy": 0.3435,
+                "tax": 0.1234,
+                "startsAt": "2019-09-28T10:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4613,
+                "energy": 0.339,
+                "tax": 0.1223,
+                "startsAt": "2019-09-28T11:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.458,
+                "energy": 0.3364,
+                "tax": 0.1216,
+                "startsAt": "2019-09-28T12:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4555,
+                "energy": 0.3344,
+                "tax": 0.1211,
+                "startsAt": "2019-09-28T13:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4534,
+                "energy": 0.3327,
+                "tax": 0.1207,
+                "startsAt": "2019-09-28T14:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4529,
+                "energy": 0.3323,
+                "tax": 0.1206,
+                "startsAt": "2019-09-28T15:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.457,
+                "energy": 0.3356,
+                "tax": 0.1214,
+                "startsAt": "2019-09-28T16:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4693,
+                "energy": 0.3454,
+                "tax": 0.1239,
+                "startsAt": "2019-09-28T17:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4871,
+                "energy": 0.3597,
+                "tax": 0.1274,
+                "startsAt": "2019-09-28T18:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4911,
+                "energy": 0.3629,
+                "tax": 0.1282,
+                "startsAt": "2019-09-28T19:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4778,
+                "energy": 0.3522,
+                "tax": 0.1256,
+                "startsAt": "2019-09-28T20:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4455,
+                "energy": 0.3264,
+                "tax": 0.1191,
+                "startsAt": "2019-09-28T21:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4348,
+                "energy": 0.3178,
+                "tax": 0.117,
+                "startsAt": "2019-09-28T22:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4368,
+                "energy": 0.3194,
+                "tax": 0.1174,
+                "startsAt": "2019-09-28T23:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              }
+            ],
+            "tomorrow": [
+              {
+                "total": 0.4492,
+                "energy": 0.3293,
+                "tax": 0.1199,
+                "startsAt": "2019-09-29T00:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4406,
+                "energy": 0.3225,
+                "tax": 0.1181,
+                "startsAt": "2019-09-29T01:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4205,
+                "energy": 0.3064,
+                "tax": 0.1141,
+                "startsAt": "2019-09-29T02:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4051,
+                "energy": 0.2941,
+                "tax": 0.111,
+                "startsAt": "2019-09-29T03:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4088,
+                "energy": 0.2971,
+                "tax": 0.1117,
+                "startsAt": "2019-09-29T04:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4174,
+                "energy": 0.3039,
+                "tax": 0.1135,
+                "startsAt": "2019-09-29T05:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.424,
+                "energy": 0.3092,
+                "tax": 0.1148,
+                "startsAt": "2019-09-29T06:00:00+02:00",
+                "level": "CHEAP",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4331,
+                "energy": 0.3165,
+                "tax": 0.1166,
+                "startsAt": "2019-09-29T07:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4442,
+                "energy": 0.3254,
+                "tax": 0.1188,
+                "startsAt": "2019-09-29T08:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4595,
+                "energy": 0.3376,
+                "tax": 0.1219,
+                "startsAt": "2019-09-29T09:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4663,
+                "energy": 0.343,
+                "tax": 0.1233,
+                "startsAt": "2019-09-29T10:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4648,
+                "energy": 0.3419,
+                "tax": 0.1229,
+                "startsAt": "2019-09-29T11:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4635,
+                "energy": 0.3408,
+                "tax": 0.1227,
+                "startsAt": "2019-09-29T12:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4612,
+                "energy": 0.339,
+                "tax": 0.1222,
+                "startsAt": "2019-09-29T13:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4615,
+                "energy": 0.3392,
+                "tax": 0.1223,
+                "startsAt": "2019-09-29T14:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4602,
+                "energy": 0.3381,
+                "tax": 0.1221,
+                "startsAt": "2019-09-29T15:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4624,
+                "energy": 0.34,
+                "tax": 0.1224,
+                "startsAt": "2019-09-29T16:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4721,
+                "energy": 0.3477,
+                "tax": 0.1244,
+                "startsAt": "2019-09-29T17:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4856,
+                "energy": 0.3585,
+                "tax": 0.1271,
+                "startsAt": "2019-09-29T18:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4947,
+                "energy": 0.3658,
+                "tax": 0.1289,
+                "startsAt": "2019-09-29T19:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4907,
+                "energy": 0.3626,
+                "tax": 0.1281,
+                "startsAt": "2019-09-29T20:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4784,
+                "energy": 0.3527,
+                "tax": 0.1257,
+                "startsAt": "2019-09-29T21:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4654,
+                "energy": 0.3423,
+                "tax": 0.1231,
+                "startsAt": "2019-09-29T22:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              },
+              {
+                "total": 0.4354,
+                "energy": 0.3183,
+                "tax": 0.1171,
+                "startsAt": "2019-09-29T23:00:00+02:00",
+                "level": "NORMAL",
+                "currency": "SEK"
+              }
+            ]
+          }
+        }
+      ],
+      "features": {
+        "realTimeConsumptionEnabled": true
+      }
+    }
+  ]

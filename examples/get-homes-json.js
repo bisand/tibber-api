@@ -28,7 +28,7 @@ const server = http.createServer(async (req, res) => {
     let result = await tibberQuery.getHomes();
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result.viewer.homes));
+    res.end(JSON.stringify(result));
 });
 
 // Start web server.

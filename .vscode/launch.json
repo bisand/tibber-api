@@ -9,8 +9,9 @@
             "request": "launch",
             "name": "Run Example 1",
             "program": "${workspaceFolder}/examples/get-homes-json.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
-                "${workspaceFolder}/**/*.js"
+                "${workspaceFolder}/lib/**/*.js"
             ]
         }
     ]
