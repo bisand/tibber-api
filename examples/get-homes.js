@@ -1,7 +1,7 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberQuery = require("tibber-api").TibberQuery;
 
-const TibberQuery = require('../index').TibberQuery;
+const TibberQuery = require('../lib/index').TibberQuery;
 const http = require('http');
 
 const hostname = '127.0.0.1';

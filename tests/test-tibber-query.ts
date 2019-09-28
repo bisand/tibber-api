@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { TibberQuery } from '../index';
+import { TibberQuery } from '../src/index';
 
 const config = {
     apiEndpoint: { queryUrl: 'https://test.com', apiKey: '1337' },

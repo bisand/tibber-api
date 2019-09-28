@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { UrlTools } from '../index';
+import { UrlTools } from '../src/index';
 
 const urlTools = new UrlTools();
 test('Validate wss url should validate', () => {

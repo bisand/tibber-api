@@ -1,7 +1,7 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberFeed = require("tibber-api").TibberFeed;
 
-const TibberFeed = require('../index').TibberFeed;
+const TibberFeed = require('../lib/index').TibberFeed;
 
 // Config object needed when instantiating TibberQuery
 let config = {

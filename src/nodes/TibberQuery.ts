@@ -1,5 +1,6 @@
 import { IConfig } from '../models/config';
 import { GraphQLClient } from 'graphql-request';
+import { IHome } from '../models/interfaces';
 
 // const { GraphQLClient } = require('graphql-request');
 
@@ -17,11 +18,22 @@ export class TibberQuery {
         });
     }
 
-    public async query(query: any) {
+    public async query(query: string) {
         try {
             return await this._client.request(query);
         } catch (error) {
-            return { error: error };
+            return { error };
         }
     }
+
+    // public async getHomes(): IHome[] {
+    //     const query = "";
+    //     const result = await this.query(query);
+    //     return this.getObjectFromJSON<IHome>(result);
+    // }
+
+    private getObjectFromJSON = <T>(json: string) : T => {
+        return JSON.parse(json);
+    }
+
 }

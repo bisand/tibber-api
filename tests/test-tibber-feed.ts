@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import { TibberFeed } from '../index';
+import { TibberFeed } from '../src/index';
 import WebSocket from 'ws';
 
 let server: WebSocket.Server;
