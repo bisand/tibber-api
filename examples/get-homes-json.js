@@ -25,7 +25,7 @@ let tibberQuery = new TibberQuery(config);
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    let result = await tibberQuery.query(queryHomes);
+    let result = await tibberQuery.getHomes();
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result.viewer.homes));
