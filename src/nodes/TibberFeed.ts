@@ -216,7 +216,7 @@ export class TibberFeed extends EventEmitter {
         try {
             this.emit('log', message);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
         }
     }
 
@@ -224,7 +224,7 @@ export class TibberFeed extends EventEmitter {
         try {
             this.emit('warn', message);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
         }
     }
 
@@ -232,7 +232,7 @@ export class TibberFeed extends EventEmitter {
         try {
             this.emit('error', message);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
         }
     }
 }
