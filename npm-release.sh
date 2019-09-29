@@ -63,9 +63,10 @@ run() {
     fi
 }
 
-if [ "${RELEASE_TYPE}" = "patch" ] || [ "${RELEASE_TYPE}" = "minor" ] || [ "${RELEASE_TYPE}" = "major" ]
+if [ "${RELEASE_TYPE}" = "patch" ] || [ "${RELEASE_TYPE}" = "minor" ] || [ "${RELEASE_TYPE}" = "major" ||
+"${RELEASE_TYPE}" = "prepatch" ] || [ "${RELEASE_TYPE}" = "preminor" ] || [ "${RELEASE_TYPE}" = "premajor" ]
 then
     run
 else
-    echo "'${RELEASE_TYPE}' is not a valid release type. Please use 'patch', 'minor' or 'major'"
+    echo "'${RELEASE_TYPE}' is not a valid release type. Please use 'patch', 'minor', 'major', 'prepatch', 'preminor' or 'premajor'"
 fi
