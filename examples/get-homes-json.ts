@@ -1,37 +1,34 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberQuery = require("tibber-api").TibberQuery;
 
-const TibberQuery = require('../lib/index').TibberQuery;
-const http = require('http');
+import {TibberQuery} from '../src/index';
+import http from 'http';
 
 const hostname = '127.0.0.1';
 const port = 3000;
 
 // Config object needed when instantiating TibberQuery
-let config = {
+const config = {
     apiEndpoint: {
-        queryUrl: 'https://api.tibber.com/v1-beta/gql',
         apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };
 
 // GraphQL query
-let queryHomes =
+const queryHomes =
     '{viewer{homes{id size appNickname appAvatar address{address1 address2 address3 postalCode city country latitude longitude}}}}';
 
 // Instance of TibberQuery
-let tibberQuery = new TibberQuery(config);
+const tibberQuery = new TibberQuery(config);
 
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    let result = await tibberQuery.query(queryHomes);
+    const result = await tibberQuery.getHomes();
     res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html');
-    res.write('<html><body><h1>Hello Tibber API</h1>');
-    res.write('Home Id: ' + result.viewer.homes[0].id);
-    res.write('<br/>Address: ' + result.viewer.homes[0].address.address1);
-    res.end('</body></html>');
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(result));
 });
 
 // Start web server.
