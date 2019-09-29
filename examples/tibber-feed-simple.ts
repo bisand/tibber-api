@@ -14,7 +14,6 @@ const config: IConfig = {
     // Query configuration.
     homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
     timestamp: true,
-    // tslint:disable-next-line: object-literal-sort-keys
     power: true,
 };
 
