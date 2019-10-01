@@ -7,12 +7,18 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Run Example 1",
+            "name": "Run Web Server",
             "program": "${workspaceFolder}/examples/get-homes-json.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/lib/**/*.js"
-            ]
+            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Feed",
+            "program": "${workspaceFolder}/examples/tibber-feed-simple.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
         }
     ]
 }

@@ -9,8 +9,10 @@ const port = 3000;
 
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
+    active: true,
     apiEndpoint: {
         apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };

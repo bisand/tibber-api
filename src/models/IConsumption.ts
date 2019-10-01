@@ -1,6 +1,6 @@
-interface IConsumption {
-    from?: string;
-    to?: string;
+export interface IConsumption {
+    from: string;
+    to: string;
     unitPrice: number;
     unitPriceVAT: number;
     consumption: number;

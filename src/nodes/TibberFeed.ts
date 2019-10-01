@@ -1,34 +1,27 @@
 import { EventEmitter } from 'events';
-import { IConfig } from '../models/config';
+import { IConfig } from '../models/IConfig';
+import { IQuery, IQueryPayload } from '../models/IQuery';
 import WebSocket from 'ws';
 
 export class TibberFeed extends EventEmitter {
-    private _timeout!: number | 30000;
-    private _config!: IConfig;
-    private _active?: boolean | false;
-    private _hearbeatTimeouts!: NodeJS.Timeout[];
-    private _isConnected!: boolean;
-    private _query!: {
-        id: string;
-        type: string;
-        payload: {
-            variables: {};
-            extensions: {};
-            operationName: null;
-            query: string;
-        };
-    };
+    private _timeout: number;
+    private _config: IConfig;
+    private _active: boolean;
+    private _hearbeatTimeouts: NodeJS.Timeout[];
+    private _isConnected: boolean;
+    private _gql: string;
     private _webSocket!: WebSocket;
 
     constructor(config: IConfig, timeout = 30000) {
         super();
 
         const node = this;
-        node._timeout = timeout;
-        node._config = config;
-        node._active = config.active;
-        node._hearbeatTimeouts = [];
-        node._isConnected = false;
+        this._timeout = timeout;
+        this._config = config;
+        this._active = config.active;
+        this._hearbeatTimeouts = [];
+        this._isConnected = false;
+        this._gql = '';
 
         if (!config.apiEndpoint || !config.apiEndpoint.apiKey || !config.homeId || !config.apiEndpoint.feedUrl) {
             node._active = false;
@@ -37,84 +30,74 @@ export class TibberFeed extends EventEmitter {
             return;
         }
 
-        let _gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
+        this._gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
         if (node._config.timestamp) {
-            _gql += 'timestamp ';
+            this._gql += 'timestamp ';
         }
         if (node._config.power) {
-            _gql += 'power ';
+            this._gql += 'power ';
         }
         if (node._config.lastMeterConsumption) {
-            _gql += 'lastMeterConsumption ';
+            this._gql += 'lastMeterConsumption ';
         }
         if (node._config.accumulatedConsumption) {
-            _gql += 'accumulatedConsumption ';
+            this._gql += 'accumulatedConsumption ';
         }
         if (node._config.accumulatedProduction) {
-            _gql += 'accumulatedProduction ';
+            this._gql += 'accumulatedProduction ';
         }
         if (node._config.accumulatedCost) {
-            _gql += 'accumulatedCost ';
+            this._gql += 'accumulatedCost ';
         }
         if (node._config.accumulatedReward) {
-            _gql += 'accumulatedReward ';
+            this._gql += 'accumulatedReward ';
         }
         if (node._config.currency) {
-            _gql += 'currency ';
+            this._gql += 'currency ';
         }
         if (node._config.minPower) {
-            _gql += 'minPower ';
+            this._gql += 'minPower ';
         }
         if (node._config.averagePower) {
-            _gql += 'averagePower ';
+            this._gql += 'averagePower ';
         }
         if (node._config.maxPower) {
-            _gql += 'maxPower ';
+            this._gql += 'maxPower ';
         }
         if (node._config.powerProduction) {
-            _gql += 'powerProduction ';
+            this._gql += 'powerProduction ';
         }
         if (node._config.minPowerProduction) {
-            _gql += 'minPowerProduction ';
+            this._gql += 'minPowerProduction ';
         }
         if (node._config.maxPowerProduction) {
-            _gql += 'maxPowerProduction ';
+            this._gql += 'maxPowerProduction ';
         }
         if (node._config.lastMeterProduction) {
-            _gql += 'lastMeterProduction ';
+            this._gql += 'lastMeterProduction ';
         }
         if (node._config.powerFactor) {
-            _gql += 'powerFactor ';
+            this._gql += 'powerFactor ';
         }
         if (node._config.voltagePhase1) {
-            _gql += 'voltagePhase1 ';
+            this._gql += 'voltagePhase1 ';
         }
         if (node._config.voltagePhase2) {
-            _gql += 'voltagePhase2 ';
+            this._gql += 'voltagePhase2 ';
         }
         if (node._config.voltagePhase3) {
-            _gql += 'voltagePhase3 ';
+            this._gql += 'voltagePhase3 ';
         }
         if (node._config.currentPhase1) {
-            _gql += 'currentPhase1 ';
+            this._gql += 'currentPhase1 ';
         }
         if (node._config.currentPhase2) {
-            _gql += 'currentPhase2 ';
+            this._gql += 'currentPhase2 ';
         }
         if (node._config.currentPhase3) {
-            _gql += 'currentPhase3 ';
+            this._gql += 'currentPhase3 ';
         }
-        _gql += '}}';
-        node._query = {
-            id: '1',
-            payload: {
-                extensions: {},
-                operationName: null,
-                query: _gql,
-                variables: {},
-            },
-            type: 'start',
-        };
+        this._gql += '}}';
     }
 
     get active() {
@@ -141,9 +124,15 @@ export class TibberFeed extends EventEmitter {
             if (!node._webSocket) {
                 return;
             }
-            node._webSocket.send(
-                '{"type":"connection_init","payload":"token=' + node._config.apiEndpoint.apiKey + '"}',
-            );
+            const query: IQuery = {
+                id: '1',
+                type: 'connection_init',
+                payload: {
+                    token: node._config.apiEndpoint.apiKey,
+                } as IQueryPayload,
+            };
+            node._webSocket.send(JSON.stringify(query));
+            // node._webSocket.send('{"type":"connection_init","payload":"token=' + node._config.apiEndpoint.apiKey + '"}');
             node.emit('connected', 'Connected to Tibber feed.');
         });
 
@@ -153,7 +142,14 @@ export class TibberFeed extends EventEmitter {
                 if (msg.type === 'connection_ack') {
                     node._isConnected = true;
                     node.emit('connection_ack', msg);
-                    const str = JSON.stringify(node._query);
+                    const query: IQuery = {
+                        id: '1',
+                        type: 'start',
+                        payload: {
+                            query: node._gql,
+                        } as IQueryPayload,
+                    };
+                    const str = JSON.stringify(query);
                     if (node._webSocket) {
                         node._webSocket.send(str);
                     }
@@ -186,6 +182,7 @@ export class TibberFeed extends EventEmitter {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
+            // TODO: Implement connection_terminate functionality.
             if (node._isConnected) {
                 node._webSocket.close();
             }

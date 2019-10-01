@@ -12,10 +12,8 @@ beforeAll(() => {
             if (obj.type === 'connection_init' && obj.payload === 'token=1337') {
                 obj.type = 'connection_ack';
                 socket.send(JSON.stringify(obj));
-            } else if (
-                obj.type === 'start' &&
-                obj.payload.query.startsWith('subscription{liveMeasurement(homeId:"1337"){')
-            ) {
+            } else if (obj.type === 'start' ) {// && obj.payload.query.startsWith('subscription{liveMeasurement(homeId:"1337"){')) {
+                console.log(obj.payload.query);
                 obj = {
                     payload: { data: { liveMeasurement: { value: 1337 } } },
                     type: 'data',
@@ -43,6 +41,7 @@ test('TibberFeed - Should be created', () => {
             apiEndpoint: {
                 apiKey: '1337',
                 feedUrl: 'http://localhost:1337',
+                queryUrl: '',
             },
             homeId: '1337',
         });
@@ -56,6 +55,7 @@ test('TibberFeed -should be connected', done => {
         apiEndpoint: {
             apiKey: '1337',
             feedUrl: 'http://localhost:1337',
+            queryUrl: '',
         },
         homeId: '1337',
     });
@@ -74,6 +74,7 @@ test('TibberFeed - Should receive data', done => {
         apiEndpoint: {
             apiKey: '1337',
             feedUrl: 'http://localhost:1337',
+            queryUrl: '',
         },
         homeId: '1337',
     });
@@ -92,6 +93,7 @@ test('TibberFeed - Should be active', () => {
         apiEndpoint: {
             apiKey: '1337',
             feedUrl: 'http://localhost:1337',
+            queryUrl: '',
         },
         homeId: '1337',
     });
@@ -99,7 +101,7 @@ test('TibberFeed - Should be active', () => {
 });
 
 test('TibberFeed - Should be inactive', () => {
-    const feed = new TibberFeed({ active: false, apiEndpoint: {} });
+    const feed = new TibberFeed({ active: false, apiEndpoint: { apiKey: '', feedUrl: '', queryUrl: '' } });
     expect(feed.active).toBe(false);
 });
 
@@ -111,6 +113,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
             apiEndpoint: {
                 apiKey: '1337',
                 feedUrl: 'http://localhost:1337',
+                queryUrl: '',
             },
             homeId: '1337',
         },
@@ -139,6 +142,7 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
             apiEndpoint: {
                 apiKey: '1337',
                 feedUrl: 'http://localhost:1337',
+                queryUrl: '',
             },
             homeId: '1337',
         },

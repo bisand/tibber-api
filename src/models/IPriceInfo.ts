@@ -4,5 +4,5 @@ export interface IPriceInfo {
     energy: number;
     tax: number;
     startsAt: string;
-    level?: ILevel;
+    level: ILevel;
 }
