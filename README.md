@@ -137,7 +137,7 @@ tibberFeed.on('data', data => {
 tibberFeed.connect();
 ```
 
-TibberQuery:
+TibberQuery: typescript example.
 
 ```typescript
 import { TibberQuery, IConfig } from 'tibber-api';
@@ -176,6 +176,9 @@ server.listen(port, hostname, () => {
 ```
 
 ## Config object
+
+IConfig: typescript example.
+
 ```typescript
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
