@@ -1,8 +1,7 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberFeed = require("tibber-api").TibberFeed;
 
-import { TibberFeed } from '../src/index';
-import { IConfig } from '../src/models/config';
+import { TibberFeed, IConfig } from '../src/index';
 
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
@@ -17,8 +16,13 @@ const config: IConfig = {
     power: true,
 };
 
+// Instantiate TibberFeed.
 const tibberFeed = new TibberFeed(config);
+
+// Subscribe to "data" event.
 tibberFeed.on('data', data => {
     console.log(data);
 });
+
+// Connect to Tibber data feed
 tibberFeed.connect();

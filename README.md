@@ -107,85 +107,85 @@ Query Tibber API with GraphQL to retrieve data. See [Tibber documentation](https
 
 ## Examples
 
-TibberFeed:
+TibberFeed: typescript example.
 
-```javascript
-const TibberFeed = require("tibber-api").TibberFeed;
+```typescript
+import { TibberFeed, IConfig } from 'tibber-api';
 
 // Config object needed when instantiating TibberQuery
-let config = {
+const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        feedUrl: "wss://api.tibber.com/v1-beta/gql/subscriptions",
-        apiKey: "d1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a" // Demo token
+        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
     // Query configuration.
-    homeId: "c70dcbe5-4485-4821-933d-a8a86452737b",
+    homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
     timestamp: true,
     power: true,
 };
 
 // Instantiate TibberFeed.
-let tibberFeed = new TibberFeed(config);
+const tibberFeed = new TibberFeed(config);
 
 // Subscribe to "data" event.
-tibberFeed.on("data", (data) => {
+tibberFeed.on('data', data => {
     console.log(data);
 });
 
+// Connect to Tibber data feed
 tibberFeed.connect();
 ```
 
 TibberQuery:
 
-```javascript
-const TibberQuery = require("tibber-api").TibberQuery;
-const http = require("http");
+```typescript
+import { TibberQuery, IConfig } from 'tibber-api';
+import http from 'http';
 
-const hostname = "127.0.0.1";
+const hostname = '127.0.0.1';
 const port = 3000;
 
 // Config object needed when instantiating TibberQuery
-let config = {
-  apiEndpoint: {
-    queryUrl: "https://api.tibber.com/v1-beta/gql",
-    apiKey: "d1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a" // Demo token
-  }
+const config: IConfig = {
+    apiEndpoint: {
+        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
+    },
 };
 
 // GraphQL query
-let queryHomes =
-  "{viewer{homes{id size appNickname appAvatar address{address1 address2 address3 postalCode city country latitude longitude}}}}";
+const queryHomes = '{viewer{homes{id size appNickname appAvatar address{address1 address2 address3 postalCode city country latitude longitude}}}}';
 
 // Instance of TibberQuery
-let tibberQuery = new TibberQuery(config);
+const tibberQuery = new TibberQuery(config);
 
 // Simple web server.
 const server = http.createServer(async (req, res) => {
-  // Call the Tibber API and return the result.
-  let result = await tibberQuery.query(queryHomes);
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(result.viewer.homes));
+    // Call the Tibber API and return the result.
+    const result = await tibberQuery.getHomes();
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(result));
 });
 
 // Start web server.
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Server running at http://${hostname}:${port}/`);
 });
 ```
 
 ## Config object
-```javascript
-config = {
+```typescript
+// Config object needed when instantiating TibberQuery
+const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        queryUrl: "https://api.tibber.com/v1-beta/gql",
-        feedUrl: "wss://api.tibber.com/v1-beta/gql/subscriptions",
-        apiKey: "d1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a" // Demo token
+        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
-    // Query configuration only applicable to TibberFeed.
-    homeId: "c70dcbe5-4485-4821-933d-a8a86452737b",
+    // Query configuration.
+    homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
     timestamp: true,
     power: true,
     lastMeterConsumption: true,
@@ -208,7 +208,7 @@ config = {
     currentPhase1: true,
     currentPhase2: true,
     currentPhase3: true,
-}
+};
 ```
 
 ## License
