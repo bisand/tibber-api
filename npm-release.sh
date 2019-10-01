@@ -64,7 +64,7 @@ run() {
 }
 
 if [ "${RELEASE_TYPE}" = "patch" ] || [ "${RELEASE_TYPE}" = "minor" ] || [ "${RELEASE_TYPE}" = "major" ] ||
-    [ "${RELEASE_TYPE}" = "prepatch" ] || [ "${RELEASE_TYPE}" = "preminor" ] || [ "${RELEASE_TYPE}" = "premajor" ]
+    [ "${RELEASE_TYPE}" = "prepatch" ] || [ "${RELEASE_TYPE}" = "preminor" ] || [ "${RELEASE_TYPE}" = "premajor" ] || [ "${RELEASE_TYPE}" = "prerelease" ]
 then
     run
 else
