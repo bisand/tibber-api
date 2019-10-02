@@ -2,7 +2,7 @@
 import { TibberQuery } from '../src/index';
 
 const config = {
-    apiEndpoint: { queryUrl: 'https://test.com', apiKey: '1337' },
+    apiEndpoint: { queryUrl: 'https://test.com', feedUrl: 'https://test.com', apiKey: '1337' },
     active: false,
 };
 
