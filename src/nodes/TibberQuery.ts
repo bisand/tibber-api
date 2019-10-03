@@ -4,6 +4,8 @@ import { IHome } from '../models/IHome';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { IPriceInfo, IPrice } from '../models/IPriceInfo';
 import { gqlCurrentEnergyPrice } from '../gql/energy.gql';
+import { EnergyResolution } from '../models/EnergyResolution';
+import { gqlConsumption } from '../gql/consumption.gql';
 
 export class TibberQuery {
     public active: boolean;
@@ -19,9 +21,9 @@ export class TibberQuery {
         });
     }
 
-    public async query(query: string) {
+    public async query(query: string, variables?: object) {
         try {
-            return await this._client.request(query);
+            return await this._client.request(query, variables);
         } catch (error) {
             return { error };
         }
@@ -49,5 +51,15 @@ export class TibberQuery {
     public async getCurrentEnergyPrices(): Promise<IHome[]> {
         const result = await this.query(gqlCurrentEnergyPrice);
         return Object.assign([] as IHome[], result.viewer.homes);
+    }
+
+    public async getConsumption(homeId: string, resolution: EnergyResolution, lastCount: number): Promise<IHome> {
+        const variables = {resolution, lastCount};
+        const result = await this.query(gqlConsumption, variables);
+        const data: IHome = result.viewer.homes.filter((element: IHome) => element.id === homeId)[0];
+        return Object.assign(
+            {} as IHome,
+            data && data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.current : {},
+        );
     }
 }
