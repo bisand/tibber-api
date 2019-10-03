@@ -1,7 +1,9 @@
 import { IConfig } from '../models/IConfig';
 import { GraphQLClient } from 'graphql-request';
-import { IHome } from "../models/IHome";
-import { gqlHomes, gqlHomesComplete as gqlHomesComplete } from '../gql/homes.gql';
+import { IHome } from '../models/IHome';
+import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
+import { IPriceInfo, IPrice } from '../models/IPriceInfo';
+import { gqlCurrentEnergyPrice } from '../gql/energy.gql';
 
 export class TibberQuery {
     public active: boolean;
@@ -32,6 +34,20 @@ export class TibberQuery {
 
     public async getHomesComplete(): Promise<IHome[]> {
         const result = await this.query(gqlHomesComplete);
+        return Object.assign([] as IHome[], result.viewer.homes);
+    }
+
+    public async getCurrentEnergyPrice(homeId: string): Promise<IPrice> {
+        const result = await this.query(gqlCurrentEnergyPrice);
+        const data: IHome = result.viewer.homes.filter((element: IHome) => element.id === homeId)[0];
+        return Object.assign(
+            {} as IPrice,
+            data && data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.current : {},
+        );
+    }
+
+    public async getCurrentEnergyPrices(): Promise<IHome[]> {
+        const result = await this.query(gqlCurrentEnergyPrice);
         return Object.assign([] as IHome[], result.viewer.homes);
     }
 }
