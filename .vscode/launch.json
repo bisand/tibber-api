@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Run Current File",
-            "program": "${workspaceFolder}/examples/${fileBasename}",
+            "program": "${file}",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": ["${workspaceFolder}/lib/**/*.js"]
         },
@@ -30,26 +30,21 @@
             "internalConsoleOptions": "neverOpen",
             "disableOptimisticBPs": true,
             "windows": {
-              "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+                "program": "${workspaceFolder}/node_modules/jest/bin/jest"
             }
-          },
-          {
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Jest Current File",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": [
-              "${fileBasenameNoExtension}",
-              "--config",
-              "${workspaceFolder}/jestconfig.json"
-            ],
+            "args": ["${fileBasenameNoExtension}", "--config", "${workspaceFolder}/jestconfig.json"],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "disableOptimisticBPs": true,
             "windows": {
-              "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+                "program": "${workspaceFolder}/node_modules/jest/bin/jest"
             }
-          }
-      
+        }
     ]
 }

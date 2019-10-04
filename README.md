@@ -2,110 +2,215 @@
 
 Node.js module for querying data and integrating with Tibber Pulse through Tibber API.
 
-> *Warning! This is early stage development.*
+> _Warning! This is early stage development._
 
-|  Branch  | Status           |
-|----------|------------------|
-|develop   | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=develop)](https://travis-ci.org/bisand/tibber-api) |
-| master | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=master)](https://travis-ci.org/bisand/tibber-api) |
- 
-## General
+| Branch  | Status                                                                                                                 |
+| ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| develop | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=develop)](https://travis-ci.org/bisand/tibber-api) |
+| master  | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=master)](https://travis-ci.org/bisand/tibber-api)  |
+
+## **General**
 
 This Node.js module is used for communication with [Tibber API](https://developer.tibber.com/) through [GraphQL](https://developer.tibber.com/docs/overview) queries and for retrieving data from Tibber Pulse via websocket.
 [Tibber](https://tibber.com) is a norwegian technology focused power company which is providing tools to get more insight and controll over your home and its power consumption.
 
-## Prerequisites
+## **Prerequisites**
 
 Sign up here:
+
 > https://invite.tibber.com/9136154c
 
 You will also need an API token from Tibber. Get it here:
 
 > https://developer.tibber.com/
 
-## Installation
+## **Installation**
 
-### NPM package
+## NPM package
 
 > https://www.npmjs.com/package/tibber-api
 
-### Command line
+## Command line
 
 ```bash
 npm install tibber-api
 ```
 
-## Nodes
+## **Nodes**
 
-## TibberFeed
+## **TibberFeed**
 
 Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and select what kind of information you want to retrieve.
-> Note! There should be only one instance running of *TibberFeed* per API key. Doing otherwise may return unpredictable result, or even error responses from the API.
 
-### Constructor
+> Note! There should be only one instance running of _TibberFeed_ per API key. Doing otherwise may return unpredictable result, or even error responses from the API.
+
+## Constructor
 
 **TibberFeed(config, timeout = 30000)**
 
 Created a new instance of TibberFeed with the desired configuration and timeout. The timeout is used for reconnection when no data is received within the specified time. The config object is described later in this document.
 
-### Methods
+## Methods
 
-**Connect()**
+---
 
-Connect to Tibber Pulse realtime data feed.
+```typescript
+Connect();
+```
 
-**Close()**
+> Connect to Tibber Pulse realtime data feed.
 
-Disconnect from Tibber Pulse data feed.
+---
 
-### Events
+```typescript
+Close();
+```
 
-**connected**
+> Disconnect from Tibber Pulse data feed.
 
-Called when the feed is connected to Tibber.
+---
 
-**connection_ack**
+## Events
 
-Called when the feed is authenticated.
+```typescript
+connected(message: string)
+```
 
-**disconnected**
+> Called when the feed is connected to Tibber.
 
-Called when the feed is disconnected from Tibber.
+---
 
-**data**
+```typescript
+connection_ack(message: string)
+```
 
-Called when new data is available.
+> Called when the feed is authenticated.
 
-**error**
+---
 
-Called when the feed is logging errors.
+```typescript
+disconnected(message: string)
+```
 
-**warn**
+> Called when the feed is disconnected from Tibber.
 
-Called when the feed is logging warnings.
+---
 
-**log**
+```typescript
+data(data: any)
+```
 
-Called when the feed is logging.
+> Called when new data is available.
 
+---
 
-## TibberQuery
+```typescript
+error(error: any)
+```
+
+> Called when the feed is logging errors.
+
+---
+
+```typescript
+warn(message: string)
+```
+
+> Called when the feed is logging warnings.
+
+---
+
+```typescript
+log(message: string)
+```
+
+> Called when the feed is logging.
+
+---
+
+## **TibberQuery**
 
 Do basic calls to Tibber API using GraphQL queries. To query the Tibber API, simply provide raw GraphQL queries in the payload of the incoming message. See Tibber API documentation and API Explorer for more informations.
 
-### Constructor
+## Constructor
 
-**TibberQuery(config)**
+---
 
-Created a new instance of TibberQuery with the desired configuration. The config object is described later in this document.
+```typescript
+TibberQuery(config);
+```
 
-### Methods
+> Created a new instance of TibberQuery with the desired configuration. The config object is described later in this document.
 
-**query(graphQL-query)**
+---
 
-Query Tibber API with GraphQL to retrieve data. See [Tibber documentation](https://developer.tibber.com/docs/overview) for more information on QraphQL.
+## Methods
 
-## Examples
+---
+
+```typescript
+query(query: string, variables?: object): Promise<any>
+```
+
+> Query Tibber API with GraphQL to retrieve data. See [Tibber documentation](https://developer.tibber.com/docs/overview) for more information on QraphQL.
+
+---
+
+```typescript
+getHomes(): Promise<IHome[]>
+```
+
+> Get all homes registered to your Tibber account. This function will return a list of homes including general information. To retrieve complete Home objects, please use the getHomesComplete() function.
+
+---
+
+```typescript
+getHomesComplete(): Promise<IHome[]>
+```
+
+> Get all homes registeres to your Tibber account. This function will return a list of homes including all information.
+
+---
+
+```typescript
+getCurrentEnergyPrice(homeId: string): Promise<IPrice>
+```
+
+> Get the current energy price for selected home.
+
+---
+
+```typescript
+getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
+```
+
+> Get NorPool energy prices for today for selected home.
+
+---
+
+```typescript
+getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
+```
+
+> Get NorPool energy prices for tomorrow for selected home. This will only return data between 12:00 and 23:59
+
+---
+
+```typescript
+getCurrentEnergyPrices(): Promise<IHome[]>
+```
+
+> Get current energy prices for all your homes.
+
+---
+
+```typescript
+getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]>
+```
+
+> Get consumption for selected home, or all homes if homeId is not provided. EnergyResolution describes interval for data and lastCount specifies number of records to retrieve, returning the last number of records in the dataset.
+
+## **Examples**
 
 TibberFeed: typescript example.
 
@@ -163,7 +268,7 @@ const tibberQuery = new TibberQuery(config);
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    const result = await tibberQuery.getHomes();
+    const result = await tibberQuery.query(queryHomes);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));

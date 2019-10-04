@@ -1,5 +1,5 @@
 export const gqlHomes = `
-{
+query getHomes {
     viewer {
         homes {
             id
@@ -65,7 +65,7 @@ export const gqlHomes = `
 `;
 
 export const gqlHomesComplete = `
-{
+query getHomesComplete {
     viewer {
         homes {
             id

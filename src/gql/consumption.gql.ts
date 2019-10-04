@@ -1,5 +1,5 @@
 export const gqlConsumption = `
-query getMovie($resolution: EnergyResolution! $lastCount:Int!){
+query getConsumption($resolution: EnergyResolution! $lastCount:Int!){
   viewer {
     homes {
       id

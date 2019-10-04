@@ -17,9 +17,6 @@ const config: IConfig = {
     },
 };
 
-// GraphQL query
-const queryHomes = '{viewer{homes{id size appNickname appAvatar address{address1 address2 address3 postalCode city country latitude longitude}}}}';
-
 // Instance of TibberQuery
 const tibberQuery = new TibberQuery(config);
 
