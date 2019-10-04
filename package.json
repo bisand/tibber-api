@@ -22,7 +22,7 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "@types/node": "^12.7.8",
+    "@types/node": "^12.7.11",
     "@types/ws": "^6.0.3",
     "graphql-request": "^1.8.2",
     "ws": "^7.1.2"
@@ -30,8 +30,8 @@
   "devDependencies": {
     "@types/jest": "^24.0.18",
     "jest": "^24.9.0",
-    "prettier": "^1.18.2",
     "ts-jest": "^24.1.0",
+    "prettier": "^1.18.2",
     "tslint": "^5.20.0",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.6.3",
