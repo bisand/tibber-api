@@ -1,4 +1,5 @@
 export interface IConsumption {
+    homeId?: string;
     from: string;
     to: string;
     unitPrice: number;

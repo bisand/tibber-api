@@ -6,6 +6,7 @@ import { IPriceInfo, IPrice } from '../models/IPriceInfo';
 import { gqlCurrentEnergyPrice } from '../gql/energy.gql';
 import { EnergyResolution } from '../models/EnergyResolution';
 import { gqlConsumption } from '../gql/consumption.gql';
+import { IConsumption } from '../models/IConsumption';
 
 export class TibberQuery {
     public active: boolean;
@@ -53,13 +54,20 @@ export class TibberQuery {
         return Object.assign([] as IHome[], result.viewer.homes);
     }
 
-    public async getConsumption(homeId: string, resolution: EnergyResolution, lastCount: number): Promise<IHome> {
-        const variables = {resolution, lastCount};
+    public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]> {
+        const variables = { resolution, lastCount };
         const result = await this.query(gqlConsumption, variables);
-        const data: IHome = result.viewer.homes.filter((element: IHome) => element.id === homeId)[0];
-        return Object.assign(
-            {} as IHome,
-            data && data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.current : {},
-        );
+        if(!homeId) {
+            const consumptions = result.viewer.homes.map((item: IHome) => {
+                const nodes = item.consumption.nodes.map((node: IConsumption) => {
+                    node.homeId = item.id;
+                    return node;
+                });
+                return nodes;
+              });
+            return Object.assign([] as IConsumption[], consumptions);
+        }
+        const home: IHome = result.viewer.homes.filter((element: IHome) => element.id === homeId)[0];
+        return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
     }
 }

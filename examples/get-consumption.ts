@@ -24,7 +24,8 @@ const tibberQuery = new TibberQuery(config);
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    const result = await tibberQuery.getConsumption('c70dcbe5-4485-4821-933d-a8a86452737b', EnergyResolution.HOURLY, 10);
+    // const result = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
+    const result = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, 'c70dcbe5-4485-4821-933d-a8a86452737b');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));
