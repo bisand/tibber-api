@@ -4,7 +4,7 @@ import { IHome } from '../models/IHome';
 import { IPrice } from '../models/IPriceInfo';
 import { EnergyResolution } from '../models/EnergyResolution';
 import { IConsumption } from '../models/IConsumption';
-import { gqlConsumption } from '../gql/consumption.gql';
+import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices } from '../gql/energy.gql';
@@ -113,10 +113,14 @@ export class TibberQuery {
     }
 
     public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]> {
-        const variables = { resolution, lastCount };
-        const result = await this.query(gqlConsumption, variables);
-        if (result && result.viewer && Array.isArray(result.viewer.homes)) {
-            if (!homeId) {
+        const variables = { homeId, resolution, lastCount };
+        if (homeId) {
+            const result = await this.query(gqlHomeConsumption, variables);
+            const home: IHome = result.viewer.home;
+            return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
+        } else {
+            const result = await this.query(gqlHomesConsumption, variables);
+            if (result && result.viewer && Array.isArray(result.viewer.homes)) {
                 const consumptions = result.viewer.homes.map((item: IHome) => {
                     const nodes = item.consumption.nodes.map((node: IConsumption) => {
                         node.homeId = item.id;
@@ -126,9 +130,7 @@ export class TibberQuery {
                 });
                 return Object.assign([] as IConsumption[], consumptions);
             }
-            const home: IHome = result.viewer.homes.filter((element: IHome) => element.id === homeId)[0];
-            return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
+            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         }
-        return result && result.error ? result : {};
     }
 }
