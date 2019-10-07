@@ -1,7 +1,7 @@
 export const gqlConsumption = `
-query getConsumption($resolution: EnergyResolution! $lastCount:Int!){
+query getConsumption($homeId:ID! $resolution: EnergyResolution! $lastCount:Int!){
   viewer {
-    homes {
+    home(id:$homeId) {
       id
       consumption(resolution: $resolution, last: $lastCount) {
         nodes {

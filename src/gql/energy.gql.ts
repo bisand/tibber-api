@@ -1,7 +1,7 @@
 export const gqlCurrentEnergyPrice = `
-query getCurrentEnergyPrice {
+query getCurrentEnergyPrice($homeId:ID!) {
   viewer {
-    homes {
+    home(id:$homeId) {
       id
       currentSubscription{
         id
@@ -25,9 +25,9 @@ query getCurrentEnergyPrice {
 `;
 
 export const gqlTodaysEnergyPrices = `
-query getTodaysEnergyPrices {
+query getTodaysEnergyPrices($homeId:ID!) {
   viewer {
-    homes {
+    home(id:$homeId) {
       id
       currentSubscription {
         id
@@ -51,9 +51,9 @@ query getTodaysEnergyPrices {
 `;
 
 export const gqlTomorrowsEnergyPrices = `
-query getTomorrowsEnergyPrices {
+query getTomorrowsEnergyPrices($homeId:ID!) {
   viewer {
-    homes {
+    home(id:$homeId) {
       id
       currentSubscription {
         id
