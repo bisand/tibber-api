@@ -33,6 +33,7 @@ export class TibberQuery {
      * General GQL query
      * @param query GQL query.
      * @param variables Variables used by query parameter.
+     * @return Query result as JSON data
      */
     public async query(query: string, variables?: object): Promise<any> {
         try {
@@ -45,8 +46,9 @@ export class TibberQuery {
     /**
      * Get selected home with some selected properties, including address and owner.
      * @param homeId Tibber home ID
+     * @return IHome object
      */
-    public async getHome(homeId: string): Promise<IHome[]> {
+    public async getHome(homeId: string): Promise<IHome> {
         const variables = { homeId };
         const result = await this.query(gqlHome, variables);
         if (result && result.viewer && result.viewer.home) {
@@ -58,8 +60,9 @@ export class TibberQuery {
     /**
      * Get homes with all properties, including energy price, consumption and production.
      * @param homeId Tibber home ID
+     * @return IHome object
      */
-    public async getHomeComplete(homeId: string): Promise<IHome[]> {
+    public async getHomeComplete(homeId: string): Promise<IHome> {
         const variables = { homeId };
         const result = await this.query(gqlHomeComplete, variables);
         if (result && result.viewer && result.viewer.home) {
@@ -70,7 +73,7 @@ export class TibberQuery {
 
     /**
      * Get homes with some selected properties, including address and owner.
-     * Returns an array of IHome.
+     * @return Array of IHome.
      */
     public async getHomes(): Promise<IHome[]> {
         const result = await this.query(gqlHomes);
@@ -82,7 +85,7 @@ export class TibberQuery {
 
     /**
      * Get homes with all properties, including energy price, consumption and production.
-     * Returns an array of IHome
+     * @return Array of IHome
      */
     public async getHomesComplete(): Promise<IHome[]> {
         const result = await this.query(gqlHomesComplete);
@@ -94,8 +97,8 @@ export class TibberQuery {
 
     /**
      * Get current energy price for selected home.
-     * Returns IPrice
      * @param homeId Tibber home ID
+     * @return IPrice object
      */
     public async getCurrentEnergyPrice(homeId: string): Promise<IPrice> {
         const variables = { homeId };
@@ -111,8 +114,8 @@ export class TibberQuery {
     }
 
     /**
-     * Get current energy prices
-     * Returns an array of IPrice
+     * Get current energy prices from all homes registered to current user
+     * @return Array of IPrice
      */
     public async getCurrentEnergyPrices(): Promise<IPrice[]> {
         const result = await this.query(gqlCurrentEnergyPrices);
@@ -132,8 +135,8 @@ export class TibberQuery {
 
     /**
      * Get energy prices for today.
-     * Returns an array of IPrice
      * @param homeId Tibber home ID
+     * @return Array of IPrice
      */
     public async getTodaysEnergyPrices(homeId: string): Promise<IPrice[]> {
         const variables = { homeId };
@@ -150,8 +153,8 @@ export class TibberQuery {
 
     /**
      * Get energy prices for tomorrow. These will only be available between 12:00 and 23:59
-     * Returns an array of IPrice
      * @param homeId Tibber home ID
+     * @return Array of IPrice
      */
     public async getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]> {
         const variables = { homeId };
@@ -172,6 +175,7 @@ export class TibberQuery {
      * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
      * @param lastCount Return the last number of records
      * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
+     * @return Array of IConsumption
      */
     public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]> {
         const variables = { homeId, resolution, lastCount };
