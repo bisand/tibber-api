@@ -157,6 +157,22 @@ query(query: string, variables?: object): Promise<any>
 ---
 
 ```typescript
+getHome(homeId: string): Promise<IHome[]>
+```
+
+> Get home registered to your Tibber account from home ID. This function will return a IHome object including general information. To retrieve complete IHome object, please use the getHomeComplete(homeId: string) function.
+
+---
+
+```typescript
+getHomeComplete(homeId: string): Promise<IHome[]>
+```
+
+> Get home registered to your Tibber account from home ID. This function will return a home object including all information.
+
+---
+
+```typescript
 getHomes(): Promise<IHome[]>
 ```
 
@@ -168,7 +184,7 @@ getHomes(): Promise<IHome[]>
 getHomesComplete(): Promise<IHome[]>
 ```
 
-> Get all homes registeres to your Tibber account. This function will return a list of homes including all information.
+> Get all homes registered to your Tibber account. This function will return a list of homes including all information.
 
 ---
 
@@ -177,6 +193,14 @@ getCurrentEnergyPrice(homeId: string): Promise<IPrice>
 ```
 
 > Get the current energy price for selected home.
+
+---
+
+```typescript
+getCurrentEnergyPrices(): Promise<IHome[]>
+```
+
+> Get current energy prices for all your homes.
 
 ---
 
@@ -193,14 +217,6 @@ getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
 ```
 
 > Get NorPool energy prices for tomorrow for selected home. This will only return data between 12:00 and 23:59
-
----
-
-```typescript
-getCurrentEnergyPrices(): Promise<IHome[]>
-```
-
-> Get current energy prices for all your homes.
 
 ---
 
