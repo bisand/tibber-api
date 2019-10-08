@@ -12,6 +12,11 @@ export class TibberFeed extends EventEmitter {
     private _gql: string;
     private _webSocket!: WebSocket;
 
+    /**
+     * Constructor for creating a new instance if TibberFeed.
+     * @param config Config object
+     * @param timeout Reconnection timeout
+     */
     constructor(config: IConfig, timeout = 30000) {
         super();
 
@@ -116,6 +121,9 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
+    /**
+     * Connect to Tibber feed.
+     */
     public connect() {
         const node = this;
         node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
@@ -136,6 +144,10 @@ export class TibberFeed extends EventEmitter {
             node.emit('connected', 'Connected to Tibber feed.');
         });
 
+        /**
+         * Event: message
+         * Called when data is received from the feed.
+         */
         node._webSocket.on('message', (message: string) => {
             if (message.startsWith('{')) {
                 const msg = JSON.parse(message);
@@ -166,16 +178,27 @@ export class TibberFeed extends EventEmitter {
             }
         });
 
+        /**
+         * Event: close
+         * Called when feed is closed.
+         */
         node._webSocket.on('close', () => {
             node._isConnected = false;
             node.emit('disconnected', 'Disconnected from Tibber feed');
         });
 
+        /**
+         * Event: error
+         * Called when an error has occurred.
+         */
         node._webSocket.on('error', (error: any) => {
             node.error(error);
         });
     }
 
+    /**
+     * Close the Tibber feed.
+     */
     public close() {
         const node = this;
         node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
@@ -190,6 +213,10 @@ export class TibberFeed extends EventEmitter {
         node.log('Closed Tibber Feed.');
     }
 
+    /**
+     * Heartbeat function used to keep connection alive.
+     * Mostly for internal use, even if it is public.
+     */
     public heartbeat() {
         const node = this;
         for (let i = 0; i < node._hearbeatTimeouts.length; i++) {
@@ -209,6 +236,10 @@ export class TibberFeed extends EventEmitter {
         );
     }
 
+    /**
+     * Log function to emit log data to subscribers.
+     * @param message Log message
+     */
     private log(message: string) {
         try {
             this.emit('log', message);
@@ -217,6 +248,10 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
+    /**
+     * Log function to emit warning log data to subscribers.
+     * @param message Log message
+     */
     private warn(message: string) {
         try {
             this.emit('warn', message);
@@ -225,6 +260,10 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
+    /**
+     * Log function to emit error log data to subscribers.
+     * @param message Log message
+     */
     private error(message: any) {
         try {
             this.emit('error', message);
