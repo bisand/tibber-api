@@ -157,7 +157,7 @@ query(query: string, variables?: object): Promise<any>
 ---
 
 ```typescript
-getHome(homeId: string): Promise<IHome[]>
+getHome(homeId: string): Promise<IHome>
 ```
 
 > Get home registered to your Tibber account from home ID. This function will return a IHome object including general information. To retrieve complete IHome object, please use the getHomeComplete(homeId: string) function.
@@ -165,7 +165,7 @@ getHome(homeId: string): Promise<IHome[]>
 ---
 
 ```typescript
-getHomeComplete(homeId: string): Promise<IHome[]>
+getHomeComplete(homeId: string): Promise<IHome>
 ```
 
 > Get home registered to your Tibber account from home ID. This function will return a home object including all information.
