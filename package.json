@@ -12,7 +12,6 @@
     "test": "jest --config jestconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
-    "prepare": "tsc",
     "preversion": "npm test",
     "version": "",
     "postversion": ""
