@@ -1,3 +1,29 @@
+export const gqlCurrentEnergyPrices = `
+query getCurrentEnergyPrice {
+  viewer {
+    homes {
+      id
+      currentSubscription{
+        id
+        validFrom
+        validTo
+        status
+        priceInfo{
+          current{
+            total
+            energy
+            tax
+            startsAt
+            currency
+            level            
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
 export const gqlCurrentEnergyPrice = `
 query getCurrentEnergyPrice($homeId:ID!) {
   viewer {

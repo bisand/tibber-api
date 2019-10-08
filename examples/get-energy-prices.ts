@@ -23,9 +23,10 @@ const tibberQuery = new TibberQuery(config);
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    const result = await tibberQuery.getTodaysEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    // const result = await tibberQuery.getTodaysEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
     // const result = await tibberQuery.getTomorrowsEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
     // const result = await tibberQuery.getCurrentEnergyPrices();
+    const result = await tibberQuery.getCurrentEnergyPrice('c70dcbe5-4485-4821-933d-a8a86452737b');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));
