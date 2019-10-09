@@ -181,8 +181,11 @@ export class TibberQuery {
         const variables = { homeId, resolution, lastCount };
         if (homeId) {
             const result = await this.query(gqlHomeConsumption, variables);
-            const home: IHome = result.viewer.home;
-            return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
+            if (result && result.viewer && result.viewer.home) {
+                const home: IHome = result.viewer.home;
+                return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
+            }
+            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         } else {
             const result = await this.query(gqlHomesConsumption, variables);
             if (result && result.viewer && Array.isArray(result.viewer.homes)) {
