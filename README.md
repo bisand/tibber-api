@@ -2,8 +2,6 @@
 
 Node.js module for querying data and integrating with Tibber Pulse through Tibber API.
 
-> _Warning! This is early stage development._
-
 | Branch  | Status                                                                                                                 |
 | ------- | ---------------------------------------------------------------------------------------------------------------------- |
 | develop | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=develop)](https://travis-ci.org/bisand/tibber-api) |
