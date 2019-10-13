@@ -23,6 +23,7 @@ execute() {
         # [ `git rev-list HEAD...origin/${DEV_BRANCH_NAME} --count` != 0 ] &&
         git merge origin/${DEV_BRANCH_NAME}
     then
+        npm install
         echo "Performing ${RELEASE_TYPE} release preparations..."
         if npm version ${RELEASE_TYPE} -m "Release version %s"
         then
