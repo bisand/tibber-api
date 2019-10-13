@@ -147,6 +147,12 @@ TibberQuery(config);
 ---
 
 ```typescript
+/**
+ * General GQL query
+ * @param query GQL query.
+ * @param variables Variables used by query parameter.
+ * @return Query result as JSON data
+ */
 query(query: string, variables?: object): Promise<any>
 ```
 
@@ -155,6 +161,11 @@ query(query: string, variables?: object): Promise<any>
 ---
 
 ```typescript
+/**
+ * Get selected home with some selected properties, including address and owner.
+ * @param homeId Tibber home ID
+ * @return IHome object
+ */
 getHome(homeId: string): Promise<IHome>
 ```
 
@@ -163,6 +174,11 @@ getHome(homeId: string): Promise<IHome>
 ---
 
 ```typescript
+/**
+ * Get homes with all properties, including energy price, consumption and production.
+ * @param homeId Tibber home ID
+ * @return IHome object
+ */
 getHomeComplete(homeId: string): Promise<IHome>
 ```
 
@@ -171,6 +187,10 @@ getHomeComplete(homeId: string): Promise<IHome>
 ---
 
 ```typescript
+/**
+ * Get homes with some selected properties, including address and owner.
+ * @return Array of IHome.
+ */
 getHomes(): Promise<IHome[]>
 ```
 
@@ -179,6 +199,10 @@ getHomes(): Promise<IHome[]>
 ---
 
 ```typescript
+/**
+ * Get homes with all properties, including energy price, consumption and production.
+ * @return Array of IHome
+ */
 getHomesComplete(): Promise<IHome[]>
 ```
 
@@ -187,6 +211,11 @@ getHomesComplete(): Promise<IHome[]>
 ---
 
 ```typescript
+/**
+ * Get current energy price for selected home.
+ * @param homeId Tibber home ID
+ * @return IPrice object
+ */
 getCurrentEnergyPrice(homeId: string): Promise<IPrice>
 ```
 
@@ -195,6 +224,10 @@ getCurrentEnergyPrice(homeId: string): Promise<IPrice>
 ---
 
 ```typescript
+/**
+ * Get current energy prices from all homes registered to current user
+ * @return Array of IPrice
+ */
 getCurrentEnergyPrices(): Promise<IHome[]>
 ```
 
@@ -203,6 +236,11 @@ getCurrentEnergyPrices(): Promise<IHome[]>
 ---
 
 ```typescript
+/**
+ * Get energy prices for today.
+ * @param homeId Tibber home ID
+ * @return Array of IPrice
+ */
 getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
 ```
 
@@ -211,6 +249,11 @@ getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
 ---
 
 ```typescript
+/**
+ * Get energy prices for tomorrow. These will only be available between 12:00 and 23:59
+ * @param homeId Tibber home ID
+ * @return Array of IPrice
+ */
 getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
 ```
 
@@ -219,6 +262,14 @@ getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
 ---
 
 ```typescript
+/**
+ * Get energy consumption for one or more homes.
+ * Returns an array of IConsumption
+ * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+ * @param lastCount Return the last number of records
+ * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
+ * @return Array of IConsumption
+ */
 getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]>
 ```
 
