@@ -46,11 +46,11 @@ Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and
 
 ```typescript
 /**
-    * Constructor for creating a new instance if TibberFeed.
-    * @param config IConfig object
-    * @param timeout Reconnection timeout
-    * @see IConfig
-    */
+ * Constructor for creating a new instance if TibberFeed.
+ * @param config IConfig object
+ * @param timeout Reconnection timeout
+ * @see IConfig
+ */
 TibberFeed(config: IConfig, timeout: number = 30000)
 ```
 
