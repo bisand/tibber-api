@@ -17,7 +17,8 @@ export class TibberQuery {
     /**
      * Constructor
      * Create an instace of TibberQuery class
-     * @param config Config object
+     * @param config IConfig object
+     * @see IConfig
      */
     constructor(config: IConfig) {
         this.active = false;

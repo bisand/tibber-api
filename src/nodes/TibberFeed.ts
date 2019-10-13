@@ -14,10 +14,11 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Constructor for creating a new instance if TibberFeed.
-     * @param config Config object
+     * @param config IConfig object
      * @param timeout Reconnection timeout
+     * @see IConfig
      */
-    constructor(config: IConfig, timeout = 30000) {
+    constructor(config: IConfig, timeout: number = 30000) {
         super();
 
         const node = this;
@@ -128,6 +129,10 @@ export class TibberFeed extends EventEmitter {
         const node = this;
         node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
 
+        /**
+         * Event: open
+         * Called when websocket connection is established.
+         */
         node._webSocket.on('open', () => {
             if (!node._webSocket) {
                 return;

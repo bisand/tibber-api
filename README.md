@@ -44,15 +44,26 @@ Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and
 
 ## Constructor
 
-**TibberFeed(config, timeout = 30000)**
+```typescript
+/**
+    * Constructor for creating a new instance if TibberFeed.
+    * @param config IConfig object
+    * @param timeout Reconnection timeout
+    * @see IConfig
+    */
+TibberFeed(config: IConfig, timeout: number = 30000)
+```
 
-Created a new instance of TibberFeed with the desired configuration and timeout. The timeout is used for reconnection when no data is received within the specified time. The config object is described later in this document.
+> Created a new instance of TibberFeed with the desired configuration and timeout. The timeout is used for reconnection when no data is received within the specified time. The config object is described later in this document.
 
 ## Methods
 
 ---
 
 ```typescript
+/**
+ * Connect to Tibber feed.
+ */
 Connect();
 ```
 
@@ -61,6 +72,9 @@ Connect();
 ---
 
 ```typescript
+/**
+ * Close the Tibber feed.
+ */
 Close();
 ```
 
@@ -71,6 +85,11 @@ Close();
 ## Events
 
 ```typescript
+/**
+ * Event: open
+ * Called when websocket connection is established.
+ * @message Information message.
+ */
 connected(message: string)
 ```
 
@@ -79,6 +98,11 @@ connected(message: string)
 ---
 
 ```typescript
+/**
+ * Event: connection_ack
+ * Called when websocket connection is authenticated.
+ * @message Information message.
+ */
 connection_ack(message: string)
 ```
 
@@ -87,6 +111,11 @@ connection_ack(message: string)
 ---
 
 ```typescript
+/**
+ * Event: disconnected
+ * Called when websocket connection is disconnected.
+ * @message Information message.
+ */
 disconnected(message: string)
 ```
 
@@ -95,6 +124,12 @@ disconnected(message: string)
 ---
 
 ```typescript
+/**
+ * Event: data
+ * Called when data is received through the websocket connection.
+ * @data Incoming data message from Tibber API {@link https://developer.tibber.com/docs/reference}.
+ * @see any
+ */
 data(data: any)
 ```
 
@@ -103,6 +138,10 @@ data(data: any)
 ---
 
 ```typescript
+/**
+ * Log function to emit error log data to subscribers.
+ * @param message Log message
+ */
 error(error: any)
 ```
 
@@ -111,6 +150,10 @@ error(error: any)
 ---
 
 ```typescript
+/**
+ * Log function to emit warning log data to subscribers.
+ * @param message Log message
+ */
 warn(message: string)
 ```
 
@@ -119,6 +162,10 @@ warn(message: string)
 ---
 
 ```typescript
+/**
+ * Log function to emit log data to subscribers.
+ * @param message Log message
+ */
 log(message: string)
 ```
 
@@ -135,7 +182,13 @@ Do basic calls to Tibber API using GraphQL queries. To query the Tibber API, sim
 ---
 
 ```typescript
-TibberQuery(config);
+/**
+ * Constructor
+ * Create an instace of TibberQuery class
+ * @param config IConfig object
+ * @see IConfig
+ */
+TibberQuery(config: IConfig);
 ```
 
 > Created a new instance of TibberQuery with the desired configuration. The config object is described later in this document.
