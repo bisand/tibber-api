@@ -7,12 +7,12 @@ Node.js module for querying data and integrating with Tibber Pulse through Tibbe
 | develop | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=develop)](https://travis-ci.org/bisand/tibber-api) |
 | master  | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=master)](https://travis-ci.org/bisand/tibber-api)  |
 
-## **_General_**
+## General
 
 This Node.js module is used for communication with [Tibber API](https://developer.tibber.com/) through [GraphQL](https://developer.tibber.com/docs/overview) queries and for retrieving data from Tibber Pulse via websocket.
 [Tibber](https://tibber.com) is a norwegian technology focused power company which is providing tools to get more insight and controll over your home and its power consumption.
 
-## **_Prerequisites_**
+## Prerequisites
 
 Sign up here:
 
@@ -22,25 +22,25 @@ You will also need an API token from Tibber. Get it here:
 
 > https://developer.tibber.com/
 
-## **_Installation_**
+## Installation
 
-## NPM package
+### NPM package
 
 > https://www.npmjs.com/package/tibber-api
 
-## Command line
+### Command line
 
 ```bash
 npm install tibber-api
 ```
 
-# TibberFeed
+## TibberFeed
 
 Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and select what kind of information you want to retrieve.
 
 > Note! There should be only one instance running of _TibberFeed_ per API key. Doing otherwise may return unpredictable result, or even error responses from the API.
 
-## **_Constructor_**
+### Constructor
 
 ```typescript
 /**
@@ -54,9 +54,9 @@ TibberFeed(config: IConfig, timeout: number = 30000)
 
 > Created a new instance of TibberFeed with the desired configuration and timeout. The timeout is used for reconnection when no data is received within the specified time. The config object is described later in this document.
 
-## **_Methods_**
+## Methods
 
-## Connect
+### Connect
 
 ```typescript
 /**
@@ -67,7 +67,7 @@ Connect();
 
 > Connect to Tibber Pulse realtime data feed.
 
-## Close
+### Close
 
 ```typescript
 /**
@@ -78,9 +78,9 @@ Close();
 
 > Disconnect from Tibber Pulse data feed.
 
-## **_Events_**
+## Events
 
-## connected
+### connected
 
 ```typescript
 /**
@@ -93,7 +93,7 @@ connected(message: string)
 
 > Called when the feed is connected to Tibber.
 
-## connection_ack
+### connection_ack
 
 ```typescript
 /**
@@ -106,7 +106,7 @@ connection_ack(message: string)
 
 > Called when the feed is authenticated.
 
-## disconnected
+### disconnected
 
 ```typescript
 /**
@@ -119,7 +119,7 @@ disconnected(message: string)
 
 > Called when the feed is disconnected from Tibber.
 
-## data
+### data
 
 ```typescript
 /**
@@ -133,7 +133,7 @@ data(data: any)
 
 > Called when new data is available.
 
-## error
+### error
 
 ```typescript
 /**
@@ -145,7 +145,7 @@ error(error: any)
 
 > Called when the feed is logging errors.
 
-## warn
+### warn
 
 ```typescript
 /**
@@ -157,7 +157,7 @@ warn(message: string)
 
 > Called when the feed is logging warnings.
 
-## log
+### log
 
 ```typescript
 /**
@@ -169,11 +169,11 @@ log(message: string)
 
 > Called when the feed is logging.
 
-# TibberQuery
+## TibberQuery
 
 Do basic calls to Tibber API using GraphQL queries. To query the Tibber API, simply provide raw GraphQL queries in the payload of the incoming message. See Tibber API documentation and API Explorer for more informations.
 
-## **_Constructor_**
+### Constructor
 
 ```typescript
 /**
@@ -187,9 +187,9 @@ TibberQuery(config: IConfig);
 
 > Created a new instance of TibberQuery with the desired configuration. The config object is described later in this document.
 
-## **_Methods_**
+## Methods
 
-## query
+### query
 
 ```typescript
 /**
@@ -203,7 +203,7 @@ query(query: string, variables?: object): Promise<any>
 
 > Query Tibber API with GraphQL to retrieve data. See [Tibber documentation](https://developer.tibber.com/docs/overview) for more information on QraphQL.
 
-## getHome
+### getHome
 
 ```typescript
 /**
@@ -216,7 +216,7 @@ getHome(homeId: string): Promise<IHome>
 
 > Get home registered to your Tibber account from home ID. This function will return a IHome object including general information. To retrieve complete IHome object, please use the getHomeComplete(homeId: string) function.
 
-## getHomeComplete
+### getHomeComplete
 
 ```typescript
 /**
@@ -229,7 +229,7 @@ getHomeComplete(homeId: string): Promise<IHome>
 
 > Get home registered to your Tibber account from home ID. This function will return a home object including all information.
 
-## getHomes
+### getHomes
 
 ```typescript
 /**
@@ -241,7 +241,7 @@ getHomes(): Promise<IHome[]>
 
 > Get all homes registered to your Tibber account. This function will return a list of homes including general information. To retrieve complete Home objects, please use the getHomesComplete() function.
 
-## getHomesComplete
+### getHomesComplete
 
 ```typescript
 /**
@@ -253,7 +253,7 @@ getHomesComplete(): Promise<IHome[]>
 
 > Get all homes registered to your Tibber account. This function will return a list of homes including all information.
 
-## getCurrentEnergyPrice
+### getCurrentEnergyPrice
 
 ```typescript
 /**
@@ -266,7 +266,7 @@ getCurrentEnergyPrice(homeId: string): Promise<IPrice>
 
 > Get the current energy price for selected home.
 
-## getCurrentEnergyPrices
+### getCurrentEnergyPrices
 
 ```typescript
 /**
@@ -278,7 +278,7 @@ getCurrentEnergyPrices(): Promise<IHome[]>
 
 > Get current energy prices for all your homes.
 
-## getTodaysEnergyPrices
+### getTodaysEnergyPrices
 
 ```typescript
 /**
@@ -291,7 +291,7 @@ getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
 
 > Get NorPool energy prices for today for selected home.
 
-## getTomorrowsEnergyPrices
+### getTomorrowsEnergyPrices
 
 ```typescript
 /**
@@ -304,7 +304,7 @@ getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
 
 > Get NorPool energy prices for tomorrow for selected home. This will only return data between 12:00 and 23:59
 
-## getConsumption
+### getConsumption
 
 ```typescript
 /**
@@ -320,7 +320,7 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 
 > Get consumption for selected home, or all homes if homeId is not provided. EnergyResolution describes interval for data and lastCount specifies number of records to retrieve, returning the last number of records in the dataset.
 
-# Examples
+## Examples
 
 TibberFeed: typescript example.
 
