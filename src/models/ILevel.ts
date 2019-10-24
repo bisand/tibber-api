@@ -4,5 +4,5 @@ export enum ILevel {
     High = 'HIGH',
     Normal = 'NORMAL',
     VeryCheap = 'VERY_CHEAP',
-    VeryExpensive = 'VERY_EXPENSIVE'
+    VeryExpensive = 'VERY_EXPENSIVE',
 }

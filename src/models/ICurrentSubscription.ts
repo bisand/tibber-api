@@ -1,4 +1,4 @@
-import { IPriceInfo } from "./IPriceInfo";
+import { IPriceInfo } from './IPriceInfo';
 export interface ICurrentSubscription {
     id: string;
     validFrom: string;

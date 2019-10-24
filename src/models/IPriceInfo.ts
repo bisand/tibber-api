@@ -1,4 +1,4 @@
-import { ILevel } from "./ILevel";
+import { ILevel } from './ILevel';
 export interface IPriceInfo {
     current?: IPrice;
     today?: IPrice;

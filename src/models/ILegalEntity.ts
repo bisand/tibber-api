@@ -1,5 +1,5 @@
-import { IAddress } from "./IAddress";
-import { IContactInfo } from "./IContactInfo";
+import { IAddress } from './IAddress';
+import { IContactInfo } from './IContactInfo';
 export interface ILegalEntity {
     id: string;
     firstName: string;

@@ -1,5 +1,5 @@
-import { IPriceInfo } from "./IPriceInfo";
-import { ILegalEntity } from "./ILegalEntity";
+import { IPriceInfo } from './IPriceInfo';
+import { ILegalEntity } from './ILegalEntity';
 export interface ISubscription {
     id: string;
     subscriber: ILegalEntity;
