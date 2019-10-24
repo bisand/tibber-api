@@ -205,8 +205,8 @@ export class TibberFeed extends EventEmitter {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
-            node.terminateConnection(node);
             if (node._isConnected) {
+                node.terminateConnection(node);
                 node._webSocket.close();
             }
         }
@@ -254,6 +254,7 @@ export class TibberFeed extends EventEmitter {
             type: 'connection_terminate',
         };
         node.sendQuery(node, query);
+        node.emit('disconnected', 'Sent connection_terminate to Tibber feed.');
     }
 
     private sendQuery(node: this, query: IQuery) {

@@ -21,8 +21,21 @@ const config: IConfig = {
 // Instantiate TibberFeed.
 const tibberFeed = new TibberFeed(config);
 
+var counter = 0;
 // Subscribe to "data" event.
 tibberFeed.on('data', data => {
+    // Close connection after receiving more tham 10 messages.
+    if(counter++ >= 10){
+        tibberFeed.close();
+    }
+    console.log(counter +' - ' + data);
+});
+
+tibberFeed.on('connected', data => {
+    console.log(data);
+});
+
+tibberFeed.on('disconnected', data => {
     console.log(data);
 });
 
