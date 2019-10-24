@@ -137,19 +137,7 @@ export class TibberFeed extends EventEmitter {
             if (!node._webSocket) {
                 return;
             }
-            const query: IQuery = {
-                id: '1',
-                type: 'connection_init',
-                payload: {
-                    token: node._config.apiEndpoint.apiKey,
-                } as IQueryPayload,
-            };
-            try {
-                node._webSocket.send(JSON.stringify(query));
-                node.emit('connected', 'Connected to Tibber feed.');
-            } catch (error) {
-                node.error(error);
-            }
+            node.initConnection(node);
         });
 
         /**
@@ -217,7 +205,7 @@ export class TibberFeed extends EventEmitter {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
-            // TODO: Implement connection_terminate functionality.
+            node.terminateConnection(node);
             if (node._isConnected) {
                 node._webSocket.close();
             }
@@ -246,6 +234,35 @@ export class TibberFeed extends EventEmitter {
                 }
             }, node._timeout),
         );
+    }
+
+    private initConnection(node: this) {
+        const query: IQuery = {
+            id: '1',
+            type: 'connection_init',
+            payload: {
+                token: node._config.apiEndpoint.apiKey,
+            } as IQueryPayload,
+        };
+        node.sendQuery(node, query);
+        node.emit('connected', 'Connected to Tibber feed.');
+    }
+
+    private terminateConnection(node: this) {
+        const query: IQuery = {
+            id: '1',
+            type: 'connection_terminate',
+        };
+        node.sendQuery(node, query);
+    }
+
+    private sendQuery(node: this, query: IQuery) {
+        try {
+            node._webSocket.send(JSON.stringify(query));
+        }
+        catch (error) {
+            node.error(error);
+        }
     }
 
     /**

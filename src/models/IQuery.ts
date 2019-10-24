@@ -9,5 +9,5 @@ export interface IQueryPayload {
 export interface IQuery {
     id: string;
     type: string;
-    payload: IQueryPayload;
+    payload?: IQueryPayload;
 }
