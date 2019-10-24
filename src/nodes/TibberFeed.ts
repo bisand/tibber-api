@@ -157,14 +157,7 @@ export class TibberFeed extends EventEmitter {
                             query: node._gql,
                         } as IQueryPayload,
                     };
-                    const str = JSON.stringify(query);
-                    if (node._webSocket) {
-                        try {
-                            node._webSocket.send(str);
-                        } catch (error) {
-                            node.error(error);
-                        }
-                    }
+                    node.sendQuery(query);
                 } else if (msg.type === 'connection_error') {
                     node.error(msg);
                     node.close();
@@ -244,7 +237,7 @@ export class TibberFeed extends EventEmitter {
                 token: node._config.apiEndpoint.apiKey,
             } as IQueryPayload,
         };
-        node.sendQuery(node, query);
+        node.sendQuery(query);
         node.emit('connected', 'Connected to Tibber feed.');
     }
 
@@ -253,16 +246,18 @@ export class TibberFeed extends EventEmitter {
             id: '1',
             type: 'connection_terminate',
         };
-        node.sendQuery(node, query);
+        node.sendQuery(query);
         node.emit('disconnected', 'Sent connection_terminate to Tibber feed.');
     }
 
-    private sendQuery(node: this, query: IQuery) {
-        try {
-            node._webSocket.send(JSON.stringify(query));
+    private sendQuery(query: IQuery) {
+        if (!this._webSocket) {
+            this.error('Invalid websocket.');
         }
-        catch (error) {
-            node.error(error);
+        try {
+            this._webSocket.send(JSON.stringify(query));
+        } catch (error) {
+            this.error(error);
         }
     }
 
