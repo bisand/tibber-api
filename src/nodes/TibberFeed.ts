@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { IConfig } from '../models/IConfig';
-import { IQuery, IQueryPayload } from '../models/IQuery';
+import { IQuery } from '../models/IQuery';
+import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 
 export class TibberFeed extends EventEmitter {

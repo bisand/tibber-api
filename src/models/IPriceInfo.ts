@@ -1,4 +1,4 @@
-import { ILevel } from './ILevel';
+import { IPrice } from './IPrice';
 export interface IPriceInfo {
     current?: IPrice;
     today?: IPrice;
@@ -6,11 +6,4 @@ export interface IPriceInfo {
     range?: any; // Should be SubscriptionPriceConnection
 }
 
-export interface IPrice {
-    homeId?: string;
-    total: number;
-    energy: number;
-    tax: number;
-    startsAt: string;
-    level: ILevel;
-}
+

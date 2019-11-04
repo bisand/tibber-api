@@ -3,7 +3,7 @@
 
 import { TibberQuery, IConfig } from '../src/index';
 import http from 'http';
-import { EnergyResolution } from '../src/models/EnergyResolution';
+import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 
 const hostname = '127.0.0.1';
 const port = 3000;

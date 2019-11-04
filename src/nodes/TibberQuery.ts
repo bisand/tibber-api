@@ -1,8 +1,8 @@
 import { IConfig } from '../models/IConfig';
 import { GraphQLClient } from 'graphql-request';
 import { IHome } from '../models/IHome';
-import { IPrice } from '../models/IPriceInfo';
-import { EnergyResolution } from '../models/EnergyResolution';
+import { IPrice } from "../models/IPrice";
+import { EnergyResolution } from '../models/enums/EnergyResolution';
 import { IConsumption } from '../models/IConsumption';
 import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';

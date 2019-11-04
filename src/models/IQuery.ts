@@ -1,10 +1,4 @@
-export interface IQueryPayload {
-    extensions: any;
-    operationName: string;
-    query: string;
-    token: string;
-    variables: any;
-}
+import { IQueryPayload } from "./IQueryPayload";
 
 export interface IQuery {
     id: string;
