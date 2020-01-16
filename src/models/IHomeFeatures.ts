@@ -1,3 +1,3 @@
-export interface IFeatures {
+export interface IHomeFeatures {
     realTimeConsumptionEnabled: boolean;
 }

@@ -1,47 +1,30 @@
 import { IAddress } from './IAddress';
 import { IMeteringPointData } from './IMeteringPointData';
-import { IFeatures } from './IFeatures';
+import { IHomeFeatures } from "./IHomeFeatures";
 import { ILegalEntity } from './ILegalEntity';
 import { ISubscription } from './ISubscription';
-import { IConsumption } from './IConsumption';
+import { HomeAvatar } from './enums/HomeAvatar';
+import { HomeType } from './enums/HomeType';
+import { HeatingSource } from './enums/HeatingSource';
+import { IHomeConsumptionConnection } from './IHomeConsumptionConnection';
+import { IHomeProductionConnection } from './IHomeProductionConnection';
 export interface IHome {
     id: string;
     timeZone: string;
     appNickname: string;
-    appAvatar: string;
+    appAvatar: HomeAvatar;
     size: number;
-    type: string;
+    type: HomeType;
     numberOfResidents: number;
-    primaryHeatingSource: string;
+    primaryHeatingSource: HeatingSource;
     hasVentilationSystem: boolean;
-    mainFuseSize: null;
+    mainFuseSize: number;
     address: IAddress;
     owner: ILegalEntity;
     consumption: IHomeConsumptionConnection;
     meteringPointData: IMeteringPointData;
     currentSubscription: ISubscription;
     subscriptions: ISubscription[];
-    features: IFeatures;
-}
-
-export interface IHomeConsumptionConnection {
-    pageInfo: IHomeConsumptionPageInfo;
-    nodes: IConsumption[];
-    edges: IHomeConsumptionEdge[];
-}
-export interface IHomeConsumptionPageInfo {
-    endCursor: string;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startCursor: string;
-    count: number;
-    currency: string;
-    totalCost: number;
-    totalConsumption: number;
-    filtered: number;
-}
-
-export interface IHomeConsumptionEdge {
-    cursor: string;
-    node: IConsumption;
+    production: IHomeProductionConnection;
+    features: IHomeFeatures;
 }
