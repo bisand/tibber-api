@@ -54,7 +54,49 @@ test('TibberQuery.getConsumption() should be valid', async () => {
     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
     expect(consumption).toBeDefined();
     consumption.forEach(con => {
-        const conObj = Object.assign([] as IConsumption[], con)
+        const conObj = Object.assign([] as IConsumption[], con);
         expect(conObj.length).toEqual(10);
     });
+});
+
+test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
+    const price = await tibberQuery.getCurrentEnergyPrice('c70dcbe5-4485-4821-933d-a8a86452737b');
+    expect(price).toBeDefined();
+});
+
+test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getCurrentEnergyPrices();
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    prices.forEach(price => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+});
+
+test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getCurrentEnergyPrices();
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    prices.forEach(price => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+});
+
+test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getTodaysEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    prices.forEach(price => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+});
+
+test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getTomorrowsEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    expect(prices).toBeDefined();
+    if (prices.length) {
+        prices.forEach(price => {
+            expect(price.total).toBeGreaterThan(0);
+        });
+    }
 });
