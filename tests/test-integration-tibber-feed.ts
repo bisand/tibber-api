@@ -22,6 +22,7 @@ test('TibberFeed - Should be created', () => {
 });
 
 test('TibberFeed -should be connected', done => {
+    jest.setTimeout(10000);
     const feed = new TibberFeed(config);
     feed.on('connection_ack', (data: any) => {
         expect(data).toBeDefined();
