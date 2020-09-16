@@ -12,6 +12,10 @@ const config: IConfig = {
     homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
     timestamp: true,
     power: true,
+    currentL1: true,
+    currentL2: true,
+    currentL3: true,
+    signalStrength: true,
 };
 
 test('TibberFeed - Should be created', () => {

@@ -170,6 +170,19 @@ export class TibberFeed extends EventEmitter {
                         return;
                     }
                     const data = msg.payload.data.liveMeasurement;
+
+                    // TODO: Remove this in future releases.
+                    // Workaround to support deprecated properties. Will be removed in the future.
+                    if (data.currentL1 !== undefined) {
+                        data.currentPhase1 = data.currentL1;
+                    }
+                    if (data.currentL2 !== undefined) {
+                        data.currentPhase2 = data.currentL2;
+                    }
+                    if (data.currentL3 !== undefined) {
+                        data.currentPhase3 = data.currentL3;
+                    }
+
                     node.emit('data', data);
                 }
             }
