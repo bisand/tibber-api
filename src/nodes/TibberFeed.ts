@@ -95,14 +95,17 @@ export class TibberFeed extends EventEmitter {
         if (node._config.voltagePhase3) {
             this._gql += 'voltagePhase3 ';
         }
-        if (node._config.currentPhase1) {
-            this._gql += 'currentPhase1 ';
+        if (node._config.currentL1 || node._config.currentPhase1) {
+            this._gql += 'currentL1 ';
         }
-        if (node._config.currentPhase2) {
-            this._gql += 'currentPhase2 ';
+        if (node._config.currentL2 || node._config.currentPhase2) {
+            this._gql += 'currentL2 ';
         }
-        if (node._config.currentPhase3) {
-            this._gql += 'currentPhase3 ';
+        if (node._config.currentL3 || node._config.currentPhase3) {
+            this._gql += 'currentL3 ';
+        }
+        if (node._config.signalStrength) {
+            this._gql += 'signalStrength ';
         }
         this._gql += '}}';
     }

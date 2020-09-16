@@ -29,7 +29,12 @@ export interface IConfig {
     voltagePhase1?: boolean;
     voltagePhase2?: boolean;
     voltagePhase3?: boolean;
-    currentPhase1?: boolean;
-    currentPhase2?: boolean;
-    currentPhase3?: boolean;
+    currentPhase1?: boolean; // Deprecated! Will be removed in the future.
+    currentPhase2?: boolean; // Deprecated! Will be removed in the future.
+    currentPhase3?: boolean; // Deprecated! Will be removed in the future.
+    currentL1?: boolean;
+    currentL2?: boolean;
+    currentL3?: boolean;
+    signalStrength?: boolean;
+
 }

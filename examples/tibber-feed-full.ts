@@ -34,9 +34,10 @@ const config: IConfig = {
     voltagePhase1: true,
     voltagePhase2: true,
     voltagePhase3: true,
-    currentPhase1: true,
-    currentPhase2: true,
-    currentPhase3: true,
+    currentL1: true,
+    currentL2: true,
+    currentL3: true,
+    signalStrength: true,
 };
 
 const tibberFeed = new TibberFeed(config);
