@@ -95,13 +95,13 @@ export class TibberFeed extends EventEmitter {
         if (node._config.voltagePhase3) {
             this._gql += 'voltagePhase3 ';
         }
-        if (node._config.currentL1 || node._config.currentPhase1) {
+        if (node._config.currentL1) {
             this._gql += 'currentL1 ';
         }
-        if (node._config.currentL2 || node._config.currentPhase2) {
+        if (node._config.currentL2) {
             this._gql += 'currentL2 ';
         }
-        if (node._config.currentL3 || node._config.currentPhase3) {
+        if (node._config.currentL3) {
             this._gql += 'currentL3 ';
         }
         if (node._config.signalStrength) {
@@ -170,18 +170,6 @@ export class TibberFeed extends EventEmitter {
                         return;
                     }
                     const data = msg.payload.data.liveMeasurement;
-
-                    // TODO: Remove this in future releases.
-                    // Workaround to support deprecated properties. Will be removed in the future.
-                    if (data.currentL1 !== undefined) {
-                        data.currentPhase1 = data.currentL1;
-                    }
-                    if (data.currentL2 !== undefined) {
-                        data.currentPhase2 = data.currentL2;
-                    }
-                    if (data.currentL3 !== undefined) {
-                        data.currentPhase3 = data.currentL3;
-                    }
 
                     node.emit('data', data);
                 }
