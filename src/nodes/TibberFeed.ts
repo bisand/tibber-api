@@ -240,8 +240,11 @@ export class TibberFeed extends EventEmitter {
             setTimeout(() => {
                 if (node._webSocket) {
                     node._webSocket.terminate();
-                    node.warn('Connection timed out after ' + node._timeout + ' ms. Reconnecting...');
-                    node.connect();
+                    node.warn('Connection timed out after ' + node._timeout + ' ms.');
+                    if (node._active) {
+                        node.log('Reconnecting...');
+                        node.connect();
+                    }
                 }
             }, node._timeout),
         );
