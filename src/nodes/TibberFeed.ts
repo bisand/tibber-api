@@ -122,11 +122,11 @@ export class TibberFeed extends EventEmitter {
         return this._active;
     }
 
-    set active(active) {
-        if (active === this._active) {
+    set active(value: boolean) {
+        if (value === this._active) {
             return;
         }
-        this._active = active;
+        this._active = value;
         if (this._active) {
             this.connect();
         } else {
