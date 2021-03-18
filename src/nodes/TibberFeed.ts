@@ -171,6 +171,7 @@ export class TibberFeed extends EventEmitter {
                     };
                     node.sendQuery(query);
                 } else if (msg.type === 'connection_error') {
+                    node._isConnected = true;
                     node.error(msg);
                     node.close();
                 } else if (msg.type === 'data') {
@@ -178,6 +179,10 @@ export class TibberFeed extends EventEmitter {
                         return;
                     }
                     const data = msg.payload.data.liveMeasurement;
+                    if (!node._isConnected) {
+                        node._isConnected = true;
+                        node.emit('connected', { "connected": true });
+                    }
 
                     node.emit('data', data);
                 }
