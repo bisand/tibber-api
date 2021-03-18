@@ -53,6 +53,14 @@ export class TibberFeed extends EventEmitter {
         if (node._config.accumulatedProduction) {
             this._gql += 'accumulatedProduction ';
         }
+
+        if (node._config.accumulatedConsumptionLastHour) {
+            this._gql += 'accumulatedConsumptionLastHour ';
+        }
+        if (node._config.accumulatedProductionLastHour) {
+            this._gql += 'accumulatedProductionLastHour ';
+        }
+
         if (node._config.accumulatedCost) {
             this._gql += 'accumulatedCost ';
         }

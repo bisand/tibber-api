@@ -15,6 +15,8 @@ export interface IConfig {
     lastMeterConsumption?: boolean;
     accumulatedConsumption?: boolean;
     accumulatedProduction?: boolean;
+    accumulatedProductionLastHour?: boolean;
+    accumulatedConsumptionLastHour?: boolean;
     accumulatedCost?: boolean;
     accumulatedReward?: boolean;
     currency?: boolean;

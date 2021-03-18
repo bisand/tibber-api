@@ -4,6 +4,8 @@ export interface ILiveMeasurement {
     lastMeterConsumption: number;
     accumulatedConsumption: number;
     accumulatedProduction: number;
+    accumulatedConsumptionLastHour: number;
+    accumulatedProductionLastHour: number;
     accumulatedCost: number;
     accumulatedReward: number;
     currency: string;
