@@ -216,7 +216,7 @@ export class TibberFeed extends EventEmitter {
             clearTimeout(timeout);
         });
         if (node._webSocket) {
-            if (node._isConnected) {
+            if (node._isConnected && node._webSocket.readyState === WebSocket.OPEN) {
                 node.terminateConnection(node);
                 node._webSocket.close();
             }
@@ -230,12 +230,10 @@ export class TibberFeed extends EventEmitter {
      */
     public heartbeat() {
         const node = this;
-        for (let i = 0; i < node._hearbeatTimeouts.length; i++) {
-            const timeout = node._hearbeatTimeouts[i];
+        node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
             clearTimeout(timeout);
-            node._hearbeatTimeouts.shift();
-            i--;
-        }
+        });
+        node._hearbeatTimeouts = [];
         node._hearbeatTimeouts.push(
             setTimeout(() => {
                 if (node._webSocket) {
@@ -274,9 +272,12 @@ export class TibberFeed extends EventEmitter {
     private sendQuery(query: IQuery) {
         if (!this._webSocket) {
             this.error('Invalid websocket.');
+            return;
         }
         try {
-            this._webSocket.send(JSON.stringify(query));
+            if (this._webSocket.readyState === WebSocket.OPEN) {
+                this._webSocket.send(JSON.stringify(query));
+            }
         } catch (error) {
             this.error(error);
         }
