@@ -233,6 +233,7 @@ export class TibberFeed extends EventEmitter {
                 node._webSocket.close();
             }
         }
+        node._isConnected = false;
         node.log('Closed Tibber Feed.');
     }
 
@@ -250,6 +251,7 @@ export class TibberFeed extends EventEmitter {
             setTimeout(() => {
                 if (node._webSocket) {
                     node._webSocket.terminate();
+                    node._isConnected = false;
                     node.warn('Connection timed out after ' + node._timeout + ' ms.');
                     if (node._active) {
                         node.log('Reconnecting...');
