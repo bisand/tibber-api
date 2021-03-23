@@ -10,6 +10,7 @@ export class TibberFeed extends EventEmitter {
     private _active: boolean;
     private _hearbeatTimeouts: NodeJS.Timeout[];
     private _isConnected: boolean;
+    private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
 
@@ -28,6 +29,7 @@ export class TibberFeed extends EventEmitter {
         this._active = config.active;
         this._hearbeatTimeouts = [];
         this._isConnected = false;
+        this._isConnecting = false;
         this._gql = '';
 
         if (!config.apiEndpoint || !config.apiEndpoint.apiKey || !config.homeId || !config.apiEndpoint.feedUrl) {
@@ -134,77 +136,87 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
+    get connected() {
+        return this._isConnected;
+    }
+
     /**
      * Connect to Tibber feed.
      */
     public connect() {
         const node = this;
-        node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
+        if (node._isConnecting || node._isConnected) { return; }
+        node._isConnecting = true;
+        try {
+            node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
 
-        /**
-         * Event: open
-         * Called when websocket connection is established.
-         */
-        node._webSocket.on('open', () => {
-            if (!node._webSocket) {
-                return;
-            }
-            node.initConnection(node);
-        });
-
-        /**
-         * Event: message
-         * Called when data is received from the feed.
-         */
-        node._webSocket.on('message', (message: string) => {
-            if (message.startsWith('{')) {
-                const msg = JSON.parse(message);
-                if (msg.type === 'connection_ack') {
-                    node._isConnected = true;
-                    node.emit('connection_ack', msg);
-                    const query: IQuery = {
-                        id: '1',
-                        type: 'start',
-                        payload: {
-                            query: node._gql,
-                        } as IQueryPayload,
-                    };
-                    node.sendQuery(query);
-                } else if (msg.type === 'connection_error') {
-                    node._isConnected = true;
-                    node.error(msg);
-                    node.close();
-                } else if (msg.type === 'data') {
-                    if (!msg.payload.data) {
-                        return;
-                    }
-                    const data = msg.payload.data.liveMeasurement;
-                    if (!node._isConnected) {
-                        node._isConnected = true;
-                        node.emit('connected', { "connected": true });
-                    }
-
-                    node.emit('data', data);
+            /**
+             * Event: open
+             * Called when websocket connection is established.
+             */
+            node._webSocket.on('open', () => {
+                if (!node._webSocket) {
+                    return;
                 }
-            }
-        });
+                node.initConnection(node);
+            });
 
-        /**
-         * Event: close
-         * Called when feed is closed.
-         */
-        node._webSocket.on('close', () => {
-            node._isConnected = false;
-            node.emit('disconnected', 'Disconnected from Tibber feed');
-        });
+            /**
+             * Event: message
+             * Called when data is received from the feed.
+             */
+            node._webSocket.on('message', (message: string) => {
+                if (message.startsWith('{')) {
+                    const msg = JSON.parse(message);
+                    if (msg.type === 'connection_ack') {
+                        node._isConnected = true;
+                        node.emit('connection_ack', msg);
+                        const query: IQuery = {
+                            id: '1',
+                            type: 'start',
+                            payload: {
+                                query: node._gql,
+                            } as IQueryPayload,
+                        };
+                        node.sendQuery(query);
+                    } else if (msg.type === 'connection_error') {
+                        node._isConnected = true;
+                        node.error(msg);
+                        node.close();
+                    } else if (msg.type === 'data') {
+                        if (!msg.payload.data) {
+                            return;
+                        }
+                        const data = msg.payload.data.liveMeasurement;
+                        if (!node._isConnected) {
+                            node._isConnected = true;
+                            node.emit('connected', { "connected": true });
+                        }
 
-        /**
-         * Event: error
-         * Called when an error has occurred.
-         */
-        node._webSocket.on('error', (error: any) => {
-            node.error(error);
-        });
+                        node.emit('data', data);
+                    }
+                }
+            });
+
+            /**
+             * Event: close
+             * Called when feed is closed.
+             */
+            node._webSocket.on('close', () => {
+                node._isConnected = false;
+                node.emit('disconnected', 'Disconnected from Tibber feed');
+            });
+
+            /**
+             * Event: error
+             * Called when an error has occurred.
+             */
+            node._webSocket.on('error', (error: any) => {
+                node.error(error);
+            });
+        } finally {
+            node._isConnecting = false;
+        }
     }
 
     /**
