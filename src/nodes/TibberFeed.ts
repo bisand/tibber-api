@@ -20,7 +20,7 @@ export class TibberFeed extends EventEmitter {
      * @param timeout Reconnection timeout
      * @see IConfig
      */
-    constructor(config: IConfig, timeout: number = 30000) {
+    constructor(config: IConfig, timeout: number = 30000, returnAllFields = false) {
         super();
 
         const node = this;
@@ -40,81 +40,79 @@ export class TibberFeed extends EventEmitter {
         }
 
         this._gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
-        if (node._config.timestamp) {
+        if (node._config.timestamp || returnAllFields) {
             this._gql += 'timestamp ';
         }
-        if (node._config.power) {
+        if (node._config.power || returnAllFields) {
             this._gql += 'power ';
         }
-        if (node._config.lastMeterConsumption) {
+        if (node._config.lastMeterConsumption || returnAllFields) {
             this._gql += 'lastMeterConsumption ';
         }
-        if (node._config.accumulatedConsumption) {
+        if (node._config.accumulatedConsumption || returnAllFields) {
             this._gql += 'accumulatedConsumption ';
         }
-        if (node._config.accumulatedProduction) {
+        if (node._config.accumulatedProduction || returnAllFields) {
             this._gql += 'accumulatedProduction ';
         }
-
-        if (node._config.accumulatedConsumptionLastHour) {
+        if (node._config.accumulatedConsumptionLastHour || returnAllFields) {
             this._gql += 'accumulatedConsumptionLastHour ';
         }
-        if (node._config.accumulatedProductionLastHour) {
+        if (node._config.accumulatedProductionLastHour || returnAllFields) {
             this._gql += 'accumulatedProductionLastHour ';
         }
-
-        if (node._config.accumulatedCost) {
+        if (node._config.accumulatedCost || returnAllFields) {
             this._gql += 'accumulatedCost ';
         }
-        if (node._config.accumulatedReward) {
+        if (node._config.accumulatedReward || returnAllFields) {
             this._gql += 'accumulatedReward ';
         }
-        if (node._config.currency) {
+        if (node._config.currency || returnAllFields) {
             this._gql += 'currency ';
         }
-        if (node._config.minPower) {
+        if (node._config.minPower || returnAllFields) {
             this._gql += 'minPower ';
         }
-        if (node._config.averagePower) {
+        if (node._config.averagePower || returnAllFields) {
             this._gql += 'averagePower ';
         }
-        if (node._config.maxPower) {
+        if (node._config.maxPower || returnAllFields) {
             this._gql += 'maxPower ';
         }
-        if (node._config.powerProduction) {
+        if (node._config.powerProduction || returnAllFields) {
             this._gql += 'powerProduction ';
         }
-        if (node._config.minPowerProduction) {
+        if (node._config.minPowerProduction || returnAllFields) {
             this._gql += 'minPowerProduction ';
         }
-        if (node._config.maxPowerProduction) {
+        if (node._config.maxPowerProduction || returnAllFields) {
             this._gql += 'maxPowerProduction ';
         }
-        if (node._config.lastMeterProduction) {
+        if (node._config.lastMeterProduction || returnAllFields) {
             this._gql += 'lastMeterProduction ';
         }
-        if (node._config.powerFactor) {
+        if (node._config.powerFactor || returnAllFields) {
             this._gql += 'powerFactor ';
         }
-        if (node._config.voltagePhase1) {
+        if (node._config.voltagePhase1 || returnAllFields) {
             this._gql += 'voltagePhase1 ';
         }
-        if (node._config.voltagePhase2) {
+        if (node._config.voltagePhase2 || returnAllFields) {
             this._gql += 'voltagePhase2 ';
         }
-        if (node._config.voltagePhase3) {
+        if (node._config.voltagePhase3 || returnAllFields) {
             this._gql += 'voltagePhase3 ';
         }
-        if (node._config.currentL1) {
+        if (node._config.currentL1 || returnAllFields) {
             this._gql += 'currentL1 ';
         }
-        if (node._config.currentL2) {
+        if (node._config.currentL2 || returnAllFields) {
             this._gql += 'currentL2 ';
         }
-        if (node._config.currentL3) {
+        if (node._config.currentL3 || returnAllFields) {
             this._gql += 'currentL3 ';
         }
-        if (node._config.signalStrength) {
+        if (node._config.signalStrength || returnAllFields) {
             this._gql += 'signalStrength ';
         }
         this._gql += '}}';
