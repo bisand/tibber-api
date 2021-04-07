@@ -26,6 +26,7 @@
     "@types/ws": "^7.4.0",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
+    "isomorphic-ws": "^4.0.1",
     "ws": "^7.4.4"
   },
   "devDependencies": {
