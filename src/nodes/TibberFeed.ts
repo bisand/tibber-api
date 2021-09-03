@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { IConfig } from '../models/IConfig';
 import { IQuery } from '../models/IQuery';
 import { IQueryPayload } from "../models/IQueryPayload";
-import WebSocket from 'ws';
+import WebSocket, { OpenEvent } from 'ws';
 
 export class TibberFeed extends EventEmitter {
     private _timeout: number;
@@ -152,20 +152,20 @@ export class TibberFeed extends EventEmitter {
              * Event: open
              * Called when websocket connection is established.
              */
-            node._webSocket.on('open', () => {
+            node._webSocket.onopen = (event: WebSocket.OpenEvent) => {
                 if (!node._webSocket) {
                     return;
                 }
                 node.initConnection(node);
-            });
+            };
 
             /**
              * Event: message
              * Called when data is received from the feed.
              */
-            node._webSocket.on('message', (message: string) => {
-                if (message.startsWith('{')) {
-                    const msg = JSON.parse(message);
+            node._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
+                if (message.data.toString().startsWith('{')) {
+                    const msg = JSON.parse(message.data.toString());
                     if (msg.type === 'connection_ack') {
                         node._isConnected = true;
                         node.emit('connection_ack', msg);
@@ -182,6 +182,9 @@ export class TibberFeed extends EventEmitter {
                         node.error(msg);
                         node.close();
                     } else if (msg.type === 'data') {
+                        if (msg.payload.errors) {
+                            node.emit('error', msg.payload.errors);
+                        }
                         if (!msg.payload.data) {
                             return;
                         }
@@ -194,24 +197,24 @@ export class TibberFeed extends EventEmitter {
                         node.emit('data', data);
                     }
                 }
-            });
+            };
 
             /**
              * Event: close
              * Called when feed is closed.
              */
-            node._webSocket.on('close', () => {
+            node._webSocket.onclose = (event: WebSocket.CloseEvent) => {
                 node._isConnected = false;
                 node.emit('disconnected', 'Disconnected from Tibber feed');
-            });
+            };
 
             /**
              * Event: error
              * Called when an error has occurred.
              */
-            node._webSocket.on('error', (error: any) => {
+            node._webSocket.onerror = (error: WebSocket.ErrorEvent) => {
                 node.error(error);
-            });
+            };
         } finally {
             node._isConnecting = false;
         }

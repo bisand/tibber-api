@@ -39,7 +39,7 @@ test('TibberFeed - Should be created', () => {
             active: true,
             apiEndpoint: {
                 apiKey: '1337',
-                feedUrl: 'http://localhost:1337',
+                feedUrl: 'ws://localhost:1337',
                 queryUrl: '',
             },
             homeId: '1337',
@@ -53,7 +53,7 @@ test('TibberFeed -should be connected', done => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            feedUrl: 'http://localhost:1337',
+            feedUrl: 'ws://localhost:1337',
             queryUrl: '',
         },
         homeId: '1337',
@@ -72,7 +72,7 @@ test('TibberFeed - Should receive data', done => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            feedUrl: 'http://localhost:1337',
+            feedUrl: 'ws://localhost:1337',
             queryUrl: '',
         },
         homeId: '1337',
@@ -91,7 +91,7 @@ test('TibberFeed - Should be active', () => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            feedUrl: 'http://localhost:1337',
+            feedUrl: 'ws://localhost:1337',
             queryUrl: '',
         },
         homeId: '1337',
@@ -105,13 +105,12 @@ test('TibberFeed - Should be inactive', () => {
 });
 
 test('TibberFeed - Should timeout after 3 sec', done => {
-    jest.setTimeout(10000);
     const feed = new TibberFeed(
         {
             active: true,
             apiEndpoint: {
                 apiKey: '1337',
-                feedUrl: 'http://localhost:1337',
+                feedUrl: 'ws://localhost:1337',
                 queryUrl: '',
             },
             homeId: '1337',
@@ -131,16 +130,15 @@ test('TibberFeed - Should timeout after 3 sec', done => {
         }
     });
     feed.connect();
-});
+}, 10000);
 
 test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
-    jest.setTimeout(10000);
     const feed = new TibberFeed(
         {
             active: true,
             apiEndpoint: {
                 apiKey: '1337',
-                feedUrl: 'http://localhost:1337',
+                feedUrl: 'ws://localhost:1337',
                 queryUrl: '',
             },
             homeId: '1337',
@@ -162,4 +160,4 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
         callCount++;
     });
     feed.connect();
-});
+}, 10000);
