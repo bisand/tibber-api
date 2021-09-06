@@ -35,16 +35,6 @@ query getHome($homeId:ID!) {
                     email
                     mobile
                 }
-                address {
-                    address1
-                    address2
-                    address3
-                    city
-                    postalCode
-                    country
-                    latitude
-                    longitude
-                }
             }
             meteringPointData {
                 consumptionEan
@@ -100,16 +90,6 @@ query getHomeComplete($homeId:ID!) {
                 contactInfo {
                     email
                     mobile
-                }
-                address {
-                    address1
-                    address2
-                    address3
-                    city
-                    postalCode
-                    country
-                    latitude
-                    longitude
                 }
             }
             meteringPointData {
