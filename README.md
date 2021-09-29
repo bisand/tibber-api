@@ -14,7 +14,7 @@ This Node.js module is used for communication with [Tibber API](https://develope
 
 ## Prerequisites
 
-Sign up here and receive 500 NOK to shop smart home gadgets from [Tibber Store](https://tibber.com/no/store):
+Click the link below to sign up, and receive 500 NOK to shop smart home gadgets from [Tibber Store](https://tibber.com/no/store):
 
 > https://invite.tibber.com/3ea6e31f
 
