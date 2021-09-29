@@ -4,8 +4,8 @@ Node.js module for querying data and integrating with Tibber Pulse through Tibbe
 
 | Branch  | Status                                                                                                                 |
 | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| develop | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=develop)](https://travis-ci.org/bisand/tibber-api) |
-| master  | [![Build Status](https://travis-ci.org/bisand/tibber-api.svg?branch=master)](https://travis-ci.org/bisand/tibber-api)  |
+| develop | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=develop)](https://app.travis-ci.com/bisand/tibber-api) |
+| master  | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=master)](https://app.travis-ci.com/bisand/tibber-api)  |
 
 ## General
 
