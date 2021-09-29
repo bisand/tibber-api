@@ -1,7 +1,7 @@
 language: node_js
 os: linux
 node_js:
-- '10'
+- 'lts/*'
 deploy:
   provider: npm
   edge: true
