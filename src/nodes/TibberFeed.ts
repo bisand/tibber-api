@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { IConfig } from '../models/IConfig';
 import { IQuery } from '../models/IQuery';
 import { IQueryPayload } from "../models/IQueryPayload";
-import WebSocket, { OpenEvent } from 'ws';
+import WebSocket from 'ws';
 
 export class TibberFeed extends EventEmitter {
     private _timeout: number;
@@ -152,8 +152,8 @@ export class TibberFeed extends EventEmitter {
              * Event: open
              * Called when websocket connection is established.
              */
-            node._webSocket.onopen = (event: WebSocket.OpenEvent) => {
-                if (!node._webSocket) {
+            node._webSocket.onopen = (event: WebSocket.Event) => {
+                if (!node._webSocket && event.type !== 'open') {
                     return;
                 }
                 node.initConnection(node);
