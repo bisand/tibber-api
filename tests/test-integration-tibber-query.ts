@@ -7,7 +7,7 @@ import { IConsumption } from '../src/models/IConsumption';
 const config: IConfig = {
     active: true,
     apiEndpoint: {
-        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
@@ -45,7 +45,7 @@ test('TibberQuery.getHomesComplete() should be valid', async () => {
 });
 
 test('TibberQuery.getConsumption() with homeId should be valid', async () => {
-    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, 'c70dcbe5-4485-4821-933d-a8a86452737b');
+    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(consumption).toBeDefined();
     expect(consumption.length).toEqual(10);
 });
@@ -60,7 +60,7 @@ test('TibberQuery.getConsumption() should be valid', async () => {
 });
 
 test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
-    const price = await tibberQuery.getCurrentEnergyPrice('c70dcbe5-4485-4821-933d-a8a86452737b');
+    const price = await tibberQuery.getCurrentEnergyPrice('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(price).toBeDefined();
 });
 
@@ -83,7 +83,7 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
-    const prices = await tibberQuery.getTodaysEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    const prices = await tibberQuery.getTodaysEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
     prices.forEach(price => {
@@ -92,7 +92,7 @@ test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
-    const prices = await tibberQuery.getTomorrowsEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    const prices = await tibberQuery.getTomorrowsEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     if (prices.length) {
         prices.forEach(price => {

@@ -11,7 +11,7 @@ const port = 3000;
 const config: IConfig = {
     active: true,
     apiEndpoint: {
-        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
@@ -23,10 +23,10 @@ const tibberQuery = new TibberQuery(config);
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    // const result = await tibberQuery.getTodaysEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
-    // const result = await tibberQuery.getTomorrowsEnergyPrices('c70dcbe5-4485-4821-933d-a8a86452737b');
+    // const result = await tibberQuery.getTodaysEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    // const result = await tibberQuery.getTomorrowsEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     // const result = await tibberQuery.getCurrentEnergyPrices();
-    const result = await tibberQuery.getCurrentEnergyPrice('c70dcbe5-4485-4821-933d-a8a86452737b');
+    const result = await tibberQuery.getCurrentEnergyPrice('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));

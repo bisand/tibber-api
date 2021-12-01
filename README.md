@@ -331,11 +331,11 @@ import { TibberFeed, IConfig } from 'tibber-api';
 const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
     // Query configuration.
-    homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
+    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
     timestamp: true,
     power: true,
 };
@@ -364,7 +364,7 @@ const port = 3000;
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
     apiEndpoint: {
-        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };
@@ -399,11 +399,11 @@ IConfig: typescript example.
 const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        apiKey: 'd1007ead2dc84a2b82f0de19451c5fb22112f7ae11d19bf2bedb224a003ff74a', // Demo token
+        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
     // Query configuration.
-    homeId: 'c70dcbe5-4485-4821-933d-a8a86452737b',
+    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
     timestamp: true,
     power: true,
     lastMeterConsumption: true,
