@@ -25,6 +25,7 @@ test('TibberFeed - Should be created', () => {
     }).toBeDefined();
 });
 
+/*
 test('TibberFeed -should be connected', done => {
     const feed = new TibberFeed(config);
     feed.on('connection_ack', (data: any) => {
@@ -34,6 +35,7 @@ test('TibberFeed -should be connected', done => {
     });
     feed.connect();
 }, 30000);
+*/
 
 test('TibberFeed - Should receive data', done => {
     const feed = new TibberFeed(config);

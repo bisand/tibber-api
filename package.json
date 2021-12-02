@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
+    "@jest/test-sequencer": "",
     "jest": "^27.4.2",
     "prettier": "^2.5.0",
     "ts-jest": "^27.0.7",
