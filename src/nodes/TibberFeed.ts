@@ -153,7 +153,7 @@ export class TibberFeed extends EventEmitter {
              * Called when websocket connection is established.
              */
             node._webSocket.onopen = (event: WebSocket.Event) => {
-                if (!node._webSocket && event.type !== 'open') {
+                if (!node._webSocket) {
                     return;
                 }
                 node.initConnection(node);
