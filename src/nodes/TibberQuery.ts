@@ -1,6 +1,5 @@
 import { IConfig } from '../models/IConfig';
 import { GraphQLClient } from 'graphql-request';
-import { Headers } from 'cross-fetch';
 import { IHome } from '../models/IHome';
 import { IPrice } from "../models/IPrice";
 import { EnergyResolution } from '../models/enums/EnergyResolution';
@@ -24,7 +23,6 @@ export class TibberQuery {
     constructor(config: IConfig) {
         this.active = false;
         this._config = config;
-        global.Headers = global.Headers || Headers;
         this._client = new GraphQLClient(this._config.apiEndpoint.queryUrl, {
             headers: {
                 authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
