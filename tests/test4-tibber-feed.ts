@@ -48,7 +48,7 @@ test('TibberFeed - Should be created', () => {
     }).toBeDefined();
 });
 
-test('TibberFeed -should be connected', done => {
+test('TibberFeed - should be connected', done => {
     const feed = new TibberFeed({
         active: true,
         apiEndpoint: {
