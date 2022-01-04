@@ -281,8 +281,8 @@ export class TibberFeed extends EventEmitter {
             type: 'connection_terminate',
         };
         node.sendQuery(query);
-        if (node._isConnected)
-            node.emit('disconnected', 'Sent connection_terminate to Tibber feed.');
+        // if (node._isConnected)
+        node.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
     }
 
     private sendQuery(query: IQuery) {
