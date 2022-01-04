@@ -35,6 +35,10 @@ tibberFeed.on('connected', data => {
     console.log(data);
 });
 
+tibberFeed.on('disconnecting', data => {
+    console.log(data);
+});
+
 tibberFeed.on('disconnected', data => {
     console.log(data);
 });
