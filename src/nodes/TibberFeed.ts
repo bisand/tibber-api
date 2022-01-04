@@ -230,10 +230,10 @@ export class TibberFeed extends EventEmitter {
         });
         if (node._webSocket) {
             if (node._isConnected && node._webSocket.readyState === WebSocket.OPEN) {
+                node.terminateConnection(node);
                 node._webSocket.close();
             }
         }
-        node.terminateConnection(node);
         node._isConnected = false;
         node.log('Closed Tibber Feed.');
     }
@@ -281,7 +281,6 @@ export class TibberFeed extends EventEmitter {
             type: 'connection_terminate',
         };
         node.sendQuery(query);
-        // if (node._isConnected)
         node.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
     }
 
