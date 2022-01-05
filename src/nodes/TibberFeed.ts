@@ -13,6 +13,10 @@ export class TibberFeed extends EventEmitter {
     private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
+    private _operationId: number = 0;
+    public get operationId(): string {
+        return `${++this._operationId}`;
+    }
 
     /**
      * Constructor for creating a new instance if TibberFeed.
@@ -164,7 +168,7 @@ export class TibberFeed extends EventEmitter {
              * Called when data is received from the feed.
              */
             node._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
-                if (message.data.toString().startsWith('{')) {
+                if (message.data && message.data.toString().startsWith('{')) {
                     const msg = JSON.parse(message.data.toString());
                     if (msg.type === 'connection_ack') {
                         node._isConnected = true;
@@ -230,6 +234,7 @@ export class TibberFeed extends EventEmitter {
         });
         if (node._webSocket) {
             if (node._isConnected && node._webSocket.readyState === WebSocket.OPEN) {
+                node.stopSubscription(node);
                 node.terminateConnection(node);
                 node._webSocket.close();
             }
@@ -265,7 +270,7 @@ export class TibberFeed extends EventEmitter {
 
     private initConnection(node: this) {
         const query: IQuery = {
-            id: '1',
+            id: node.operationId,
             type: 'connection_init',
             payload: {
                 token: node._config.apiEndpoint.apiKey,
@@ -275,9 +280,18 @@ export class TibberFeed extends EventEmitter {
         node.emit('connected', 'Connected to Tibber feed.');
     }
 
+    private stopSubscription(node: this) {
+        const query: IQuery = {
+            id: node.operationId,
+            type: 'stop',
+        };
+        node.sendQuery(query);
+        node.emit('disconnecting', 'Sent stop to Tibber feed.');
+    }
+
     private terminateConnection(node: this) {
         const query: IQuery = {
-            id: '1',
+            id: node.operationId,
             type: 'connection_terminate',
         };
         node.sendQuery(query);
