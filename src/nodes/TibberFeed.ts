@@ -173,14 +173,7 @@ export class TibberFeed extends EventEmitter {
                     if (msg.type === 'connection_ack') {
                         node._isConnected = true;
                         node.emit('connection_ack', msg);
-                        const query: IQuery = {
-                            id: '1',
-                            type: 'start',
-                            payload: {
-                                query: node._gql,
-                            } as IQueryPayload,
-                        };
-                        node.sendQuery(query);
+                        node.startSubscription(node._gql);
                     } else if (msg.type === 'connection_error') {
                         node._isConnected = true;
                         node.error(msg);
@@ -199,6 +192,8 @@ export class TibberFeed extends EventEmitter {
                         }
 
                         node.emit('data', data);
+                    } else {
+                        node.warn(`Unrecognized message type: ${msg}`);
                     }
                 }
             };
@@ -296,6 +291,18 @@ export class TibberFeed extends EventEmitter {
         };
         node.sendQuery(query);
         node.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
+    }
+
+    startSubscription(subscription: string) {
+        const node = this;
+        const query: IQuery = {
+            id: node.operationId,
+            type: 'start',
+            payload: {
+                query: subscription,
+            } as IQueryPayload,
+        };
+        node.sendQuery(query);
     }
 
     private sendQuery(query: IQuery) {
