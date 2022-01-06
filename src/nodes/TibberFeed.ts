@@ -5,6 +5,8 @@ import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 
 export class TibberFeed extends EventEmitter {
+    private static _operationId: number = 0;
+
     private _timeout: number;
     private _config: IConfig;
     private _active: boolean;
@@ -13,11 +15,6 @@ export class TibberFeed extends EventEmitter {
     private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
-    private _operationId: number = 0;
-    public get operationId(): string {
-        return `${++this._operationId}`;
-    }
-
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @param config IConfig object
@@ -179,18 +176,13 @@ export class TibberFeed extends EventEmitter {
                         node.error(msg);
                         node.close();
                     } else if (msg.type === 'data') {
-                        if (msg.payload.errors) {
+                        if (msg.payload && msg.payload.errors) {
                             node.emit('error', msg.payload.errors);
                         }
-                        if (!msg.payload.data) {
+                        if (!msg.payload || !msg.payload.data) {
                             return;
                         }
                         const data = msg.payload.data.liveMeasurement;
-                        if (!node._isConnected) {
-                            node._isConnected = true;
-                            node.emit('connected', { "connected": true });
-                        }
-
                         node.emit('data', data);
                     } else {
                         node.warn(`Unrecognized message type: ${msg}`);
@@ -234,7 +226,6 @@ export class TibberFeed extends EventEmitter {
                 node._webSocket.close();
             }
         }
-        node._isConnected = false;
         node.log('Closed Tibber Feed.');
     }
 
@@ -265,29 +256,17 @@ export class TibberFeed extends EventEmitter {
 
     private initConnection(node: this) {
         const query: IQuery = {
-            id: node.operationId,
             type: 'connection_init',
-            payload: {
-                token: node._config.apiEndpoint.apiKey,
-            } as IQueryPayload,
+            payload: `token=${node._config.apiEndpoint.apiKey}`,
         };
         node.sendQuery(query);
         node.emit('connected', 'Connected to Tibber feed.');
     }
 
-    private stopSubscription(node: this) {
-        const query: IQuery = {
-            id: node.operationId,
-            type: 'stop',
-        };
-        node.sendQuery(query);
-        node.emit('disconnecting', 'Sent stop to Tibber feed.');
-    }
-
     private terminateConnection(node: this) {
         const query: IQuery = {
-            id: node.operationId,
             type: 'connection_terminate',
+            payload: null,
         };
         node.sendQuery(query);
         node.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
@@ -296,13 +275,25 @@ export class TibberFeed extends EventEmitter {
     startSubscription(subscription: string) {
         const node = this;
         const query: IQuery = {
-            id: node.operationId,
+            id: `${++TibberFeed._operationId}`,
             type: 'start',
             payload: {
+                variables: {},
+                extensions: {},
+                operationName: null,
                 query: subscription,
             } as IQueryPayload,
         };
         node.sendQuery(query);
+    }
+
+    private stopSubscription(node: this) {
+        const query: IQuery = {
+            id: `${TibberFeed._operationId}`,
+            type: 'stop',
+        };
+        node.sendQuery(query);
+        node.emit('disconnecting', 'Sent stop to Tibber feed.');
     }
 
     private sendQuery(query: IQuery) {

@@ -1,7 +1,7 @@
 import { IQueryPayload } from "./IQueryPayload";
 
 export interface IQuery {
-    id: string;
+    id?: string | undefined | null;
     type: string;
-    payload?: IQueryPayload;
+    payload?: IQueryPayload | string | undefined | null;
 }

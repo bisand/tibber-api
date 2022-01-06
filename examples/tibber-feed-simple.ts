@@ -25,10 +25,10 @@ let counter = 0;
 // Subscribe to "data" event.
 tibberFeed.on('data', data => {
     // Close connection after receiving more tham 10 messages.
-    if(counter++ >= 10){
+    if(counter++ >= 5){
         tibberFeed.close();
     }
-    console.log(counter +' - ' + data);
+    console.log(counter +' - ' + JSON.stringify(data));
 });
 
 tibberFeed.on('connected', data => {
