@@ -9,7 +9,7 @@ beforeAll(() => {
     server.on('connection', socket => {
         socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);
-            if (obj.type === 'connection_init' && obj.payload.token === '1337') {
+            if (obj.type === 'connection_init' && obj.payload === 'token=1337') {
                 obj.type = 'connection_ack';
                 socket.send(JSON.stringify(obj));
             } else if (obj.type === 'start' && obj.payload.query.startsWith('subscription{liveMeasurement(homeId:"1337"){')) {
@@ -60,7 +60,7 @@ test('TibberFeed - should be connected', done => {
     });
     feed.on('connection_ack', (data: any) => {
         expect(data).toBeDefined();
-        expect(data.payload.token).toBe('1337');
+        expect(data.payload).toBe('token=1337');
         feed.close();
         done();
     });
@@ -148,7 +148,7 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     let callCount = 0;
     feed.on('connection_ack', data => {
         expect(data).toBeDefined();
-        expect(data.payload.token).toBe('1337');
+        expect(data.payload).toBe('token=1337');
         feed.heartbeat();
     });
     feed.on('disconnected', data => {
