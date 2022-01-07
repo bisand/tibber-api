@@ -22,7 +22,6 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "graphql-request": "^3.7.0",
     "ws": "^8.4.0"
   },
   "devDependencies": {

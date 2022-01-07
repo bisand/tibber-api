@@ -1,5 +1,6 @@
+import * as url from "url";
+import https, { RequestOptions } from 'https';
 import { IConfig } from '../models/IConfig';
-import { GraphQLClient } from 'graphql-request';
 import { IHome } from '../models/IHome';
 import { IPrice } from "../models/IPrice";
 import { EnergyResolution } from '../models/enums/EnergyResolution';
@@ -8,11 +9,11 @@ import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql'
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
+import { HttpMethod } from './HttpMethod';
 
 export class TibberQuery {
     public active: boolean;
     private _config: IConfig;
-    private _client: GraphQLClient;
 
     /**
      * Constructor
@@ -23,11 +24,43 @@ export class TibberQuery {
     constructor(config: IConfig) {
         this.active = false;
         this._config = config;
-        this._client = new GraphQLClient(this._config.apiEndpoint.queryUrl, {
+    }
+
+    /**
+     * Check if a string is valid JSON data
+     * @param str String to check for JSON
+     * @returns true if input string is valid JSON data
+     */
+    private isJsonString(str: string) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param method HTTP method to use
+     * @param uri Uri to use
+     * @returns An object containing request options
+     */
+    private getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): RequestOptions {
+        return {
+            host: uri.host,
+            port: uri.port,
+            path: uri.path,
+            method,
             headers: {
-                authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
+                Connection: 'Keep-Alive',
+                Accept: 'application/json',
+                Host: uri.hostname as string,
+                'User-Agent': 'tibber-api',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
             },
-        });
+        };
     }
 
     /**
@@ -37,11 +70,47 @@ export class TibberQuery {
      * @return Query result as JSON data
      */
     public async query(query: string, variables?: object): Promise<any> {
-        try {
-            return await this._client.request(query, variables);
-        } catch (error) {
-            return { error };
-        }
+        const node: TibberQuery = this;
+        return await new Promise<any>((resolve, reject) => {
+            try {
+                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
+                const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
+                const data = new TextEncoder().encode(JSON.stringify({
+                    query,
+                    variables,
+                }));
+
+                const req = https.request(options, (res: any) => {
+                    let str: string = "";
+                    res.on("data", (chunk: string) => {
+                        str += chunk;
+                    });
+                    res.on("end", () => {
+                        const response: any = node.isJsonString(str) ? JSON.parse(str) : str;
+                        if (res.statusCode >= 200 && res.statusCode < 300) {
+                            resolve(response.data ? response.data : response);
+                        } else {
+                            response.httpCode = res.statusCode;
+                            response.statusCode = res.statusCode;
+                            response.statusMessage = res.statusMessage;
+                            reject(response);
+                        }
+                    });
+                });
+                req.on("error", (e: any) => {
+                    console.error(`problem with request: ${e.message}`);
+                    reject(e);
+                });
+                if (data) {
+                    req.write(data);
+                }
+                req.end();
+
+            } catch (error) {
+                reject(error);
+            }
+
+        });
     }
 
     /**
