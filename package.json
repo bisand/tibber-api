@@ -22,16 +22,15 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "graphql": "^16.2.0",
     "graphql-request": "^3.7.0",
     "ws": "^8.4.0"
   },
   "devDependencies": {
-    "@types/node": "^16.11.11",
-    "@types/ws": "^8.2.2",
+    "@jest/test-sequencer": "27.4.6",
     "@types/jest": "^27.4.0",
-    "@jest/test-sequencer": "",
-    "jest": "^27.4.5",
+    "@types/node": "^16",
+    "@types/ws": "^8.2.2",
+    "jest": "^27.4.7",
     "prettier": "^2.5.1",
     "ts-jest": "^27.1.2",
     "tslint": "^6.1.3",
