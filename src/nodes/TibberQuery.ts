@@ -1,3 +1,4 @@
+import * as url from "url";
 import https, { RequestOptions } from 'https';
 import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
@@ -8,13 +9,11 @@ import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql'
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
-import * as url from "url";
 import { HttpMethod } from './HttpMethod';
 
 export class TibberQuery {
     public active: boolean;
     private _config: IConfig;
-    // private _client: GraphQLClient;
 
     /**
      * Constructor
@@ -25,13 +24,13 @@ export class TibberQuery {
     constructor(config: IConfig) {
         this.active = false;
         this._config = config;
-        // this._client = new GraphQLClient(this._config.apiEndpoint.queryUrl, {
-        //     headers: {
-        //         authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
-        //     },
-        // });
     }
 
+    /**
+     * Check if a string is valid JSON data
+     * @param str String to check for JSON
+     * @returns true if input string is valid JSON data
+     */
     private isJsonString(str: string) {
         try {
             JSON.parse(str);
@@ -47,7 +46,7 @@ export class TibberQuery {
      * @param uri Uri to use
      * @returns An object containing request options
      */
-    private getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): https.RequestOptions {
+    private getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): RequestOptions {
         return {
             host: uri.host,
             port: uri.port,
@@ -57,6 +56,7 @@ export class TibberQuery {
                 Connection: 'Keep-Alive',
                 Accept: 'application/json',
                 Host: uri.hostname as string,
+                'User-Agent': 'tibber-api',
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
             },
@@ -74,11 +74,11 @@ export class TibberQuery {
         return await new Promise<any>((resolve, reject) => {
             try {
                 const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
-                const options = node.getRequestOptions(HttpMethod.Post, uri);
-                const data = JSON.stringify({
+                const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
+                const data = new TextEncoder().encode(JSON.stringify({
                     query,
                     variables,
-                });
+                }));
 
                 const req = https.request(options, (res: any) => {
                     let str: string = "";
@@ -111,12 +111,6 @@ export class TibberQuery {
             }
 
         });
-        try {
-            // return await this._client.request(query, variables);
-            // fetch(this._config.apiEndpoint.queryUrl as RequestInfo, 
-        } catch (error) {
-            return { error };
-        }
     }
 
     /**
