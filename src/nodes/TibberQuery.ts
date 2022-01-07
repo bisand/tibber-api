@@ -1,5 +1,5 @@
 import { IConfig } from '../models/IConfig';
-import { GraphQLClient } from 'graphql-request';
+import { graphql } from 'graphql';
 import { IHome } from '../models/IHome';
 import { IPrice } from "../models/IPrice";
 import { EnergyResolution } from '../models/enums/EnergyResolution';
@@ -12,7 +12,7 @@ import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices,
 export class TibberQuery {
     public active: boolean;
     private _config: IConfig;
-    private _client: GraphQLClient;
+    // private _client: GraphQLClient;
 
     /**
      * Constructor
@@ -23,11 +23,11 @@ export class TibberQuery {
     constructor(config: IConfig) {
         this.active = false;
         this._config = config;
-        this._client = new GraphQLClient(this._config.apiEndpoint.queryUrl, {
-            headers: {
-                authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
-            },
-        });
+        // this._client = new GraphQLClient(this._config.apiEndpoint.queryUrl, {
+        //     headers: {
+        //         authorization: 'Bearer ' + this._config.apiEndpoint.apiKey,
+        //     },
+        // });
     }
 
     /**
@@ -38,7 +38,19 @@ export class TibberQuery {
      */
     public async query(query: string, variables?: object): Promise<any> {
         try {
-            return await this._client.request(query, variables);
+            // return await this._client.request(query, variables);
+            fetch(this._config.apiEndpoint.queryUrl as RequestInfo, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
+                },
+                body: JSON.stringify({
+                    query,
+                    variables: variables,
+                })
+            } as RequestInit).then(r => r.json());
         } catch (error) {
             return { error };
         }
