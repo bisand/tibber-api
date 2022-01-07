@@ -175,6 +175,10 @@ export class TibberFeed extends EventEmitter {
                         node._isConnected = true;
                         node.error(msg);
                         node.close();
+                    } else if (msg.type === 'complete') {
+                        // Read here: https://rob-blackbourn.medium.com/writing-a-graphql-websocket-subscriber-in-javascript-4451abb9cd60
+                        node._isConnected = false;
+                        node.close();
                     } else if (msg.type === 'data') {
                         if (msg.payload && msg.payload.errors) {
                             node.emit('error', msg.payload.errors);
