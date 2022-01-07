@@ -185,7 +185,7 @@ export class TibberFeed extends EventEmitter {
                         const data = msg.payload.data.liveMeasurement;
                         node.emit('data', data);
                     } else {
-                        node.warn(`Unrecognized message type: ${msg}`);
+                        node.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
                     }
                 }
             };
