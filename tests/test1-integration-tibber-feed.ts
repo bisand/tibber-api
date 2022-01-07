@@ -37,6 +37,7 @@ test('TibberFeed -should be connected', done => {
 }, 30000);
 */
 
+/*
 test('TibberFeed - Should receive data', done => {
     const feed = new TibberFeed(config);
     feed.on('data', data => {
@@ -50,3 +51,4 @@ test('TibberFeed - Should receive data', done => {
     });
     feed.connect();
 }, 30000);
+*/

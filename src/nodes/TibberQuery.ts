@@ -1,5 +1,5 @@
+import https, { RequestOptions } from 'https';
 import { IConfig } from '../models/IConfig';
-import { graphql } from 'graphql';
 import { IHome } from '../models/IHome';
 import { IPrice } from "../models/IPrice";
 import { EnergyResolution } from '../models/enums/EnergyResolution';
@@ -8,6 +8,8 @@ import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql'
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
+import * as url from "url";
+import { HttpMethod } from './HttpMethod';
 
 export class TibberQuery {
     public active: boolean;
@@ -30,6 +32,37 @@ export class TibberQuery {
         // });
     }
 
+    private isJsonString(str: string) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param method HTTP method to use
+     * @param uri Uri to use
+     * @returns An object containing request options
+     */
+    private getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): https.RequestOptions {
+        return {
+            host: uri.host,
+            port: uri.port,
+            path: uri.path,
+            method,
+            headers: {
+                Connection: 'Keep-Alive',
+                Accept: 'application/json',
+                Host: uri.hostname as string,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
+            },
+        };
+    }
+
     /**
      * General GQL query
      * @param query GQL query.
@@ -37,20 +70,50 @@ export class TibberQuery {
      * @return Query result as JSON data
      */
     public async query(query: string, variables?: object): Promise<any> {
+        const node: TibberQuery = this;
+        return await new Promise<any>((resolve, reject) => {
+            try {
+                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
+                const options = node.getRequestOptions(HttpMethod.Post, uri);
+                const data = JSON.stringify({
+                    query,
+                    variables,
+                });
+
+                const req = https.request(options, (res: any) => {
+                    let str: string = "";
+                    res.on("data", (chunk: string) => {
+                        str += chunk;
+                    });
+                    res.on("end", () => {
+                        const response: any = node.isJsonString(str) ? JSON.parse(str) : str;
+                        if (res.statusCode >= 200 && res.statusCode < 300) {
+                            resolve(response.data ? response.data : response);
+                        } else {
+                            response.httpCode = res.statusCode;
+                            response.statusCode = res.statusCode;
+                            response.statusMessage = res.statusMessage;
+                            reject(response);
+                        }
+                    });
+                });
+                req.on("error", (e: any) => {
+                    console.error(`problem with request: ${e.message}`);
+                    reject(e);
+                });
+                if (data) {
+                    req.write(data);
+                }
+                req.end();
+
+            } catch (error) {
+                reject(error);
+            }
+
+        });
         try {
             // return await this._client.request(query, variables);
-            fetch(this._config.apiEndpoint.queryUrl as RequestInfo, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
-                },
-                body: JSON.stringify({
-                    query,
-                    variables: variables,
-                })
-            } as RequestInit).then(r => r.json());
+            // fetch(this._config.apiEndpoint.queryUrl as RequestInfo, 
         } catch (error) {
             return { error };
         }
