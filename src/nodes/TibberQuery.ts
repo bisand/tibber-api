@@ -9,7 +9,7 @@ import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql'
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
-import { HttpMethod } from './HttpMethod';
+import { HttpMethod } from './models/HttpMethod';
 
 export class TibberQuery {
     public active: boolean;

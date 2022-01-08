@@ -31,6 +31,10 @@ tibberFeed.on('data', data => {
     console.log(counter +' - ' + JSON.stringify(data));
 });
 
+tibberFeed.on('connecting', data => {
+    console.log(data);
+});
+
 tibberFeed.on('connected', data => {
     console.log(data);
 });
