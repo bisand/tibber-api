@@ -49,6 +49,7 @@
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "args": [
                 "${fileBasenameNoExtension}",
+                "--detectOpenHandles",
                 "--config",
                 "${workspaceFolder}/jestconfig.json"
             ],

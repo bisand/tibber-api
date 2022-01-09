@@ -1,11 +1,10 @@
 /* eslint-env mocha */
 import { TibberQuery, IConfig } from '../src/index';
-import http from 'http';
 import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 import { IConsumption } from '../src/models/IConsumption';
 
 const config: IConfig = {
-    active: true,
+    active: false,
     apiEndpoint: {
         apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
@@ -13,10 +12,13 @@ const config: IConfig = {
     },
 };
 
-// Instance of TibberQuery
-const tibberQuery = new TibberQuery(config);
+afterAll(async () => {
+    await new Promise<void>(resolve => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+});
 
 test('TibberQuery.getHomes() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const homes = await tibberQuery.getHomes();
     expect(homes).toBeDefined();
     expect(homes.length).toBeGreaterThan(0);
@@ -30,6 +32,8 @@ test('TibberQuery.getHomes() should be valid', async () => {
 });
 
 test('TibberQuery.getHomesComplete() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const homes = await tibberQuery.getHomesComplete();
     expect(homes).toBeDefined();
     expect(homes.length).toBeGreaterThan(0);
@@ -45,12 +49,16 @@ test('TibberQuery.getHomesComplete() should be valid', async () => {
 });
 
 test('TibberQuery.getConsumption() with homeId should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(consumption).toBeDefined();
     expect(consumption.length).toEqual(10);
 });
 
 test('TibberQuery.getConsumption() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
     expect(consumption).toBeDefined();
     consumption.forEach(con => {
@@ -60,11 +68,15 @@ test('TibberQuery.getConsumption() should be valid', async () => {
 });
 
 test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const price = await tibberQuery.getCurrentEnergyPrice('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(price).toBeDefined();
 });
 
 test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const prices = await tibberQuery.getCurrentEnergyPrices();
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
@@ -74,6 +86,8 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const prices = await tibberQuery.getCurrentEnergyPrices();
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
@@ -83,6 +97,8 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const prices = await tibberQuery.getTodaysEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
@@ -92,6 +108,8 @@ test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    await process.nextTick(() => { });
     const prices = await tibberQuery.getTomorrowsEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     if (prices.length) {
