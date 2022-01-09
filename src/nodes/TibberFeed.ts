@@ -176,7 +176,7 @@ export class TibberFeed extends EventEmitter {
                         case GQL.CONNECTION_ACK:
                             node._isConnected = true;
                             node.emit('connected', 'Connected to Tibber feed.');
-                            node.emit('connection_ack', msg);
+                            node.emit(GQL.CONNECTION_ACK, msg);
                             node.startSubscription(node._gql);
                             break;
                         case GQL.DATA:

@@ -28,7 +28,7 @@ test('TibberFeed - Should be created', () => {
 /*
 test('TibberFeed -should be connected', done => {
     const feed = new TibberFeed(config);
-    feed.on('connection_ack', (data: any) => {
+    feed.on(GQL.CONNECTION_ACK, (data: any) => {
         expect(data).toBeDefined();
         feed.close();
         done();
