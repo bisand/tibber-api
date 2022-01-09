@@ -155,8 +155,8 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     feed.on('disconnected', data => {
         expect(data).toBeDefined();
         if (callCount === 4) {
-            done();
             feed.close();
+            done();
         }
         callCount++;
     });

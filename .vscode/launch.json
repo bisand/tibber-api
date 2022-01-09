@@ -10,7 +10,9 @@
             "name": "Run Current File",
             "program": "${file}",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
+            "outFiles": [
+                "${workspaceFolder}/lib/**/*.js"
+            ]
         },
         {
             "type": "node",
@@ -18,14 +20,21 @@
             "name": "Run Feed",
             "program": "${workspaceFolder}/examples/tibber-feed-simple.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
+            "outFiles": [
+                "${workspaceFolder}/lib/**/*.js"
+            ]
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Jest All",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": ["--runInBand"],
+            "args": [
+                "--runInBand",
+                "--detectOpenHandles",
+                "--config",
+                "${workspaceFolder}/jestconfig.json"
+            ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "disableOptimisticBPs": true,
@@ -38,7 +47,11 @@
             "request": "launch",
             "name": "Jest Current File",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": ["${fileBasenameNoExtension}", "--config", "${workspaceFolder}/jestconfig.json"],
+            "args": [
+                "${fileBasenameNoExtension}",
+                "--config",
+                "${workspaceFolder}/jestconfig.json"
+            ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "disableOptimisticBPs": true,

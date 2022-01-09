@@ -109,7 +109,6 @@ export class TibberQuery {
             } catch (error) {
                 reject(error);
             }
-
         });
     }
 
