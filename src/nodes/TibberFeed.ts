@@ -40,7 +40,7 @@ export class TibberFeed extends EventEmitter {
             return;
         }
 
-        this._gql = 'subscription{liveMeasurement(homeId:"' + node._config.homeId + '"){';
+        this._gql = 'subscription($homeId:ID!){liveMeasurement(homeId:$homeId){';
         if (node._config.timestamp || returnAllFields) {
             this._gql += 'timestamp ';
         }
@@ -177,7 +177,7 @@ export class TibberFeed extends EventEmitter {
                             node._isConnected = true;
                             node.emit('connected', 'Connected to Tibber feed.');
                             node.emit(GQL.CONNECTION_ACK, msg);
-                            node.startSubscription(node._gql);
+                            node.startSubscription(node._gql, { homeId: node._config.homeId });
                             break;
                         case GQL.DATA:
                             if (msg.payload && msg.payload.errors) {
@@ -292,12 +292,12 @@ export class TibberFeed extends EventEmitter {
         this.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
     }
 
-    startSubscription(subscription: string) {
+    startSubscription(subscription: string, variables: any) {
         const query: IQuery = {
             id: `${++this._operationId}`,
             type: GQL.START,
             payload: {
-                variables: {},
+                variables: variables,
                 extensions: {},
                 operationName: null,
                 query: subscription,
