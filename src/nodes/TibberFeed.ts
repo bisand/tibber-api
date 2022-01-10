@@ -169,7 +169,6 @@ export class TibberFeed extends EventEmitter {
                     const msg = JSON.parse(message.data.toString());
                     switch (msg.type) {
                         case GQL.CONNECTION_ERROR:
-                            node._isConnected = true;
                             node.error(`A connection error occurred: ${JSON.stringify(msg)}`);
                             node.close();
                             break;
@@ -183,6 +182,10 @@ export class TibberFeed extends EventEmitter {
                             if (msg.payload && msg.payload.errors) {
                                 node.emit('error', msg.payload.errors);
                             }
+                            if (msg.id != node._operationId) {
+                                node.log(`Message contains unexpected id ${JSON.stringify(msg)}`);
+                                return;
+                            }
                             if (!msg.payload || !msg.payload.data) {
                                 return;
                             }
@@ -194,8 +197,11 @@ export class TibberFeed extends EventEmitter {
                             node.error(`An error occurred: ${JSON.stringify(msg)}`);
                             break;
                         case GQL.COMPLETE:
+                            if (msg.id != node._operationId) {
+                                node.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
+                                return;
+                            }
                             node.log('Received complete message. Closing connection.');
-                            node._isConnected = false;
                             node.close();
                             if (node._active) {
                                 node.log('Reconnecting...');
