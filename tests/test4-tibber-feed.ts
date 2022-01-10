@@ -34,7 +34,7 @@ beforeAll(() => {
 afterAll(() => {
     if (server) {
         server.close();
-        // server = undefined;
+        server.clients.forEach(ws => { ws.close() });
     }
 });
 
@@ -86,6 +86,9 @@ test('TibberFeed - Should receive data', done => {
         expect(data).toBeDefined();
         expect(data.value).toBe(1337);
         feed.close();
+    });
+    feed.on('disconnected', data => {
+        feed.active = false;
         done();
     });
     feed.connect();
@@ -130,7 +133,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
         expect(data).toBeDefined();
         if (!called) {
             called = true;
-            feed.close();
+            feed.active = false;
             done();
         }
     });
@@ -159,7 +162,7 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     feed.on('disconnected', data => {
         expect(data).toBeDefined();
         if (callCount === 4) {
-            feed.close();
+            feed.active = false;
             done();
         }
         callCount++;
