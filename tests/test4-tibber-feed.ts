@@ -13,7 +13,11 @@ beforeAll(() => {
             if (obj.type === GQL.CONNECTION_INIT && obj.payload === 'token=1337') {
                 obj.type = GQL.CONNECTION_ACK;
                 socket.send(JSON.stringify(obj));
-            } else if (obj.type === GQL.START && obj.payload.query.startsWith('subscription{liveMeasurement(homeId:"1337"){')) {
+            } else if (obj.type === GQL.START
+                && obj.payload.query
+                && obj.payload.query.startsWith('subscription($homeId:ID!){liveMeasurement(homeId:$homeId){')
+                && obj.payload.variables
+                && obj.payload.variables.homeId === '1337') {
                 obj = {
                     payload: { data: { liveMeasurement: { value: 1337 } } },
                     type: GQL.DATA,
