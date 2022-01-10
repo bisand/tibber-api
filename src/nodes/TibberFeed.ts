@@ -197,6 +197,10 @@ export class TibberFeed extends EventEmitter {
                             node.log('Received complete message. Closing connection.');
                             node._isConnected = false;
                             node.close();
+                            if (node._active) {
+                                node.log('Reconnecting...');
+                                node.connect();
+                            }
                             break;
                         case GQL.CONNECTION_KEEP_ALIVE:
                             node.log('Received keep alive message.');
