@@ -4,8 +4,8 @@ Node.js module for querying data and integrating with Tibber Pulse through Tibbe
 
 | Branch  | Status                                                                                                                 |
 | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| develop | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=develop)](https://app.travis-ci.com/bisand/tibber-api) |
-| master  | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=master)](https://app.travis-ci.com/bisand/tibber-api)  |
+| develop | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=develop)](https://app.travis-ci.com/bisand/tibber-api) [![DeepScan grade](https://deepscan.io/api/teams/16513/projects/19829/branches/520996/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16513&pid=19829&bid=520996)|
+| master  | [![Build Status](https://app.travis-ci.com/bisand/tibber-api.svg?branch=master)](https://app.travis-ci.com/bisand/tibber-api) [![DeepScan grade](https://deepscan.io/api/teams/16513/projects/19829/branches/520472/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16513&pid=19829&bid=520472) |
 
 ## General
 
