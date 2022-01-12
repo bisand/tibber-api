@@ -1,6 +1,5 @@
 /* eslint-env mocha */
 import { TibberFeed, IConfig } from '../src/index';
-import WebSocket from 'ws';
 
 const config: IConfig = {
     active: true,

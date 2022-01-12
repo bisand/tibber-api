@@ -176,7 +176,7 @@ export class TibberQuery {
             const home: IHome = result.viewer.home;
             return Object.assign(
                 {} as IPrice,
-                home && home.currentSubscription && home.currentSubscription.priceInfo ? home.currentSubscription.priceInfo.current : {},
+                home.currentSubscription && home.currentSubscription.priceInfo ? home.currentSubscription.priceInfo.current : {},
             );
         }
         return result && result.error ? result : {};
@@ -214,7 +214,7 @@ export class TibberQuery {
             const data: IHome = result.viewer.home;
             return Object.assign(
                 [] as IPrice[],
-                data && data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.today : {},
+                data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.today : {},
             );
         }
         return result && result.error ? result : {};
@@ -232,7 +232,7 @@ export class TibberQuery {
             const data: IHome = result.viewer.home;
             return Object.assign(
                 [] as IPrice[],
-                data && data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.tomorrow : {},
+                data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.tomorrow : {},
             );
         }
         return result && result.error ? result : {};
@@ -252,7 +252,7 @@ export class TibberQuery {
             const result = await this.query(gqlHomeConsumption, variables);
             if (result && result.viewer && result.viewer.home) {
                 const home: IHome = result.viewer.home;
-                return Object.assign([] as IConsumption[], home && home.consumption ? home.consumption.nodes : []);
+                return Object.assign([] as IConsumption[], home.consumption ? home.consumption.nodes : []);
             }
             return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         } else {
