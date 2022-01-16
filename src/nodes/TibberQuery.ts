@@ -278,9 +278,8 @@ export class TibberQuery {
     public async sendPushNotification(messagePayloadVariables: ISendPushNotificationPayload): Promise<ISendPushNotification> {
         const result = await this.query(cqlSendPushNoticifation, messagePayloadVariables);
 
-        if (result.sendPushNotification) {
+        if (result.sendPushNotification || result.errors) {
             return Object.assign({} as ISendPushNotification, result);
-        } else if (result.errors) return Object.assign({} as ISendPushNotification, result);
-        else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendPushNotification);
+        } else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendPushNotification);
     }
 }
