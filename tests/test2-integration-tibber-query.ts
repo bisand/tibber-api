@@ -2,6 +2,9 @@
 import { TibberQuery, IConfig } from '../src/index';
 import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 import { IConsumption } from '../src/models/IConsumption';
+import { AppScreen } from '../src/models/enums/AppScreen';
+import { ISendPushNotification } from '../src/models/ISendPushNotification';
+import { ISendPushNotificationPayload } from '../src/models/ISendPushNotificationPayload';
 
 const config: IConfig = {
     active: false,
@@ -22,7 +25,7 @@ test('TibberQuery.getHomes() should be valid', async () => {
     const homes = await tibberQuery.getHomes();
     expect(homes).toBeDefined();
     expect(homes.length).toBeGreaterThan(0);
-    homes.forEach(home => {
+    homes.forEach((home) => {
         expect(home).toBeDefined();
         expect(home.address).toBeDefined();
         expect(home.owner).toBeDefined();
@@ -37,7 +40,7 @@ test('TibberQuery.getHomesComplete() should be valid', async () => {
     const homes = await tibberQuery.getHomesComplete();
     expect(homes).toBeDefined();
     expect(homes.length).toBeGreaterThan(0);
-    homes.forEach(home => {
+    homes.forEach((home) => {
         expect(home).toBeDefined();
         expect(home.address).toBeDefined();
         expect(home.owner).toBeDefined();
@@ -61,7 +64,7 @@ test('TibberQuery.getConsumption() should be valid', async () => {
     await process.nextTick(() => { });
     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
     expect(consumption).toBeDefined();
-    consumption.forEach(con => {
+    consumption.forEach((con) => {
         const conObj = Object.assign([] as IConsumption[], con);
         expect(conObj.length).toEqual(10);
     });
@@ -80,7 +83,7 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
     const prices = await tibberQuery.getCurrentEnergyPrices();
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
-    prices.forEach(price => {
+    prices.forEach((price) => {
         expect(price.total).toBeGreaterThan(0);
     });
 });
@@ -91,7 +94,7 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
     const prices = await tibberQuery.getCurrentEnergyPrices();
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
-    prices.forEach(price => {
+    prices.forEach((price) => {
         expect(price.total).toBeGreaterThan(0);
     });
 });
@@ -102,7 +105,7 @@ test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
     const prices = await tibberQuery.getTodaysEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
-    prices.forEach(price => {
+    prices.forEach((price) => {
         expect(price.total).toBeGreaterThan(0);
     });
 });
@@ -113,8 +116,19 @@ test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
     const prices = await tibberQuery.getTomorrowsEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
     expect(prices).toBeDefined();
     if (prices.length) {
-        prices.forEach(price => {
+        prices.forEach((price) => {
             expect(price.total).toBeGreaterThan(0);
         });
     }
+});
+
+test('TibberQuery.sendPush() should return error when using demo user', async () => {
+    const messagePayloadVariables: ISendPushNotificationPayload = {
+        input: { title: 'TEST_TITLE', message: 'TEST_MESSAGE', screenToOpen: AppScreen.HOME },
+    };
+    const tibberQuery = new TibberQuery(config);
+
+    process.nextTick(() => {});
+    const result: ISendPushNotification = await tibberQuery.sendPushNotification(messagePayloadVariables);
+    if (result.errors != undefined) result.errors.map((m) => expect(m.message).toContain('operation not allowed for demo user'));
 });
