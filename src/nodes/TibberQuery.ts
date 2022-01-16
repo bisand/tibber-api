@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import * as url from "url";
-=======
 import * as url from 'url';
->>>>>>> Support added to send a push notification to the app
 import https, { RequestOptions } from 'https';
 import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
@@ -14,12 +10,9 @@ import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { HttpMethod } from './models/HttpMethod';
-<<<<<<< HEAD
-=======
 import { cqlSendPushNoticifation } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { ISendPushNotificationPayload } from '../models/ISendPushNotificationPayload';
->>>>>>> Support added to send a push notification to the app
 
 export class TibberQuery {
     public active: boolean;
@@ -68,11 +61,7 @@ export class TibberQuery {
                 Host: uri.hostname as string,
                 'User-Agent': 'tibber-api',
                 'Content-Type': 'application/json',
-<<<<<<< HEAD
-                'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
-=======
                 Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
->>>>>>> Support added to send a push notification to the app
             },
         };
     }
@@ -89,19 +78,6 @@ export class TibberQuery {
             try {
                 const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
                 const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
-<<<<<<< HEAD
-                const data = new TextEncoder().encode(JSON.stringify({
-                    query,
-                    variables,
-                }));
-
-                const req = https.request(options, (res: any) => {
-                    let str: string = "";
-                    res.on("data", (chunk: string) => {
-                        str += chunk;
-                    });
-                    res.on("end", () => {
-=======
                 const data = new TextEncoder().encode(
                     JSON.stringify({
                         query,
@@ -115,7 +91,6 @@ export class TibberQuery {
                         str += chunk;
                     });
                     res.on('end', () => {
->>>>>>> Support added to send a push notification to the app
                         const response: any = node.isJsonString(str) ? JSON.parse(str) : str;
                         if (res.statusCode >= 200 && res.statusCode < 300) {
                             resolve(response.data ? response.data : response);
@@ -127,11 +102,7 @@ export class TibberQuery {
                         }
                     });
                 });
-<<<<<<< HEAD
-                req.on("error", (e: any) => {
-=======
                 req.on('error', (e: any) => {
->>>>>>> Support added to send a push notification to the app
                     console.error(`problem with request: ${e.message}`);
                     reject(e);
                 });
@@ -139,10 +110,6 @@ export class TibberQuery {
                     req.write(data);
                 }
                 req.end();
-<<<<<<< HEAD
-
-=======
->>>>>>> Support added to send a push notification to the app
             } catch (error) {
                 reject(error);
             }
