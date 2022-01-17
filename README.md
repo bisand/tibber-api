@@ -2,9 +2,9 @@
 
 Node.js module for querying data and integrating with Tibber Pulse through Tibber API.
 
-| Branch  | Status                                                                                                                 |
-| ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| master  | [![Node.js CI](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml) [![Node.js Package](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml) [![CodeQL](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml) [![DeepScan grade](https://deepscan.io/api/teams/16513/projects/19829/branches/520472/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16513&pid=19829&bid=520472) [![npm version](https://badge.fury.io/js/tibber-api.svg)](https://badge.fury.io/js/tibber-api) |
+| Branch | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| master | [![Node.js CI](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml) [![Node.js Package](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml) [![CodeQL](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml) [![DeepScan grade](https://deepscan.io/api/teams/16513/projects/19829/branches/520472/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16513&pid=19829&bid=520472) [![npm version](https://badge.fury.io/js/tibber-api.svg)](https://badge.fury.io/js/tibber-api) |
 
 ## General
 
@@ -319,6 +319,24 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 
 > Get consumption for selected home, or all homes if homeId is not provided. EnergyResolution describes interval for data and lastCount specifies number of records to retrieve, returning the last number of records in the dataset.
 
+### sendPushNotification
+
+```typescript
+/**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param messagePayloadVariables ISendPushNotificationPayload.
+     *  input: {
+        title: "The title of your message";
+        message: "The message you want to send";
+        screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+    };
+     * @return ISendPushNotification Object
+     */
+```
+
+> Send a notification to the tibber app. You can specify which route shoule be opened in the App when opening the message. The noticifation will be send to all devices registered for that tibber account. If the send is successful the response will show how many devices the message reached.
+
 ## Examples
 
 TibberFeed: typescript example.
@@ -343,7 +361,7 @@ const config: IConfig = {
 const tibberFeed = new TibberFeed(config);
 
 // Subscribe to "data" event.
-tibberFeed.on('data', data => {
+tibberFeed.on('data', (data) => {
     console.log(data);
 });
 

@@ -10,7 +10,7 @@ import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { HttpMethod } from './models/HttpMethod';
-import { cqlSendPushNoticifation } from '../gql/sendPushNotification.gql';
+import { cqlSendPushNotififation } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { ISendPushNotificationPayload } from '../models/ISendPushNotificationPayload';
 
@@ -275,8 +275,19 @@ export class TibberQuery {
         }
     }
 
+    /**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param messagePayloadVariables ISendPushNotificationPayload. 
+     * input: {
+        title: "The title of your message";
+        message: "The message you want to send";
+        screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+        };
+     * @return ISendPushNotification Object
+     */
     public async sendPushNotification(messagePayloadVariables: ISendPushNotificationPayload): Promise<ISendPushNotification> {
-        const result = await this.query(cqlSendPushNoticifation, messagePayloadVariables);
+        const result = await this.query(cqlSendPushNotififation, messagePayloadVariables);
 
         if (result.sendPushNotification || result.errors) {
             return Object.assign({} as ISendPushNotification, result);
