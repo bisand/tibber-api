@@ -1,8 +1,8 @@
-import * as url from "url";
+import * as url from 'url';
 import https, { RequestOptions } from 'https';
 import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
-import { IPrice } from "../models/IPrice";
+import { IPrice } from '../models/IPrice';
 import { EnergyResolution } from '../models/enums/EnergyResolution';
 import { IConsumption } from '../models/IConsumption';
 import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
@@ -10,6 +10,9 @@ import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { HttpMethod } from './models/HttpMethod';
+import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
+import { ISendPushNotification } from '../models/ISendPushNotification';
+import { ISendPushNotificationPayload } from '../models/ISendPushNotificationPayload';
 
 export class TibberQuery {
     public active: boolean;
@@ -58,7 +61,7 @@ export class TibberQuery {
                 Host: uri.hostname as string,
                 'User-Agent': 'tibber-api',
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
+                Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
             },
         };
     }
@@ -75,17 +78,19 @@ export class TibberQuery {
             try {
                 const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
                 const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
-                const data = new TextEncoder().encode(JSON.stringify({
-                    query,
-                    variables,
-                }));
+                const data = new TextEncoder().encode(
+                    JSON.stringify({
+                        query,
+                        variables,
+                    }),
+                );
 
                 const req = https.request(options, (res: any) => {
-                    let str: string = "";
-                    res.on("data", (chunk: string) => {
+                    let str: string = '';
+                    res.on('data', (chunk: string) => {
                         str += chunk;
                     });
-                    res.on("end", () => {
+                    res.on('end', () => {
                         const response: any = node.isJsonString(str) ? JSON.parse(str) : str;
                         if (res.statusCode >= 200 && res.statusCode < 300) {
                             resolve(response.data ? response.data : response);
@@ -97,7 +102,7 @@ export class TibberQuery {
                         }
                     });
                 });
-                req.on("error", (e: any) => {
+                req.on('error', (e: any) => {
                     console.error(`problem with request: ${e.message}`);
                     reject(e);
                 });
@@ -105,7 +110,6 @@ export class TibberQuery {
                     req.write(data);
                 }
                 req.end();
-
             } catch (error) {
                 reject(error);
             }
@@ -269,5 +273,24 @@ export class TibberQuery {
             }
             return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         }
+    }
+
+    /**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param messagePayloadVariables ISendPushNotificationPayload. 
+     * input: {
+        title: "The title of your message";
+        message: "The message you want to send";
+        screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+        };
+     * @return ISendPushNotification Object
+     */
+    public async sendPushNotification(messagePayloadVariables: ISendPushNotificationPayload): Promise<ISendPushNotification> {
+        const result = await this.query(gqlSendPushNotification, messagePayloadVariables);
+
+        if (result.sendPushNotification || result.errors) {
+            return Object.assign({} as ISendPushNotification, result);
+        } else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendPushNotification);
     }
 }
