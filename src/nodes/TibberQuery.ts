@@ -10,7 +10,7 @@ import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { HttpMethod } from './models/HttpMethod';
-import { cqlSendPushNotififation } from '../gql/sendPushNotification.gql';
+import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { ISendPushNotificationPayload } from '../models/ISendPushNotificationPayload';
 
@@ -287,7 +287,7 @@ export class TibberQuery {
      * @return ISendPushNotification Object
      */
     public async sendPushNotification(messagePayloadVariables: ISendPushNotificationPayload): Promise<ISendPushNotification> {
-        const result = await this.query(cqlSendPushNotififation, messagePayloadVariables);
+        const result = await this.query(gqlSendPushNotification, messagePayloadVariables);
 
         if (result.sendPushNotification || result.errors) {
             return Object.assign({} as ISendPushNotification, result);
