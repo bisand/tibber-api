@@ -335,7 +335,7 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
      */
 ```
 
-> Send a notification to the tibber app. You can specify which route shoule be opened in the App when opening the message. The noticifation will be send to all devices registered for that tibber account. If the send is successful the response will show how many devices the message reached.
+> Send a notification to the tibber app. You can specify which route shoule be opened in the App when opening the message. The notification will be send to all devices registered for that tibber account. If the send is successful the response will show how many devices the message reached.
 
 ## Examples
 
