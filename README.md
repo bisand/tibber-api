@@ -325,12 +325,9 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 /**
      * Sends a push notification to the current user's tibber app.
      * Returns a ISendPushNotification Object
-     * @param messagePayloadVariables ISendPushNotificationPayload.
-     *  input: {
-        title: "The title of your message";
-        message: "The message you want to send";
-        screenToOpen: AppScreen Object, example: AppScreen.HOME ;
-    };
+     * @param title: "The title of your message";
+       @param message: "The message you want to send";
+       @param screenToOpen: AppScreen Object, example: AppScreen.HOME ;
      * @return ISendPushNotification Object
      */
 ```
