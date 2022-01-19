@@ -3,7 +3,6 @@
 
 import { TibberQuery, IConfig } from '../src/index';
 import http from 'http';
-import { ISendPushNotificationPayload } from '../src/models/ISendPushNotificationPayload';
 import { AppScreen } from '../src/models/enums/AppScreen';
 
 const hostname = '127.0.0.1';
@@ -21,17 +20,17 @@ const config: IConfig = {
 
 // Instance of TibberQuery
 const tibberQuery = new TibberQuery(config);
+// your push config
+const message = 'TEST_MESSAGE';
+const title = 'TEST_TITLE';
+const screenToOpen = AppScreen.HOME;
 
 // Simple web server.
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
-    const messagePayloadVariables: ISendPushNotificationPayload = {
-        input: { title: 'TITLE', message: 'MESSAGE', screenToOpen: AppScreen.HOME },
-    };
-
     switch (req.url) {
         case '/push':
-            const result = await tibberQuery.sendPushNotification(messagePayloadVariables);
+            const result = await tibberQuery.sendPushNotification(message, title, screenToOpen);
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify(result));

@@ -4,7 +4,6 @@ import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 import { IConsumption } from '../src/models/IConsumption';
 import { AppScreen } from '../src/models/enums/AppScreen';
 import { ISendPushNotification } from '../src/models/ISendPushNotification';
-import { ISendPushNotificationPayload } from '../src/models/ISendPushNotificationPayload';
 
 const config: IConfig = {
     active: false,
@@ -123,12 +122,12 @@ test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
 });
 
 test('TibberQuery.sendPushNotification() should return error when using demo user', async () => {
-    const messagePayloadVariables: ISendPushNotificationPayload = {
-        input: { title: 'TEST_TITLE', message: 'TEST_MESSAGE', screenToOpen: AppScreen.HOME },
-    };
     const tibberQuery = new TibberQuery(config);
+    const message = 'TEST_MESSAGE';
+    const title = 'TEST_TITLE';
+    const screenToOpen = AppScreen.HOME;
 
     process.nextTick(() => {});
-    const result: ISendPushNotification = await tibberQuery.sendPushNotification(messagePayloadVariables);
+    const result: ISendPushNotification = await tibberQuery.sendPushNotification(title, message, screenToOpen);
     if (result.errors != undefined) result.errors.map((m) => expect(m.message).toContain('operation not allowed for demo user'));
 });
