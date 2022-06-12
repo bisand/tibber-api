@@ -50,7 +50,7 @@ export class TibberQuery {
         catch (e: any) {
         }
 
-        return {};
+        return { responseMessage: input };
     };
 
     /**
