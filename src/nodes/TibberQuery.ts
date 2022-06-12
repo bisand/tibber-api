@@ -30,18 +30,28 @@ export class TibberQuery {
     }
 
     /**
-     * Check if a string is valid JSON data
-     * @param str String to check for JSON
-     * @returns true if input string is valid JSON data
+     * Try to parse a string and return a valid JSON object. 
+     * If string is not valid JSON, it will return an empty object instead.
+     * @param input Input string to try to parse as a JSON object
+     * @returns Parsed or empty Json object
      */
-    private isJsonString(str: string) {
+    private JsonTryParse(input: string): object {
         try {
-            JSON.parse(str);
-        } catch (e) {
-            return false;
+            //check if the string exists
+            if (input) {
+                let o = JSON.parse(input);
+
+                //validate the result too
+                if (o && o.constructor === Object) {
+                    return o;
+                }
+            }
         }
-        return true;
-    }
+        catch (e: any) {
+        }
+
+        return {};
+    };
 
     /**
      *
@@ -91,7 +101,7 @@ export class TibberQuery {
                         str += chunk;
                     });
                     res.on('end', () => {
-                        const response: any = node.isJsonString(str) ? JSON.parse(str) : str;
+                        const response: any = this.JsonTryParse(str);
                         if (res.statusCode >= 200 && res.statusCode < 300) {
                             resolve(response.data ? response.data : response);
                         } else {
