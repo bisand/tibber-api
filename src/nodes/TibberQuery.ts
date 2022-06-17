@@ -114,7 +114,7 @@ export class TibberQuery {
                 });
                 req.on('error', (e: any) => {
                     // console.error(`problem with request: ${e.message}`);
-                    |reject(e);
+                    reject(e);
                 });
                 if (data) {
                     req.write(data);
