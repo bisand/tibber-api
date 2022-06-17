@@ -5,7 +5,7 @@ import { MockServer } from 'jest-mock-server';
 const serverPort = 3001;
 
 const config = {
-    apiEndpoint: { queryUrl: 'https://localhost:' + serverPort, feedUrl: 'https://localhost', apiKey: '1337' },
+    apiEndpoint: { queryUrl: 'http://localhost:' + serverPort, feedUrl: 'http://localhost', apiKey: '1337' },
     active: false,
 };
 
@@ -19,19 +19,19 @@ describe('Testing TibberQuery HTTP client', () => {
 
     it('Receives a status over the network', async () => {
         const route = server
-            .get('/')
+            .post('/')
             // Look ma, plain Jest API!
             .mockImplementationOnce((ctx) => {
-                // ...and plain Koa API
                 ctx.status = 200;
             })
             .mockImplementationOnce((ctx) => {
-                ctx.status = 201;
+                ctx.status = 502;
             });
         const url = server.getURL();
         const res = await query.getHomes();
         expect(res).toBeDefined();
-    });
+        expect(route).toHaveBeenCalledTimes(1); // Yep, jest API again
+    }, 60000);
     test('TibberQuery should be created', () => {
         expect(query).toBeDefined();
     });
