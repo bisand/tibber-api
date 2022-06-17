@@ -30,7 +30,7 @@
     "@types/node": "^16",
     "@types/ws": "^8.5.3",
     "jest": "^28.1.1",
-    "jest-mock-server": "^0.0.5",
+    "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",
     "tslint": "^6.1.3",

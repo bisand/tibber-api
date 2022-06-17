@@ -1,5 +1,6 @@
 import * as url from 'url';
 import https, { RequestOptions } from 'https';
+import http from 'http';
 import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
 import { IPrice } from '../models/IPrice';
@@ -64,6 +65,7 @@ export class TibberQuery {
             host: uri.host,
             port: uri.port,
             path: uri.path,
+            protocol: uri.protocol,
             method,
             headers: {
                 Connection: 'Keep-Alive',
@@ -95,7 +97,8 @@ export class TibberQuery {
                     }),
                 );
 
-                const req = https.request(options, (res: any) => {
+                const client = (uri.protocol == "https:") ? https : http;
+                const req = client.request(options, (res: any) => {
                     let str: string = '';
                     res.on('data', (chunk: string) => {
                         str += chunk;
