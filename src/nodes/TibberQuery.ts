@@ -14,6 +14,7 @@ import { HttpMethod } from './models/HttpMethod';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { AppScreen as screenToOpen } from '../models/enums/AppScreen';
+import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 
 export class TibberQuery {
     public active: boolean;
@@ -105,12 +106,12 @@ export class TibberQuery {
                     });
                     res.on('end', () => {
                         const response: any = this.JsonTryParse(str);
-                        if (res.statusCode >= 200 && res.statusCode < 300) {
+                        if (res?.statusCode >= 200 && res?.statusCode < 300) {
                             resolve(response.data ? response.data : response);
                         } else {
-                            response.httpCode = res.statusCode;
-                            response.statusCode = res.statusCode;
-                            response.statusMessage = res.statusMessage;
+                            response.httpCode = res?.statusCode;
+                            response.statusCode = res?.statusCode;
+                            response.statusMessage = res?.statusMessage;
                             reject(response);
                         }
                     });
@@ -127,6 +128,19 @@ export class TibberQuery {
                 reject(error);
             }
         });
+    }
+
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    public async getWebsocketSubscriptionUrl(): Promise<URL> {
+        const result = await this.query(qglWebsocketSubscriptionUrl);
+        if (result && result.viewer && result.viewer.websocketSubscriptionUrl) {
+            return Object.assign({} as URL, result.viewer.websocketSubscriptionUrl);
+        }
+        return result && result.error ? result : {};
     }
 
     /**

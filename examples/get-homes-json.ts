@@ -11,7 +11,7 @@ const port = 3000;
 const config: IConfig = {
     active: true,
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
