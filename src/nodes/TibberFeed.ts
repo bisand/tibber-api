@@ -5,6 +5,7 @@ import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 import { GQL } from './models/GQL';
 import { TibberQuery } from './TibberQuery';
+import { ITibberQuery } from './ITibberQuery';
 
 export class TibberFeed extends EventEmitter {
     private _operationId: number = 0;
@@ -16,27 +17,29 @@ export class TibberFeed extends EventEmitter {
     private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
+    private _tibberQuery: ITibberQuery;
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @param config IConfig object
      * @param timeout Reconnection timeout
      * @see IConfig
      */
-    constructor(config: IConfig, timeout: number = 30000, returnAllFields = false) {
+    constructor(tibberQuery: ITibberQuery, timeout: number = 30000, returnAllFields = false) {
         super();
 
         const node = this;
         this._timeout = timeout;
-        this._config = config;
-        this._active = config.active;
+        this._tibberQuery = tibberQuery;
+        this._config = tibberQuery.config;
+        this._active = this._config.active;
         this._hearbeatTimeouts = [];
         this._isConnected = false;
         this._isConnecting = false;
         this._gql = '';
 
-        if (!config.apiEndpoint || !config.apiEndpoint.apiKey || !config.homeId || !config.apiEndpoint.feedUrl) {
+        if (!this._config.endpoint || !this._config.endpoint.apiKey || !this._config.homeId ) {
             node._active = false;
-            config.active = false;
+            this._config.active = false;
             node.warn('Missing mandatory parameters. Execution will halt.');
             return;
         }
@@ -143,12 +146,13 @@ export class TibberFeed extends EventEmitter {
     /**
      * Connect to Tibber feed.
      */
-    public connect() {
+    public async connect() {
         const node = this;
         if (node._isConnecting || node._isConnected) { return; }
         node._isConnecting = true;
         try {
-            node._webSocket = new WebSocket(String(node._config.apiEndpoint.feedUrl), ['graphql-ws']);
+            const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
+            node._webSocket = new WebSocket(String(url), ['graphql-ws']);
 
             /**
              * Event: open
@@ -288,7 +292,7 @@ export class TibberFeed extends EventEmitter {
     private initConnection() {
         const query: IQuery = {
             type: GQL.CONNECTION_INIT,
-            payload: `token=${this._config.apiEndpoint.apiKey}`,
+            payload: `token=${this._config.endpoint.apiKey}`,
         };
         this.sendQuery(query);
         this.emit('connecting', 'Initiating Tibber feed.');

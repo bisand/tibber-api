@@ -4,18 +4,27 @@ import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 import { IConsumption } from '../src/models/IConsumption';
 import { AppScreen } from '../src/models/enums/AppScreen';
 import { ISendPushNotification } from '../src/models/ISendPushNotification';
+import { UrlTools } from '../src/index';
 
 const config: IConfig = {
     active: false,
-    apiEndpoint: {
+    endpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
-        queryUrl: 'https://api.tibber.com/v1-beta/gql',
+        url: 'https://api.tibber.com/v1-beta/gql',
     },
 };
 
 afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+});
+
+test('TibberQuery.getWebsocketSubscriptionUrl() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    process.nextTick(() => {});
+    const url = await tibberQuery.getWebsocketSubscriptionUrl();
+    expect(url).toBeDefined();
+    const urlTools = new UrlTools();
+    expect(urlTools.validateUrl(url.href)).toBe(true);
 });
 
 test('TibberQuery.getHomes() should be valid', async () => {

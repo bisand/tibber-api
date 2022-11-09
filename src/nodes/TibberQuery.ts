@@ -15,10 +15,17 @@ import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { AppScreen as screenToOpen } from '../models/enums/AppScreen';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
+import { ITibberQuery } from './ITibberQuery';
 
-export class TibberQuery {
+export class TibberQuery implements ITibberQuery {
     public active: boolean;
     private _config: IConfig;
+    public get config(): IConfig {
+        return this._config;
+    }
+    public set config(value: IConfig) {
+        this._config = value;
+    }
 
     /**
      * Constructor
@@ -74,7 +81,7 @@ export class TibberQuery {
                 Host: uri.hostname as string,
                 'User-Agent': 'tibber-api',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
+                Authorization: `Bearer ${this._config.endpoint.apiKey}`,
             },
         };
     }
@@ -89,7 +96,7 @@ export class TibberQuery {
         const node: TibberQuery = this;
         return await new Promise<any>((resolve, reject) => {
             try {
-                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
+                const uri = url.parse(this._config.endpoint.url, true);
                 const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
                 const data = new TextEncoder().encode(
                     JSON.stringify({
@@ -138,7 +145,7 @@ export class TibberQuery {
     public async getWebsocketSubscriptionUrl(): Promise<URL> {
         const result = await this.query(qglWebsocketSubscriptionUrl);
         if (result && result.viewer && result.viewer.websocketSubscriptionUrl) {
-            return Object.assign({} as URL, result.viewer.websocketSubscriptionUrl);
+            return new URL(result.viewer.websocketSubscriptionUrl);
         }
         return result && result.error ? result : {};
     }

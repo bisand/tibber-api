@@ -1,13 +1,9 @@
-export interface IApiEndpoint {
-    feedUrl: string;
-    queryUrl: string;
-    apiKey: string;
-}
+import { IEndpoint } from './IEndpoint';
 
 export interface IConfig {
     active: boolean;
     // Endpoint configuration.
-    apiEndpoint: IApiEndpoint;
+    endpoint: IEndpoint;
     // Query configuration.
     homeId?: string;
     timestamp?: boolean;

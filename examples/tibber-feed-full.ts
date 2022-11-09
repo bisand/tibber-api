@@ -8,10 +8,9 @@ import { IConfig } from '../src/models/IConfig';
 const config: IConfig = {
     // Endpoint configuration.
     active: true,
-    apiEndpoint: {
+    endpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
-        queryUrl: 'https://api.tibber.com/v1-beta/gql',
+        url: 'https://api.tibber.com/v1-beta/gql',
     },
     // Query configuration.
     homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
@@ -40,26 +39,30 @@ const config: IConfig = {
     signalStrength: true,
 };
 
-const tibberFeed = new TibberFeed(config);
-tibberFeed.on('connected', () => {
-    console.log('Connected to Tibber!');
+const tibberQuery = new TibberQuery(config);
+tibberQuery.getWebsocketSubscriptionUrl().then(url => {
+    config.endpoint.url = url.href;
+    const tibberFeed = new TibberFeed(tibberQuery);
+    tibberFeed.on('connected', () => {
+        console.log('Connected to Tibber!');
+    });
+    tibberFeed.on('connection_ack', () => {
+        console.log('Connection acknowledged!');
+    });
+    tibberFeed.on('disconnected', () => {
+        console.log('Disconnected from Tibber!');
+    });
+    tibberFeed.on('error', error => {
+        console.error(error);
+    });
+    tibberFeed.on('warn', warn => {
+        console.warn(warn);
+    });
+    tibberFeed.on('log', log => {
+        console.log(log);
+    });
+    tibberFeed.on('data', data => {
+        console.log(data);
+    });
+    tibberFeed.connect();
 });
-tibberFeed.on('connection_ack', () => {
-    console.log('Connection acknowledged!');
-});
-tibberFeed.on('disconnected', () => {
-    console.log('Disconnected from Tibber!');
-});
-tibberFeed.on('error', error => {
-    console.error(error);
-});
-tibberFeed.on('warn', warn => {
-    console.warn(warn);
-});
-tibberFeed.on('log', log => {
-    console.log(log);
-});
-tibberFeed.on('data', data => {
-    console.log(data);
-});
-tibberFeed.connect();
