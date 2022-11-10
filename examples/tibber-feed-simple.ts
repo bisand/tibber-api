@@ -52,4 +52,3 @@ async function app() {
 }
 
 app();
-setInterval(() => { }, 1 << 30);

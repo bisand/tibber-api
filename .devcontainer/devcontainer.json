@@ -1,6 +1,6 @@
 {
 	"name": "Node.js & TypeScript",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:16-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:18-bullseye",
 	"features": {
 		"ghcr.io/devcontainers/features/docker-from-docker:1": {},
 		"ghcr.io/devcontainers/features/git:1": {},

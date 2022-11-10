@@ -12,12 +12,13 @@ export class TibberFeed extends EventEmitter {
     private _timeout: number;
     private _config: IConfig;
     private _active: boolean;
-    private _hearbeatTimeouts: NodeJS.Timeout[];
     private _isConnected: boolean;
     private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
+    private _heartbeatTimeout: NodeJS.Timer | null;
+
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @param tibberQuery TibberQueryBase object
@@ -31,7 +32,7 @@ export class TibberFeed extends EventEmitter {
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._active = this._config.active;
-        this._hearbeatTimeouts = [];
+        this._heartbeatTimeout = null;
         this._isConnected = false;
         this._isConnecting = false;
         this._gql = '';
@@ -151,12 +152,15 @@ export class TibberFeed extends EventEmitter {
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
             const options = {
-                auth: `Bearer ${this._config.endpoint.apiKey}`,
                 headers: {
+                    'Authorization': `Bearer ${this._config.endpoint.apiKey}`,
                     'User-Agent': (`${this._config.endpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
                 }
             }
-            this._webSocket = new WebSocket(String(url), ['graphql-ws'], options);
+            this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
+            this._webSocket.on('error', (err: Error) => {
+                console.log('someone connected!');
+            });
 
             /**
              * Event: open
@@ -187,7 +191,7 @@ export class TibberFeed extends EventEmitter {
                             this.emit(GQL.CONNECTION_ACK, msg);
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
                             break;
-                        case GQL.DATA:
+                        case GQL.NEXT:
                             if (msg.payload && msg.payload.errors) {
                                 this.emit('error', msg.payload.errors);
                             }
@@ -216,9 +220,6 @@ export class TibberFeed extends EventEmitter {
                                 this.log('Reconnecting...');
                                 this.connect();
                             }
-                            break;
-                        case GQL.CONNECTION_KEEP_ALIVE:
-                            this.log('Received keep alive message.');
                             break;
 
                         default:
@@ -256,14 +257,14 @@ export class TibberFeed extends EventEmitter {
      * Close the Tibber feed.
      */
     public close() {
-        this._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
-            clearTimeout(timeout);
-        });
+        this._active = false;
+        if (this._heartbeatTimeout)
+            clearTimeout(this._heartbeatTimeout);
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.stopSubscription();
-                this.terminateConnection();
-                this._webSocket.close();
+                this._webSocket.close(1000, 'Normal Closure');
+                this._webSocket.terminate();
             }
         }
         this.log('Closed Tibber Feed.');
@@ -274,48 +275,42 @@ export class TibberFeed extends EventEmitter {
      * Mostly for internal use, even if it is public.
      */
     public heartbeat() {
-        this._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
-            clearTimeout(timeout);
-        });
-        this._hearbeatTimeouts = [];
-        this._hearbeatTimeouts.push(
-            setTimeout(() => {
-                if (this._webSocket) {
-                    this.terminateConnection();
-                    this._webSocket.terminate();
-                    this._isConnected = false;
-                    this.warn('Connection timed out after ' + this._timeout + ' ms.');
-                    if (this._active) {
-                        this.log('Reconnecting...');
-                        this.connect();
-                    }
+        if (!this._active)
+            return;
+
+        if (this._heartbeatTimeout) {
+            this._heartbeatTimeout.refresh();
+            return;
+        }
+
+        this._heartbeatTimeout = setTimeout(() => {
+            if (this._webSocket) {
+                this.stopSubscription();
+                this._webSocket.terminate();
+                this._isConnected = false;
+                this.warn('Connection timed out after ' + this._timeout + ' ms.');
+                if (this._active) {
+                    this.log('Reconnecting...');
+                    this.connect();
                 }
-            }, this._timeout),
-        );
+                this._heartbeatTimeout = null;
+            }
+        }, this._timeout);
     }
 
     private initConnection() {
         const query: IQuery = {
             type: GQL.CONNECTION_INIT,
-            payload: `token=${this._config.endpoint.apiKey}`,
+            payload: { 'token': this._config.endpoint.apiKey },
         };
         this.sendQuery(query);
         this.emit('connecting', 'Initiating Tibber feed.');
     }
 
-    private terminateConnection() {
-        const query: IQuery = {
-            type: GQL.CONNECTION_TERMINATE,
-            payload: null,
-        };
-        this.sendQuery(query);
-        this.emit('disconnecting', 'Sent connection_terminate to Tibber feed.');
-    }
-
-    startSubscription(subscription: string, variables: any) {
+    private startSubscription(subscription: string, variables: Record<string, unknown> | null) {
         const query: IQuery = {
             id: `${++this._operationId}`,
-            type: GQL.START,
+            type: GQL.SUBSCRIBE,
             payload: {
                 variables: variables,
                 extensions: {},
@@ -329,7 +324,7 @@ export class TibberFeed extends EventEmitter {
     private stopSubscription() {
         const query: IQuery = {
             id: `${this._operationId}`,
-            type: GQL.STOP,
+            type: GQL.COMPLETE,
         };
         this.sendQuery(query);
         this.emit('disconnecting', 'Sent stop to Tibber feed.');
