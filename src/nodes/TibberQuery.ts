@@ -13,7 +13,7 @@ import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices,
 import { HttpMethod } from './models/HttpMethod';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
-import { AppScreen as screenToOpen } from '../models/enums/AppScreen';
+import { AppScreen } from '../models/enums/AppScreen';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { ITibberQuery } from './ITibberQuery';
 
@@ -308,16 +308,16 @@ export class TibberQuery implements ITibberQuery {
             return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         }
     }
+
     /**
      * Sends a push notification to the current user's tibber app.
      * Returns a ISendPushNotification Object
      * @param title: "The title of your message";
        @param message: "The message you want to send";
-       @param screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+       @param screen: AppScreen Object, example: AppScreen.HOME ;
      * @return ISendPushNotification Object
      */
-
-    public async sendPushNotification(message: string, title: string, screen: screenToOpen): Promise<ISendPushNotification> {
+    public async sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
         const messagePayloadVariables = {
             input: { title: title, message: message, screenToOpen: screen },
         };
