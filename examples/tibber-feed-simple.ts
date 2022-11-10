@@ -18,37 +18,38 @@ const config: IConfig = {
 };
 
 const tibberQuery = new TibberQuery(config);
-tibberQuery.getWebsocketSubscriptionUrl().then(async url => {
-    // Instantiate TibberFeed.
-    config.endpoint.url = url.href;
-    const tibberFeed = new TibberFeed(tibberQuery);
+const tibberFeed = new TibberFeed(tibberQuery);
+let counter = 0;
+// Subscribe to "data" event.
+tibberFeed.on('data', data => {
+    // Close connection after receiving more tham 10 messages.
+    if (counter++ >= 5) {
+        tibberFeed.close();
+    }
+    console.log(counter + ' - ' + JSON.stringify(data));
+});
 
-    let counter = 0;
-    // Subscribe to "data" event.
-    tibberFeed.on('data', data => {
-        // Close connection after receiving more tham 10 messages.
-        if (counter++ >= 5) {
-            tibberFeed.close();
-        }
-        console.log(counter + ' - ' + JSON.stringify(data));
-    });
+tibberFeed.on('connecting', data => {
+    console.log(data);
+});
 
-    tibberFeed.on('connecting', data => {
-        console.log(data);
-    });
+tibberFeed.on('connected', data => {
+    console.log(data);
+});
 
-    tibberFeed.on('connected', data => {
-        console.log(data);
-    });
+tibberFeed.on('disconnecting', data => {
+    console.log(data);
+});
 
-    tibberFeed.on('disconnecting', data => {
-        console.log(data);
-    });
+tibberFeed.on('disconnected', data => {
+    console.log(data);
+});
 
-    tibberFeed.on('disconnected', data => {
-        console.log(data);
-    });
-
+async function app() {
     // Connect to Tibber data feed
     await tibberFeed.connect();
-});
+    console.log('Complete!');
+}
+
+app();
+setInterval(() => { }, 1 << 30);

@@ -4,8 +4,8 @@ import { IQuery } from '../models/IQuery';
 import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 import { GQL } from './models/GQL';
-import { TibberQuery } from './TibberQuery';
-import { ITibberQuery } from './ITibberQuery';
+import { TibberQueryBase } from './TibberQueryBase';
+import { version, release } from "../../Version"
 
 export class TibberFeed extends EventEmitter {
     private _operationId: number = 0;
@@ -17,17 +17,16 @@ export class TibberFeed extends EventEmitter {
     private _isConnecting: boolean;
     private _gql: string;
     private _webSocket!: WebSocket;
-    private _tibberQuery: ITibberQuery;
+    private _tibberQuery: TibberQueryBase;
     /**
      * Constructor for creating a new instance if TibberFeed.
-     * @param config IConfig object
+     * @param tibberQuery TibberQueryBase object
      * @param timeout Reconnection timeout
-     * @see IConfig
+     * @see {TibberQueryBase}
      */
-    constructor(tibberQuery: ITibberQuery, timeout: number = 30000, returnAllFields = false) {
+    constructor(tibberQuery: TibberQueryBase, timeout: number = 30000, returnAllFields = false) {
         super();
 
-        const node = this;
         this._timeout = timeout;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
@@ -37,87 +36,87 @@ export class TibberFeed extends EventEmitter {
         this._isConnecting = false;
         this._gql = '';
 
-        if (!this._config.endpoint || !this._config.endpoint.apiKey || !this._config.homeId ) {
-            node._active = false;
+        if (!this._config.endpoint || !this._config.endpoint.apiKey || !this._config.homeId) {
+            this._active = false;
             this._config.active = false;
-            node.warn('Missing mandatory parameters. Execution will halt.');
+            this.warn('Missing mandatory parameters. Execution will halt.');
             return;
         }
 
         this._gql = 'subscription($homeId:ID!){liveMeasurement(homeId:$homeId){';
-        if (node._config.timestamp || returnAllFields) {
+        if (this._config.timestamp || returnAllFields) {
             this._gql += 'timestamp ';
         }
-        if (node._config.power || returnAllFields) {
+        if (this._config.power || returnAllFields) {
             this._gql += 'power ';
         }
-        if (node._config.lastMeterConsumption || returnAllFields) {
+        if (this._config.lastMeterConsumption || returnAllFields) {
             this._gql += 'lastMeterConsumption ';
         }
-        if (node._config.accumulatedConsumption || returnAllFields) {
+        if (this._config.accumulatedConsumption || returnAllFields) {
             this._gql += 'accumulatedConsumption ';
         }
-        if (node._config.accumulatedProduction || returnAllFields) {
+        if (this._config.accumulatedProduction || returnAllFields) {
             this._gql += 'accumulatedProduction ';
         }
-        if (node._config.accumulatedConsumptionLastHour || returnAllFields) {
+        if (this._config.accumulatedConsumptionLastHour || returnAllFields) {
             this._gql += 'accumulatedConsumptionLastHour ';
         }
-        if (node._config.accumulatedProductionLastHour || returnAllFields) {
+        if (this._config.accumulatedProductionLastHour || returnAllFields) {
             this._gql += 'accumulatedProductionLastHour ';
         }
-        if (node._config.accumulatedCost || returnAllFields) {
+        if (this._config.accumulatedCost || returnAllFields) {
             this._gql += 'accumulatedCost ';
         }
-        if (node._config.accumulatedReward || returnAllFields) {
+        if (this._config.accumulatedReward || returnAllFields) {
             this._gql += 'accumulatedReward ';
         }
-        if (node._config.currency || returnAllFields) {
+        if (this._config.currency || returnAllFields) {
             this._gql += 'currency ';
         }
-        if (node._config.minPower || returnAllFields) {
+        if (this._config.minPower || returnAllFields) {
             this._gql += 'minPower ';
         }
-        if (node._config.averagePower || returnAllFields) {
+        if (this._config.averagePower || returnAllFields) {
             this._gql += 'averagePower ';
         }
-        if (node._config.maxPower || returnAllFields) {
+        if (this._config.maxPower || returnAllFields) {
             this._gql += 'maxPower ';
         }
-        if (node._config.powerProduction || returnAllFields) {
+        if (this._config.powerProduction || returnAllFields) {
             this._gql += 'powerProduction ';
         }
-        if (node._config.minPowerProduction || returnAllFields) {
+        if (this._config.minPowerProduction || returnAllFields) {
             this._gql += 'minPowerProduction ';
         }
-        if (node._config.maxPowerProduction || returnAllFields) {
+        if (this._config.maxPowerProduction || returnAllFields) {
             this._gql += 'maxPowerProduction ';
         }
-        if (node._config.lastMeterProduction || returnAllFields) {
+        if (this._config.lastMeterProduction || returnAllFields) {
             this._gql += 'lastMeterProduction ';
         }
-        if (node._config.powerFactor || returnAllFields) {
+        if (this._config.powerFactor || returnAllFields) {
             this._gql += 'powerFactor ';
         }
-        if (node._config.voltagePhase1 || returnAllFields) {
+        if (this._config.voltagePhase1 || returnAllFields) {
             this._gql += 'voltagePhase1 ';
         }
-        if (node._config.voltagePhase2 || returnAllFields) {
+        if (this._config.voltagePhase2 || returnAllFields) {
             this._gql += 'voltagePhase2 ';
         }
-        if (node._config.voltagePhase3 || returnAllFields) {
+        if (this._config.voltagePhase3 || returnAllFields) {
             this._gql += 'voltagePhase3 ';
         }
-        if (node._config.currentL1 || returnAllFields) {
+        if (this._config.currentL1 || returnAllFields) {
             this._gql += 'currentL1 ';
         }
-        if (node._config.currentL2 || returnAllFields) {
+        if (this._config.currentL2 || returnAllFields) {
             this._gql += 'currentL2 ';
         }
-        if (node._config.currentL3 || returnAllFields) {
+        if (this._config.currentL3 || returnAllFields) {
             this._gql += 'currentL3 ';
         }
-        if (node._config.signalStrength || returnAllFields) {
+        if (this._config.signalStrength || returnAllFields) {
             this._gql += 'signalStrength ';
         }
         this._gql += '}}';
@@ -147,78 +146,83 @@ export class TibberFeed extends EventEmitter {
      * Connect to Tibber feed.
      */
     public async connect() {
-        const node = this;
-        if (node._isConnecting || node._isConnected) { return; }
-        node._isConnecting = true;
+        if (this._isConnecting || this._isConnected) { return; }
+        this._isConnecting = true;
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
-            node._webSocket = new WebSocket(String(url), ['graphql-ws']);
+            const options = {
+                auth: `Bearer ${this._config.endpoint.apiKey}`,
+                headers: {
+                    'User-Agent': (`${this._config.endpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
+                }
+            }
+            this._webSocket = new WebSocket(String(url), ['graphql-ws'], options);
 
             /**
              * Event: open
              * Called when websocket connection is established.
              */
-            node._webSocket.onopen = (event: WebSocket.Event) => {
-                if (!node._webSocket) {
+            this._webSocket.onopen = (event: WebSocket.Event) => {
+                if (!this._webSocket) {
                     return;
                 }
-                node.initConnection();
+                this.initConnection();
             };
 
             /**
              * Event: message
              * Called when data is received from the feed.
              */
-            node._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
+            this._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
                 if (message.data && message.data.toString().startsWith('{')) {
                     const msg = JSON.parse(message.data.toString());
                     switch (msg.type) {
                         case GQL.CONNECTION_ERROR:
-                            node.error(`A connection error occurred: ${JSON.stringify(msg)}`);
-                            node.close();
+                            this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
+                            this.close();
                             break;
                         case GQL.CONNECTION_ACK:
-                            node._isConnected = true;
-                            node.emit('connected', 'Connected to Tibber feed.');
-                            node.emit(GQL.CONNECTION_ACK, msg);
-                            node.startSubscription(node._gql, { homeId: node._config.homeId });
+                            this._isConnected = true;
+                            this.emit('connected', 'Connected to Tibber feed.');
+                            this.emit(GQL.CONNECTION_ACK, msg);
+                            this.startSubscription(this._gql, { homeId: this._config.homeId });
                             break;
                         case GQL.DATA:
                             if (msg.payload && msg.payload.errors) {
-                                node.emit('error', msg.payload.errors);
+                                this.emit('error', msg.payload.errors);
                             }
-                            if (msg.id != node._operationId) {
-                                node.log(`Message contains unexpected id ${JSON.stringify(msg)}`);
+                            if (msg.id != this._operationId) {
+                                this.log(`Message contains unexpected id ${JSON.stringify(msg)}`);
                                 return;
                             }
                             if (!msg.payload || !msg.payload.data) {
                                 return;
                             }
                             const data = msg.payload.data.liveMeasurement;
-                            node.emit('data', data);
-                            node.heartbeat();
+                            this.emit('data', data);
+                            this.heartbeat();
                             break;
                         case GQL.ERROR:
-                            node.error(`An error occurred: ${JSON.stringify(msg)}`);
+                            this.error(`An error occurred: ${JSON.stringify(msg)}`);
                             break;
                         case GQL.COMPLETE:
-                            if (msg.id != node._operationId) {
-                                node.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
+                            if (msg.id != this._operationId) {
+                                this.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
                                 return;
                             }
-                            node.log('Received complete message. Closing connection.');
-                            node.close();
-                            if (node._active) {
-                                node.log('Reconnecting...');
-                                node.connect();
+                            this.log('Received complete message. Closing connection.');
+                            this.close();
+                            if (this._active) {
+                                this.log('Reconnecting...');
+                                this.connect();
                             }
                             break;
                         case GQL.CONNECTION_KEEP_ALIVE:
-                            node.log('Received keep alive message.');
+                            this.log('Received keep alive message.');
                             break;
 
                         default:
-                            node.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
+                            this.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
                             break;
                     }
                 }
@@ -228,39 +232,41 @@ export class TibberFeed extends EventEmitter {
              * Event: close
              * Called when feed is closed.
              */
-            node._webSocket.onclose = (event: WebSocket.CloseEvent) => {
-                node._isConnected = false;
-                node.emit('disconnected', 'Disconnected from Tibber feed.');
+            this._webSocket.onclose = (event: WebSocket.CloseEvent) => {
+                this._isConnected = false;
+                this.emit('disconnected', 'Disconnected from Tibber feed.');
+                this.warn(`Unrecognized message type: ${JSON.stringify(event)}`);
             };
 
             /**
              * Event: error
              * Called when an error has occurred.
              */
-            node._webSocket.onerror = (error: WebSocket.ErrorEvent) => {
-                node.error(error);
+            this._webSocket.onerror = (error: WebSocket.ErrorEvent) => {
+                this.error(error);
             };
+        } catch (reason) {
+            this.error(reason);
         } finally {
-            node._isConnecting = false;
-        }
+            this._isConnecting = false
+        };
     }
 
     /**
      * Close the Tibber feed.
      */
     public close() {
-        const node = this;
-        node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
+        this._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
             clearTimeout(timeout);
         });
-        if (node._webSocket) {
-            if (node._isConnected && node._webSocket.readyState === WebSocket.OPEN) {
-                node.stopSubscription();
-                node.terminateConnection();
-                node._webSocket.close();
+        if (this._webSocket) {
+            if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
+                this.stopSubscription();
+                this.terminateConnection();
+                this._webSocket.close();
             }
         }
-        node.log('Closed Tibber Feed.');
+        this.log('Closed Tibber Feed.');
     }
 
     /**
@@ -268,24 +274,23 @@ export class TibberFeed extends EventEmitter {
      * Mostly for internal use, even if it is public.
      */
     public heartbeat() {
-        const node = this;
-        node._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
+        this._hearbeatTimeouts.forEach((timeout: NodeJS.Timeout) => {
             clearTimeout(timeout);
         });
-        node._hearbeatTimeouts = [];
-        node._hearbeatTimeouts.push(
+        this._hearbeatTimeouts = [];
+        this._hearbeatTimeouts.push(
             setTimeout(() => {
-                if (node._webSocket) {
-                    node.terminateConnection();
-                    node._webSocket.terminate();
-                    node._isConnected = false;
-                    node.warn('Connection timed out after ' + node._timeout + ' ms.');
-                    if (node._active) {
-                        node.log('Reconnecting...');
-                        node.connect();
+                if (this._webSocket) {
+                    this.terminateConnection();
+                    this._webSocket.terminate();
+                    this._isConnected = false;
+                    this.warn('Connection timed out after ' + this._timeout + ' ms.');
+                    if (this._active) {
+                        this.log('Reconnecting...');
+                        this.connect();
                     }
                 }
-            }, node._timeout),
+            }, this._timeout),
         );
     }
 

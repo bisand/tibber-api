@@ -2,31 +2,23 @@
 import { IConfig, TibberFeed } from '../src/index';
 import WebSocket from 'ws';
 import { GQL } from '../src/nodes/models/GQL';
-import { ITibberQuery } from '../src/nodes/ITibberQuery';
+import { TibberQueryBase } from '../src/nodes/TibberQueryBase';
 
 let server: WebSocket.Server;
 
-export class FakeTibberQuery implements ITibberQuery {
-    private _config: IConfig;
-    public get config(): IConfig {
-        return this._config;
-    }
-    public set config(value: IConfig) {
-        this._config = value;
-    }
-
+export class FakeTibberQuery extends TibberQueryBase {
     /**
      * Constructor
      * Create an instace of TibberQuery class
      * @param config IConfig object
      * @see IConfig
      */
-     constructor(config: IConfig) {
-        this._config = config;
+    constructor(config: IConfig) {
+        super(config);
     }
 
-    public async getWebsocketSubscriptionUrl(): Promise<URL> {
-        return new URL(this._config.endpoint.url);
+    public override async getWebsocketSubscriptionUrl(): Promise<URL> {
+        return new URL(this.config.endpoint.url);
     }
 
 }
@@ -72,6 +64,7 @@ test('TibberFeed - Should be created', () => {
             endpoint: {
                 apiKey: '1337',
                 url: 'ws://localhost:1337',
+                userAgent: 'test4-tibber-feed',
             },
             homeId: '1337',
         });
@@ -86,6 +79,7 @@ test('TibberFeed - should be connected', done => {
         endpoint: {
             apiKey: '1337',
             url: 'ws://localhost:1337',
+            userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
     });
@@ -105,6 +99,7 @@ test('TibberFeed - Should receive data', done => {
         endpoint: {
             apiKey: '1337',
             url: 'ws://localhost:1337',
+            userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
     });
@@ -127,6 +122,7 @@ test('TibberFeed - Should be active', () => {
         endpoint: {
             apiKey: '1337',
             url: 'ws://localhost:1337',
+            userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
     });
@@ -135,7 +131,7 @@ test('TibberFeed - Should be active', () => {
 });
 
 test('TibberFeed - Should be inactive', () => {
-    const query = new FakeTibberQuery({ active: false, endpoint: { apiKey: '', url: '' } });
+    const query = new FakeTibberQuery({ active: false, endpoint: { apiKey: '', url: '', userAgent: '' } });
     const feed = new TibberFeed(query);
     expect(feed.active).toBe(false);
 });
@@ -146,6 +142,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
         endpoint: {
             apiKey: '1337',
             url: 'ws://localhost:1337',
+            userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
     });
@@ -171,6 +168,7 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
         endpoint: {
             apiKey: '1337',
             url: 'ws://localhost:1337',
+            userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
     });

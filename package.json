@@ -8,6 +8,9 @@
     "lib/**/*"
   ],
   "scripts": {
+    "precompile": "mkver",
+    "compile": "tsc",
+    "prebuild": "mkver",
     "build": "tsc",
     "test": "jest --runInBand --config jestconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
@@ -30,6 +33,7 @@
     "@types/node": "^16",
     "@types/ws": "^8.5.3",
     "jest": "^28.1.1",
+    "mkver": "^2.0.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",
