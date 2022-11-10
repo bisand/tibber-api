@@ -18,6 +18,7 @@ export class TibberFeed extends EventEmitter {
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
     private _heartbeatTimeout: NodeJS.Timer | null;
+    private _isClosing: boolean;
 
     /**
      * Constructor for creating a new instance if TibberFeed.
@@ -35,6 +36,7 @@ export class TibberFeed extends EventEmitter {
         this._heartbeatTimeout = null;
         this._isConnected = false;
         this._isConnecting = false;
+        this._isClosing = false;
         this._gql = '';
 
         if (!this._config.endpoint || !this._config.endpoint.apiKey || !this._config.homeId) {
@@ -257,7 +259,7 @@ export class TibberFeed extends EventEmitter {
      * Close the Tibber feed.
      */
     public close() {
-        this._active = false;
+        this._isClosing = true;
         if (this._heartbeatTimeout)
             clearTimeout(this._heartbeatTimeout);
         if (this._webSocket) {
@@ -267,6 +269,7 @@ export class TibberFeed extends EventEmitter {
                 this._webSocket.terminate();
             }
         }
+        this._isClosing = false;
         this.log('Closed Tibber Feed.');
     }
 
@@ -275,7 +278,7 @@ export class TibberFeed extends EventEmitter {
      * Mostly for internal use, even if it is public.
      */
     public heartbeat() {
-        if (!this._active)
+        if (this._isClosing)
             return;
 
         if (this._heartbeatTimeout) {
