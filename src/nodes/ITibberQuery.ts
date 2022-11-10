@@ -9,15 +9,15 @@ import { ISendPushNotification } from '../models/ISendPushNotification';
 export interface ITibberQuery {
     get config(): IConfig;
     set config(value: IConfig);
-    getWebsocketSubscriptionUrl(): Promise<URL>;
-    getHome(homeId: string): Promise<IHome>
-    getHomeComplete(homeId: string): Promise<IHome>
-    getHomes(): Promise<IHome[]>
-    getHomesComplete(): Promise<IHome[]>
-    getCurrentEnergyPrice(homeId: string): Promise<IPrice>
-    getCurrentEnergyPrices(): Promise<IPrice[]>
-    getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
-    getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
-    getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]>
-    sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification>
+    getWebsocketSubscriptionUrl(): URL | Promise<URL>;
+    getHome(homeId: string): IHome | Promise<IHome>
+    getHomeComplete(homeId: string): IHome | Promise<IHome>
+    getHomes(): IHome[] | Promise<IHome[]>
+    getHomesComplete(): IHome[] | Promise<IHome[]>
+    getCurrentEnergyPrice(homeId: string): IPrice | Promise<IPrice>
+    getCurrentEnergyPrices(): IPrice[] | Promise<IPrice[]>
+    getTodaysEnergyPrices(homeId: string): IPrice[] | Promise<IPrice[]>
+    getTomorrowsEnergyPrices(homeId: string): IPrice[] | Promise<IPrice[]>
+    getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): IConsumption[] | Promise<IConsumption[]>
+    sendPushNotification(message: string, title: string, screen: AppScreen): ISendPushNotification | Promise<ISendPushNotification>
     }
