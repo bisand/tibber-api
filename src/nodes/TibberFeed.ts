@@ -29,6 +29,10 @@ export class TibberFeed extends EventEmitter {
     constructor(tibberQuery: TibberQueryBase, timeout: number = 30000, returnAllFields = false) {
         super();
 
+        if (!tibberQuery) {
+            throw new Error('Missing mandatory parameter [tibberQuery]');
+        }
+
         this._timeout = timeout;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
