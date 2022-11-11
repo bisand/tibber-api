@@ -28,7 +28,7 @@ beforeAll(() => {
     server.on('connection', socket => {
         socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);
-            if (obj.type === GQL.CONNECTION_INIT && obj.payload === 'token=1337') {
+            if (obj.type === GQL.CONNECTION_INIT && obj.payload?.token === '1337') {
                 obj.type = GQL.CONNECTION_ACK;
                 socket.send(JSON.stringify(obj));
             } else if (obj.type === GQL.SUBSCRIBE
@@ -86,7 +86,7 @@ test('TibberFeed - should be connected', done => {
     const feed = new TibberFeed(query);
     feed.on(GQL.CONNECTION_ACK, (data: any) => {
         expect(data).toBeDefined();
-        expect(data.payload).toBe('token=1337');
+        expect(data.payload?.token).toBe('1337');
         feed.close();
         done();
     });
@@ -176,7 +176,7 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     let callCount = 0;
     feed.on(GQL.CONNECTION_ACK, data => {
         expect(data).toBeDefined();
-        expect(data.payload).toBe('token=1337');
+        expect(data.payload?.token).toBe('1337');
         feed.heartbeat();
     });
     feed.on('disconnected', data => {
