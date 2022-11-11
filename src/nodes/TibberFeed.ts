@@ -283,8 +283,8 @@ export class TibberFeed extends EventEmitter {
             return;
 
         if (this._heartbeatTimeout) {
-            this._heartbeatTimeout.refresh();
-            return;
+            clearTimeout(this._heartbeatTimeout);
+            this._heartbeatTimeout = null;
         }
 
         this._heartbeatTimeout = setTimeout(() => {
