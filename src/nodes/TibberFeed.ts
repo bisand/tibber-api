@@ -160,9 +160,6 @@ export class TibberFeed extends EventEmitter {
                 }
             }
             this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
-            this._webSocket.on('error', (err: Error) => {
-                console.log('someone connected!');
-            });
 
             /**
              * Event: open
