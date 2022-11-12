@@ -261,8 +261,10 @@ export class TibberFeed extends EventEmitter {
      */
     public close() {
         this._isClosing = true;
-        if (this._heartbeatTimeout)
+        if (this._heartbeatTimeout) {
             clearTimeout(this._heartbeatTimeout);
+            this._heartbeatTimeout = null;
+        }
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.stopSubscription();
