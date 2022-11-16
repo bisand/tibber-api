@@ -1,5 +1,5 @@
 export interface IEndpoint {
-    url: string;
+    queryUrl: string;
     apiKey: string;
     userAgent?: string;
 }

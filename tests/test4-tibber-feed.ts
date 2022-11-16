@@ -18,7 +18,7 @@ export class FakeTibberQuery extends TibberQueryBase {
     }
 
     public override async getWebsocketSubscriptionUrl(): Promise<URL> {
-        return new URL(this.config.endpoint.url);
+        return new URL(this.config.apiEndpoint.queryUrl);
     }
 
 }
@@ -61,9 +61,9 @@ test('TibberFeed - Should be created', () => {
     expect(() => {
         const query = new FakeTibberQuery({
             active: true,
-            endpoint: {
+            apiEndpoint: {
                 apiKey: '1337',
-                url: 'ws://localhost:1337',
+                queryUrl: 'ws://localhost:1337',
                 userAgent: 'test4-tibber-feed',
             },
             homeId: '1337',
@@ -76,9 +76,9 @@ test('TibberFeed - Should be created', () => {
 test('TibberFeed - should be connected', done => {
     const query = new FakeTibberQuery({
         active: true,
-        endpoint: {
+        apiEndpoint: {
             apiKey: '1337',
-            url: 'ws://localhost:1337',
+            queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -96,9 +96,9 @@ test('TibberFeed - should be connected', done => {
 test('TibberFeed - Should receive data', done => {
     const query = new FakeTibberQuery({
         active: true,
-        endpoint: {
+        apiEndpoint: {
             apiKey: '1337',
-            url: 'ws://localhost:1337',
+            queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -119,9 +119,9 @@ test('TibberFeed - Should receive data', done => {
 test('TibberFeed - Should be active', () => {
     const query = new FakeTibberQuery({
         active: true,
-        endpoint: {
+        apiEndpoint: {
             apiKey: '1337',
-            url: 'ws://localhost:1337',
+            queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -131,7 +131,7 @@ test('TibberFeed - Should be active', () => {
 });
 
 test('TibberFeed - Should be inactive', () => {
-    const query = new FakeTibberQuery({ active: false, endpoint: { apiKey: '', url: '', userAgent: '' } });
+    const query = new FakeTibberQuery({ active: false, apiEndpoint: { apiKey: '', queryUrl: '', userAgent: '' } });
     const feed = new TibberFeed(query);
     expect(feed.active).toBe(false);
 });
@@ -139,9 +139,9 @@ test('TibberFeed - Should be inactive', () => {
 test('TibberFeed - Should timeout after 3 sec', done => {
     const query = new FakeTibberQuery({
         active: true,
-        endpoint: {
+        apiEndpoint: {
             apiKey: '1337',
-            url: 'ws://localhost:1337',
+            queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -165,9 +165,9 @@ test('TibberFeed - Should timeout after 3 sec', done => {
 test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     const query = new FakeTibberQuery({
         active: true,
-        endpoint: {
+        apiEndpoint: {
             apiKey: '1337',
-            url: 'ws://localhost:1337',
+            queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',

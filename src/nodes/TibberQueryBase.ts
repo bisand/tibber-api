@@ -65,9 +65,9 @@ export class TibberQueryBase {
                 Connection: 'Keep-Alive',
                 Accept: 'application/json',
                 Host: uri.hostname as string,
-                'User-Agent': (`${this._config.endpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim(),
+                'User-Agent': (`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim(),
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${this._config.endpoint.apiKey}`,
+                Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
             },
         };
     }
@@ -81,7 +81,7 @@ export class TibberQueryBase {
     public async query(query: string, variables?: object): Promise<any> {
         return await new Promise<any>((resolve, reject) => {
             try {
-                const uri = url.parse(this._config.endpoint.url, true);
+                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
                 const options: RequestOptions = this.getRequestOptions(HttpMethod.Post, uri);
                 const data = new TextEncoder().encode(
                     JSON.stringify({

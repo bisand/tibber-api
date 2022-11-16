@@ -14,7 +14,7 @@ describe('Testing TibberQuery HTTP client', () => {
         const scope = nock('https://api.tibber.com')
             .post('/')
             .reply(200, tibberResponseHomes);
-        const query = new TibberQuery({ endpoint: { apiKey: '1337', url: 'https://api.tibber.com' }, active: false });
+        const query = new TibberQuery({ apiEndpoint: { apiKey: '1337', queryUrl: 'https://api.tibber.com' }, active: false });
 
         const res = await query.getHomes();
         expect(res).toMatchObject(tibberResponseHomes.viewer.homes);
@@ -25,7 +25,7 @@ describe('Testing TibberQuery HTTP client', () => {
         const scope = nock('https://api.tibber.com')
             .post('/')
             .reply(502, 'Bad Gateway');
-        const query = new TibberQuery({ endpoint: { apiKey: '1337', url: 'https://api.tibber.com' }, active: false });
+        const query = new TibberQuery({ apiEndpoint: { apiKey: '1337', queryUrl: 'https://api.tibber.com' }, active: false });
 
         expect(async () => {
             const res = await query.getHomes();

@@ -43,7 +43,7 @@ export class TibberFeed extends EventEmitter {
         this._isClosing = false;
         this._gql = '';
 
-        if (!this._config.endpoint || !this._config.endpoint.apiKey || !this._config.homeId) {
+        if (!this._config.apiEndpoint || !this._config.apiEndpoint.apiKey || !this._config.homeId) {
             this._active = false;
             this._config.active = false;
             this.warn('Missing mandatory parameters. Execution will halt.');
@@ -159,8 +159,8 @@ export class TibberFeed extends EventEmitter {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
             const options = {
                 headers: {
-                    'Authorization': `Bearer ${this._config.endpoint.apiKey}`,
-                    'User-Agent': (`${this._config.endpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
+                    'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
+                    'User-Agent': (`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
                 }
             }
             this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
@@ -307,7 +307,7 @@ export class TibberFeed extends EventEmitter {
     private initConnection() {
         const query: IQuery = {
             type: GQL.CONNECTION_INIT,
-            payload: { 'token': this._config.endpoint.apiKey },
+            payload: { 'token': this._config.apiEndpoint.apiKey },
         };
         this.sendQuery(query);
         this.emit('connecting', 'Initiating Tibber feed.');

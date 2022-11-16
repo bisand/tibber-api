@@ -7,9 +7,9 @@ import { TibberFeed, IConfig, TibberQuery } from '../src/index';
 const config: IConfig = {
     // Endpoint configuration.
     active: true,
-    endpoint: {
+    apiEndpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
-        url: 'https://api.tibber.com/v1-beta/gql',
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
     // Query configuration.
     homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
