@@ -12,8 +12,7 @@ const port = 3000;
 const config: IConfig = {
     active: true,
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };
@@ -25,7 +24,7 @@ const tibberQuery = new TibberQuery(config);
 const server = http.createServer(async (req, res) => {
     // Call the Tibber API and return the result.
     // const result = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
-    const result = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);// , 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    const result = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);// , '96a14971-525a-4420-aae9-e5aedaa129ff');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(result));

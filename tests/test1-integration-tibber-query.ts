@@ -4,18 +4,27 @@ import { EnergyResolution } from '../src/models/enums/EnergyResolution';
 import { IConsumption } from '../src/models/IConsumption';
 import { AppScreen } from '../src/models/enums/AppScreen';
 import { ISendPushNotification } from '../src/models/ISendPushNotification';
+import { UrlTools } from '../src/index';
 
 const config: IConfig = {
     active: false,
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };
 
 afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+});
+
+test('TibberQuery.getWebsocketSubscriptionUrl() should be valid', async () => {
+    const tibberQuery = new TibberQuery(config);
+    process.nextTick(() => {});
+    const url = await tibberQuery.getWebsocketSubscriptionUrl();
+    expect(url).toBeDefined();
+    const urlTools = new UrlTools();
+    expect(urlTools.validateUrl(url.href)).toBe(true);
 });
 
 test('TibberQuery.getHomes() should be valid', async () => {
@@ -53,7 +62,7 @@ test('TibberQuery.getHomesComplete() should be valid', async () => {
 test('TibberQuery.getConsumption() with homeId should be valid', async () => {
     const tibberQuery = new TibberQuery(config);
     process.nextTick(() => {});
-    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, '96a14971-525a-4420-aae9-e5aedaa129ff');
     expect(consumption).toBeDefined();
     expect(consumption.length).toEqual(10);
 });
@@ -72,7 +81,7 @@ test('TibberQuery.getConsumption() should be valid', async () => {
 test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
     const tibberQuery = new TibberQuery(config);
     process.nextTick(() => {});
-    const price = await tibberQuery.getCurrentEnergyPrice('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    const price = await tibberQuery.getCurrentEnergyPrice('96a14971-525a-4420-aae9-e5aedaa129ff');
     expect(price).toBeDefined();
 });
 
@@ -101,7 +110,7 @@ test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
 test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
     const tibberQuery = new TibberQuery(config);
     process.nextTick(() => {});
-    const prices = await tibberQuery.getTodaysEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    const prices = await tibberQuery.getTodaysEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
     expect(prices).toBeDefined();
     expect(prices.length).toBeGreaterThan(0);
     prices.forEach((price) => {
@@ -112,7 +121,7 @@ test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
 test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
     const tibberQuery = new TibberQuery(config);
     process.nextTick(() => {});
-    const prices = await tibberQuery.getTomorrowsEnergyPrices('cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c');
+    const prices = await tibberQuery.getTomorrowsEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
     expect(prices).toBeDefined();
     if (prices.length) {
         prices.forEach((price) => {

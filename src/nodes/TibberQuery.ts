@@ -1,6 +1,3 @@
-import * as url from 'url';
-import https, { RequestOptions } from 'https';
-import http from 'http';
 import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
 import { IPrice } from '../models/IPrice';
@@ -10,15 +7,12 @@ import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql'
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
-import { HttpMethod } from './models/HttpMethod';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
-import { AppScreen as screenToOpen } from '../models/enums/AppScreen';
+import { AppScreen } from '../models/enums/AppScreen';
+import { TibberQueryBase } from './TibberQueryBase';
 
-export class TibberQuery {
-    public active: boolean;
-    private _config: IConfig;
-
+export class TibberQuery extends TibberQueryBase {
     /**
      * Constructor
      * Create an instace of TibberQuery class
@@ -26,107 +20,7 @@ export class TibberQuery {
      * @see IConfig
      */
     constructor(config: IConfig) {
-        this.active = false;
-        this._config = config;
-    }
-
-    /**
-     * Try to parse a string and return a valid JSON object. 
-     * If string is not valid JSON, it will return an empty object instead.
-     * @param input Input string to try to parse as a JSON object
-     * @returns Parsed or empty Json object
-     */
-    private JsonTryParse(input: string): object {
-        try {
-            //check if the string exists
-            if (input) {
-                let o = JSON.parse(input);
-
-                //validate the result too
-                if (o && o.constructor === Object) {
-                    return o;
-                }
-            }
-        }
-        catch (e: any) {
-        }
-
-        return { responseMessage: input };
-    };
-
-    /**
-     *
-     * @param method HTTP method to use
-     * @param uri Uri to use
-     * @returns An object containing request options
-     */
-    private getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): RequestOptions {
-        return {
-            host: uri.host,
-            port: uri.port,
-            path: uri.path,
-            protocol: uri.protocol,
-            method,
-            headers: {
-                Connection: 'Keep-Alive',
-                Accept: 'application/json',
-                Host: uri.hostname as string,
-                'User-Agent': 'tibber-api',
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
-            },
-        };
-    }
-
-    /**
-     * General GQL query
-     * @param query GQL query.
-     * @param variables Variables used by query parameter.
-     * @return Query result as JSON data
-     */
-    public async query(query: string, variables?: object): Promise<any> {
-        const node: TibberQuery = this;
-        return await new Promise<any>((resolve, reject) => {
-            try {
-                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
-                const options: RequestOptions = node.getRequestOptions(HttpMethod.Post, uri);
-                const data = new TextEncoder().encode(
-                    JSON.stringify({
-                        query,
-                        variables,
-                    }),
-                );
-
-                const client = (uri.protocol == "https:") ? https : http;
-                const req = client.request(options, (res: any) => {
-                    let str: string = '';
-                    res.on('data', (chunk: string) => {
-                        str += chunk;
-                    });
-                    res.on('end', () => {
-                        const response: any = this.JsonTryParse(str);
-                        if (res.statusCode >= 200 && res.statusCode < 300) {
-                            resolve(response.data ? response.data : response);
-                        } else {
-                            response.httpCode = res.statusCode;
-                            response.statusCode = res.statusCode;
-                            response.statusMessage = res.statusMessage;
-                            reject(response);
-                        }
-                    });
-                });
-                req.on('error', (e: any) => {
-                    // console.error(`problem with request: ${e.message}`);
-                    reject(e);
-                });
-                if (data) {
-                    req.write(data);
-                }
-                req.end();
-            } catch (error) {
-                reject(error);
-            }
-        });
+        super(config);
     }
 
     /**
@@ -287,16 +181,16 @@ export class TibberQuery {
             return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
         }
     }
+
     /**
      * Sends a push notification to the current user's tibber app.
      * Returns a ISendPushNotification Object
      * @param title: "The title of your message";
        @param message: "The message you want to send";
-       @param screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+       @param screen: AppScreen Object, example: AppScreen.HOME ;
      * @return ISendPushNotification Object
      */
-
-    public async sendPushNotification(message: string, title: string, screen: screenToOpen): Promise<ISendPushNotification> {
+    public async sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
         const messagePayloadVariables = {
             input: { title: title, message: message, screenToOpen: screen },
         };

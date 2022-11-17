@@ -2,14 +2,22 @@
 
 Node.js module for querying data and integrating with Tibber Pulse through Tibber API.
 
-| Branch | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Branch | Status |
+| ------ | ------ |
 | master | [![Node.js CI](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/bisand/tibber-api/actions/workflows/node.js.yml) [![Node.js Package](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/npm-publish.yml) [![CodeQL](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bisand/tibber-api/actions/workflows/codeql-analysis.yml) [![DeepScan grade](https://deepscan.io/api/teams/16513/projects/19829/branches/520472/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16513&pid=19829&bid=520472) [![npm version](https://badge.fury.io/js/tibber-api.svg)](https://badge.fury.io/js/tibber-api) |
 
 ## General
 
 This Node.js module is used for communication with [Tibber API](https://developer.tibber.com/) through [GraphQL](https://developer.tibber.com/docs/overview) queries and for retrieving data from Tibber Pulse via websocket.
 [Tibber](https://tibber.com) is a norwegian technology focused power company which is providing tools to get more insight and controll over your home and its power consumption.
+
+> **Note** 
+>
+> **`Breaking changes!`**
+>
+> Version 5 introduces breaking changes in **TibberFeed**. Due to the fact that [Tibber also has introduced breaking changes in their API](https://developer.tibber.com/docs/overview#breaking-websocket-change) we had to do some small changes.
+>
+>Instead of changing the whole implementation, the only noticable change is done to the [constructor](#TibberFeed) of `TibberFeed` which takes a `TibberQuery` instead of and `IConfig` object and uses the config from the provided `TibberQuery`.
 
 ## Prerequisites
 
@@ -44,14 +52,14 @@ Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and
 ```typescript
 /**
  * Constructor for creating a new instance if TibberFeed.
- * @param config IConfig object
+ * @param tibberQuery TibberQuery object
  * @param timeout Reconnection timeout
- * @see IConfig
+ * @see TibberQuery
  */
-TibberFeed(config: IConfig, timeout: number = 30000)
+TibberFeed(tibberQuery: TibberQuery, timeout: number = 30000)
 ```
 
-> Created a new instance of TibberFeed with the desired configuration and timeout. The timeout is used for reconnection when no data is received within the specified time. The config object is described later in this document.
+> Created a new instance of TibberFeed with with an instance of [TibberQuery](#TibberQuery) and timeout. The timeout is used for reconnection when no data is received within the specified time. The [config object](#config-object) is described later in this document.
 
 ## Methods
 
@@ -345,11 +353,11 @@ import { TibberFeed, IConfig } from 'tibber-api';
 const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
+        queryUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
     // Query configuration.
-    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
+    homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
     timestamp: true,
     power: true,
 };
@@ -378,7 +386,7 @@ const port = 3000;
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
 };
@@ -413,11 +421,11 @@ IConfig: typescript example.
 const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
+        url: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
     },
     // Query configuration.
-    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
+    homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
     timestamp: true,
     power: true,
     lastMeterConsumption: true,

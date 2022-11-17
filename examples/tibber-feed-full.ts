@@ -1,7 +1,7 @@
 // Uncomment the following line to include tibber-api NPM package instead.
 // const TibberQuery = require("tibber-api").TibberFeed;
 
-import { TibberFeed } from '../src/index';
+import { TibberFeed, TibberQuery } from '../src/index';
 import { IConfig } from '../src/models/IConfig';
 
 // Config object needed when instantiating TibberQuery
@@ -9,12 +9,11 @@ const config: IConfig = {
     // Endpoint configuration.
     active: true,
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
     // Query configuration.
-    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
+    homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
     timestamp: true,
     power: true,
     lastMeterConsumption: true,
@@ -40,26 +39,30 @@ const config: IConfig = {
     signalStrength: true,
 };
 
-const tibberFeed = new TibberFeed(config);
-tibberFeed.on('connected', () => {
-    console.log('Connected to Tibber!');
+const tibberQuery = new TibberQuery(config);
+tibberQuery.getWebsocketSubscriptionUrl().then(url => {
+    config.apiEndpoint.queryUrl = url.href;
+    const tibberFeed = new TibberFeed(tibberQuery);
+    tibberFeed.on('connected', () => {
+        console.log('Connected to Tibber!');
+    });
+    tibberFeed.on('connection_ack', () => {
+        console.log('Connection acknowledged!');
+    });
+    tibberFeed.on('disconnected', () => {
+        console.log('Disconnected from Tibber!');
+    });
+    tibberFeed.on('error', error => {
+        console.error(error);
+    });
+    tibberFeed.on('warn', warn => {
+        console.warn(warn);
+    });
+    tibberFeed.on('log', log => {
+        console.log(log);
+    });
+    tibberFeed.on('data', data => {
+        console.log(data);
+    });
+    tibberFeed.connect();
 });
-tibberFeed.on('connection_ack', () => {
-    console.log('Connection acknowledged!');
-});
-tibberFeed.on('disconnected', () => {
-    console.log('Disconnected from Tibber!');
-});
-tibberFeed.on('error', error => {
-    console.error(error);
-});
-tibberFeed.on('warn', warn => {
-    console.warn(warn);
-});
-tibberFeed.on('log', log => {
-    console.log(log);
-});
-tibberFeed.on('data', data => {
-    console.log(data);
-});
-tibberFeed.connect();

@@ -1,6 +1,7 @@
 import { TibberFeed } from './nodes/TibberFeed';
 import { TibberQuery } from './nodes/TibberQuery';
+import { TibberQueryBase } from './nodes/TibberQueryBase';
 import { UrlTools } from './nodes/tools';
 import { IConfig } from './models/IConfig';
 
-export { TibberFeed, TibberQuery, UrlTools, IConfig };
+export { TibberFeed, TibberQuery, TibberQueryBase, UrlTools, IConfig as IConfig };

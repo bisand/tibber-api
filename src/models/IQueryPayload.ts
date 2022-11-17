@@ -1,7 +1,7 @@
 export interface IQueryPayload {
-    extensions: any;
-    operationName: string | undefined | null;
-    query: string;
     token: string;
-    variables: any;
+    operationName: string | null;
+    query: string;
+    variables: Record<string, unknown> | null;
+    extensions: Record<string, unknown> | null;
 }

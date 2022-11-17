@@ -1,14 +1,14 @@
 /* eslint-env mocha */
-import { TibberFeed, IConfig } from '../src/index';
+import { TibberFeed, IConfig, TibberQuery } from '../src/index';
 
 const config: IConfig = {
     active: true,
     apiEndpoint: {
-        apiKey: '476c477d8a039529478ebd690d35ddd80e3308ffc49b59c65b142321aee963a4', // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
+        userAgent: 'test2-integration-tibber-feed',
     },
-    homeId: 'cc83e83e-8cbf-4595-9bf7-c3cf192f7d9c',
+    homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',
     timestamp: true,
     power: true,
     currentL1: true,
@@ -18,15 +18,17 @@ const config: IConfig = {
 };
 
 test('TibberFeed - Should be created', () => {
-    expect(() => {
-        const feed = new TibberFeed(config);
+    expect(async () => {
+        const query = new TibberQuery(config);
+        const feed = new TibberFeed(query);
         return feed;
     }).toBeDefined();
 });
 
 /*
 test('TibberFeed -should be connected', done => {
-    const feed = new TibberFeed(config);
+    const query = new TibberQuery(config);
+    const feed = new TibberFeed(query);
     feed.on(GQL.CONNECTION_ACK, (data: any) => {
         expect(data).toBeDefined();
         feed.close();
@@ -38,7 +40,8 @@ test('TibberFeed -should be connected', done => {
 
 /*
 test('TibberFeed - Should receive data', done => {
-    const feed = new TibberFeed(config);
+    const query = new TibberQuery(config);
+    const feed = new TibberFeed(query);
     feed.on('data', data => {
         expect(data).toBeDefined();
         feed.close();

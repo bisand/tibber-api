@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "**" ]
 
 jobs:
   build:
@@ -16,13 +16,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x, lts/*]
+        node-version: [14.x, 16.x, lts/*]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'

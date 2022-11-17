@@ -1,6 +1,6 @@
 {
   "name": "tibber-api",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -8,6 +8,9 @@
     "lib/**/*"
   ],
   "scripts": {
+    "precompile": "mkver",
+    "compile": "tsc",
+    "prebuild": "mkver",
     "build": "tsc",
     "test": "jest --runInBand --config jestconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
@@ -22,7 +25,7 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "ws": "^8.4.0"
+    "ws": "^8.11.0"
   },
   "devDependencies": {
     "@jest/test-sequencer": "^28.1.1",
@@ -30,6 +33,7 @@
     "@types/node": "^16",
     "@types/ws": "^8.5.3",
     "jest": "^28.1.1",
+    "mkver": "^2.0.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",
