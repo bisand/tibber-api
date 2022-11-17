@@ -1,6 +1,5 @@
 /* eslint-env mocha */
 import { TibberFeed, IConfig, TibberQuery } from '../src/index';
-import { GQL } from '../src/nodes/models/GQL';
 
 const config: IConfig = {
     active: true,

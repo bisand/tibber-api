@@ -5,7 +5,7 @@ import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 import { GQL } from './models/GQL';
 import { TibberQueryBase } from './TibberQueryBase';
-import { version, release } from "../../Version"
+import { version } from "../../Version"
 
 export class TibberFeed extends EventEmitter {
     private _operationId: number = 0;

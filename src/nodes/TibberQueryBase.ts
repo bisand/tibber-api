@@ -4,7 +4,7 @@ import https, { RequestOptions } from 'https';
 import http from 'http';
 import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
-import { version, release } from "../../Version"
+import { version } from "../../Version"
 
 export class TibberQueryBase {
     public active: boolean;
