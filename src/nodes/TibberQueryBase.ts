@@ -25,7 +25,7 @@ export class TibberQueryBase {
     }
 
     /**
-     * Try to parse a string and return a valid JSON object. 
+     * Try to parse a string and return a valid JSON object.
      * If string is not valid JSON, it will return an empty object instead.
      * @param input Input string to try to parse as a JSON object
      * @returns Parsed or empty Json object
@@ -127,10 +127,10 @@ export class TibberQueryBase {
      * @param homeId Tibber home ID
      * @return IHome object
      */
-    public async getWebsocketSubscriptionUrl(): Promise<URL> {
+    public async getWebsocketSubscriptionUrl(): Promise<url.URL> {
         const result = await this.query(qglWebsocketSubscriptionUrl);
         if (result && result.viewer && result.viewer.websocketSubscriptionUrl) {
-            return new URL(result.viewer.websocketSubscriptionUrl);
+            return new url.URL(result.viewer.websocketSubscriptionUrl);
         }
         return result && result.error ? result : {};
     }
