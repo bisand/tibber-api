@@ -20,13 +20,20 @@ export class TibberFeed extends EventEmitter {
     private _heartbeatTimeout: NodeJS.Timer | null;
     private _isClosing: boolean;
 
+    private _lastRetry: number;
+    private _retryBackoff: number;
+    private _connectionAttempts: number;
+    private _backoffDelayBase: number;
+    private _backoffDelayMax: number;
+    private _realTimeConsumptionEnabled?: boolean | null;
+
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @param tibberQuery TibberQueryBase object
-     * @param timeout Reconnection timeout
+     * @param timeout Reconnection timeout in milliseconds
      * @see {TibberQueryBase}
      */
-    constructor(tibberQuery: TibberQueryBase, timeout: number = 30000, returnAllFields = false) {
+    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false) {
         super();
 
         if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase)) {
@@ -42,6 +49,13 @@ export class TibberFeed extends EventEmitter {
         this._isConnecting = false;
         this._isClosing = false;
         this._gql = '';
+
+        this._realTimeConsumptionEnabled = null;
+        this._lastRetry = 0;
+        this._connectionAttempts = 0;
+        this._backoffDelayBase = 1000; // 1 second
+        this._backoffDelayMax = 1000 * 60 * 60 * 24; // 1 day
+        this._retryBackoff = 1000;
 
         if (!this._config.apiEndpoint || !this._config.apiEndpoint.apiKey || !this._config.homeId) {
             this._active = false;
@@ -129,7 +143,7 @@ export class TibberFeed extends EventEmitter {
         this._gql += '}}';
     }
 
-    get active() {
+    get active(): boolean {
         return this._active;
     }
 
@@ -145,15 +159,43 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
-    get connected() {
+    get connected(): boolean {
         return this._isConnected;
     }
 
+    private get canConnect(): boolean {
+        if (!this._realTimeConsumptionEnabled) {
+            this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
+            return false;
+        }
+        let result = false;
+        if (result = Date.now() > (this._lastRetry + this._retryBackoff)) {
+            this._lastRetry = Date.now();
+            this._connectionAttempts++;
+            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
+        }
+        this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
+        return result;
+    }
+
+    private getBackoffWithJitter(attempt: number): number {
+        const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
+        const delay = Math.min(exponential, this._backoffDelayMax);
+        const random = Math.random(); // TODO: Fix random.
+        return Math.floor(random * delay);
+    }
     /**
      * Connect to Tibber feed.
      */
-    public async connect() {
-        if (this._isConnecting || this._isConnected) { return; }
+    public async connect(): Promise<void> {
+        if (this._realTimeConsumptionEnabled === null) {
+            try {
+                this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(this._config.homeId ?? '');
+            } catch (error) {
+                this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
+            }
+        }
+        if (!this.canConnect || this._isConnecting || this._isConnected) { return; }
         this._isConnecting = true;
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
@@ -193,12 +235,13 @@ export class TibberFeed extends EventEmitter {
                             this.emit('connected', 'Connected to Tibber feed.');
                             this.emit(GQL.CONNECTION_ACK, msg);
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
+                            this._connectionAttempts = 0;
                             break;
                         case GQL.NEXT:
                             if (msg.payload && msg.payload.errors) {
                                 this.emit('error', msg.payload.errors);
                             }
-                            if (msg.id != this._operationId) {
+                            if (Number(msg.id) !== this._operationId) {
                                 this.log(`Message contains unexpected id ${JSON.stringify(msg)}`);
                                 return;
                             }
@@ -213,7 +256,7 @@ export class TibberFeed extends EventEmitter {
                             this.error(`An error occurred: ${JSON.stringify(msg)}`);
                             break;
                         case GQL.COMPLETE:
-                            if (msg.id != this._operationId) {
+                            if (Number(msg.id) !== this._operationId) {
                                 this.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
                                 return;
                             }
@@ -294,9 +337,11 @@ export class TibberFeed extends EventEmitter {
                 this.stopSubscription();
                 this._webSocket.terminate();
                 this._isConnected = false;
-                this.warn('Connection timed out after ' + this._timeout + ' ms.');
+                this.warn(`Connection timed out after ${this._timeout} ms.`);
+                this.emit('heatbeat_timeout', { timeout: this._timeout });
                 if (this._active) {
                     this.log('Reconnecting...');
+                    this.emit('heatbeat_reconnect', { timeout: this._timeout, connectionAttempts: this._connectionAttempts });
                     this.connect();
                 }
                 this._heartbeatTimeout = null;
@@ -318,7 +363,7 @@ export class TibberFeed extends EventEmitter {
             id: `${++this._operationId}`,
             type: GQL.SUBSCRIBE,
             payload: {
-                variables: variables,
+                variables,
                 extensions: {},
                 operationName: null,
                 query: subscription,

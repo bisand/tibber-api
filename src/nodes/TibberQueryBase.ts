@@ -5,6 +5,7 @@ import http from 'http';
 import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { version } from "../../Version"
+import { gqlHomeRealTime } from '../gql/home.gql';
 
 export class TibberQueryBase {
     public active: boolean;
@@ -32,17 +33,18 @@ export class TibberQueryBase {
      */
     protected JsonTryParse(input: string): object {
         try {
-            //check if the string exists
+            // check if the string exists
             if (input) {
-                let o = JSON.parse(input);
+                const o = JSON.parse(input);
 
-                //validate the result too
+                // validate the result too
                 if (o && o.constructor === Object) {
                     return o;
                 }
             }
         }
         catch (e: any) {
+            // TODO: Add logging.
         }
 
         return { responseMessage: input };
@@ -90,7 +92,7 @@ export class TibberQueryBase {
                     }),
                 );
 
-                const client = (uri.protocol == "https:") ? https : http;
+                const client = (uri.protocol === "https:") ? https : http;
                 const req = client.request(options, (res: any) => {
                     let str: string = '';
                     res.on('data', (chunk: string) => {
@@ -135,4 +137,17 @@ export class TibberQueryBase {
         return result && result.error ? result : {};
     }
 
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    public async getRealTimeEnabled(homeId: string): Promise<boolean> {
+        const variables = { homeId };
+        const result = await this.query(gqlHomeRealTime, variables);
+        if (result && result.viewer && result.viewer.home) {
+            return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false;
+        }
+        return false;
+    }
 }

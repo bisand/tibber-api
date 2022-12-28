@@ -5,7 +5,7 @@ import { EnergyResolution } from '../models/enums/EnergyResolution';
 import { IConsumption } from '../models/IConsumption';
 import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
-import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
+import { gqlHome, gqlHomeComplete, gqlHomeRealTime } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
@@ -186,13 +186,13 @@ export class TibberQuery extends TibberQueryBase {
      * Sends a push notification to the current user's tibber app.
      * Returns a ISendPushNotification Object
      * @param title: "The title of your message";
-       @param message: "The message you want to send";
-       @param screen: AppScreen Object, example: AppScreen.HOME ;
+     * @param message: "The message you want to send";
+     * @param screen: AppScreen Object, example: AppScreen.HOME ;
      * @return ISendPushNotification Object
      */
     public async sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
         const messagePayloadVariables = {
-            input: { title: title, message: message, screenToOpen: screen },
+            input: { title, message, screenToOpen: screen },
         };
 
         const result = await this.query(gqlSendPushNotification, messagePayloadVariables);

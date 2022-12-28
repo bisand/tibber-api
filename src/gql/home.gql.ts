@@ -54,6 +54,18 @@ query getHome($homeId:ID!) {
 }
 `;
 
+export const gqlHomeRealTime = `
+query getHome($homeId:ID!) {
+    viewer {
+        home(id:$homeId) {
+            features {
+                realTimeConsumptionEnabled
+            }
+        }
+    }
+}
+`;
+
 export const gqlHomeComplete = `
 query getHomeComplete($homeId:ID!) {
     viewer {

@@ -1,8 +1,6 @@
-// Uncomment the following line to include tibber-api NPM package instead.
-// const TibberQuery = require("tibber-api").TibberFeed;
-
-import { TibberFeed, TibberQuery } from '../src/index';
-import { IConfig } from '../src/models/IConfig';
+import * as url from 'url';
+import { TibberFeed, TibberQuery, TibberQueryBase } from './../src/index';
+import { IConfig } from './../src/models/IConfig';
 
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
@@ -39,30 +37,41 @@ const config: IConfig = {
     signalStrength: true,
 };
 
+export class FakeTibberQuery extends TibberQueryBase {
+    public override async getWebsocketSubscriptionUrl(): Promise<url.URL> {
+        return new Promise<url.URL>((resolve, reject) => {
+            resolve(new url.URL('wss://vg.no/'))
+        });
+    }
+}
+
 const tibberQuery = new TibberQuery(config);
-tibberQuery.getWebsocketSubscriptionUrl().then(url => {
-    config.apiEndpoint.queryUrl = url.href;
-    const tibberFeed = new TibberFeed(tibberQuery);
-    tibberFeed.on('connected', () => {
-        console.log('Connected to Tibber!');
-    });
-    tibberFeed.on('connection_ack', () => {
-        console.log('Connection acknowledged!');
-    });
-    tibberFeed.on('disconnected', () => {
-        console.log('Disconnected from Tibber!');
-    });
-    tibberFeed.on('error', error => {
-        console.error(error);
-    });
-    tibberFeed.on('warn', warn => {
-        console.warn(warn);
-    });
-    tibberFeed.on('log', log => {
-        console.log(log);
-    });
-    tibberFeed.on('data', data => {
-        console.log(data);
-    });
-    tibberFeed.connect();
+const tibberFeed = new TibberFeed(tibberQuery);
+tibberFeed.on('connected', () => {
+    console.log('Connected to Tibber!');
 });
+tibberFeed.on('connection_ack', () => {
+    console.log('Connection acknowledged!');
+});
+tibberFeed.on('disconnected', async () => {
+    console.log('Disconnected from Tibber!');
+});
+tibberFeed.on('error', async error => {
+    console.error(error);
+    console.log('Reconnecting...');
+});
+tibberFeed.on('warn', warn => {
+    console.warn(warn);
+});
+tibberFeed.on('log', log => {
+    console.log(log);
+});
+tibberFeed.on('data', data => {
+    console.log(data);
+});
+
+setInterval(async () => {
+    if (!tibberFeed.connected)
+        await tibberFeed.connect();
+
+}, 1000);
