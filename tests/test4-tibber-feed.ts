@@ -1,4 +1,5 @@
 /* eslint-env mocha */
+import * as url from 'url';
 import { IConfig, TibberFeed } from '../src/index';
 import WebSocket from 'ws';
 import { GQL } from '../src/nodes/models/GQL';
@@ -17,8 +18,12 @@ export class FakeTibberQuery extends TibberQueryBase {
         super(config);
     }
 
-    public override async getWebsocketSubscriptionUrl(): Promise<URL> {
-        return new URL(this.config.apiEndpoint.queryUrl);
+    public override async getWebsocketSubscriptionUrl(): Promise<url.URL> {
+        return new url.URL(this.config.apiEndpoint.queryUrl);
+    }
+
+    public override async getRealTimeEnabled(homeId: string): Promise<boolean> {
+        return true;
     }
 
 }
@@ -188,4 +193,4 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
         callCount++;
     });
     feed.connect();
-}, 10000);
+}, 60000);
