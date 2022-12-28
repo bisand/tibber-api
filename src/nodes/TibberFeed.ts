@@ -178,11 +178,14 @@ export class TibberFeed extends EventEmitter {
         return result;
     }
 
+    private getRandomInt(max: number) {
+        return Math.floor(Math.random() * max);
+    }
+
     private getBackoffWithJitter(attempt: number): number {
         const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
         const delay = Math.min(exponential, this._backoffDelayMax);
-        const random = Math.random(); // TODO: Fix random.
-        return Math.floor(random * delay);
+        return delay / 2 + this.getRandomInt(delay / 2);
     }
     /**
      * Connect to Tibber feed.
@@ -236,6 +239,7 @@ export class TibberFeed extends EventEmitter {
                             this.emit(GQL.CONNECTION_ACK, msg);
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
                             this._connectionAttempts = 0;
+                            this._backoffDelayBase = 1000;
                             break;
                         case GQL.NEXT:
                             if (msg.payload && msg.payload.errors) {
