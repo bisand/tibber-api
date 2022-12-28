@@ -182,15 +182,18 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
     feed.on(GQL.CONNECTION_ACK, data => {
         expect(data).toBeDefined();
         expect(data.payload?.token).toBe('1337');
-        feed.heartbeat();
     });
-    feed.on('disconnected', data => {
+    feed.on('heatbeat_timeout', data => {
         expect(data).toBeDefined();
         if (callCount === 4) {
             feed.active = false;
             done();
         }
         callCount++;
+    });
+    feed.on('heatbeat_reconnect', data => {
+        expect(data).toBeDefined();
+        console.log(`Reconnect: ${JSON.stringify(data)}`);
     });
     feed.connect();
 }, 60000);

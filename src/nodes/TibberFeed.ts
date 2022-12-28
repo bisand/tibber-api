@@ -240,6 +240,7 @@ export class TibberFeed extends EventEmitter {
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
                             this._connectionAttempts = 0;
                             this._backoffDelayBase = 1000;
+                            this.heartbeat();
                             break;
                         case GQL.NEXT:
                             if (msg.payload && msg.payload.errors) {
@@ -344,9 +345,11 @@ export class TibberFeed extends EventEmitter {
                 this.warn(`Connection timed out after ${this._timeout} ms.`);
                 this.emit('heatbeat_timeout', { timeout: this._timeout });
                 if (this._active) {
-                    this.log('Reconnecting...');
-                    this.emit('heatbeat_reconnect', { timeout: this._timeout, connectionAttempts: this._connectionAttempts });
-                    this.connect();
+                    setTimeout(() => {
+                        this.log('Reconnecting...');
+                        this.emit('heatbeat_reconnect', { timeout: this._timeout, retryBackoff: this._retryBackoff });
+                        this.connect();
+                    }, this._retryBackoff + this._backoffDelayBase);
                 }
                 this._heartbeatTimeout = null;
             }
