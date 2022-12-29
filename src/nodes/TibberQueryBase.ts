@@ -7,9 +7,12 @@ import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { version } from "../../Version"
 import { gqlHomeRealTime } from '../gql/home.gql';
 
+class TimeoutError extends Error { }
 export class TibberQueryBase {
     public active: boolean;
     private _config: IConfig;
+    private _requestTimeout: number;
+
     public get config(): IConfig {
         return this._config;
     }
@@ -23,6 +26,7 @@ export class TibberQueryBase {
     constructor(config: IConfig) {
         this.active = false;
         this._config = config;
+        this._requestTimeout = Number(this._config?.apiEndpoint?.requestTimeout) > 0 ? Number(this._config?.apiEndpoint?.requestTimeout) : 5000
     }
 
     /**
@@ -109,10 +113,14 @@ export class TibberQueryBase {
                             response.statusMessage = res?.statusMessage;
                             reject(response);
                         }
+                        req.destroy();
                     });
                 });
                 req.on('error', (e: any) => {
                     reject(e);
+                });
+                req.setTimeout(this._requestTimeout, () => {
+                    req.destroy(new TimeoutError(`Request imeout for uri ${uri}`));
                 });
                 if (data) {
                     req.write(data);
