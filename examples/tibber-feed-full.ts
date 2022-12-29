@@ -47,7 +47,7 @@ export class FakeTibberQuery extends TibberQueryBase {
 }
 
 const tibberQuery = new TibberQuery(config);
-const tibberFeed = new TibberFeed(tibberQuery);
+const tibberFeed = new TibberFeed(tibberQuery, 5000);
 tibberFeed.on('connected', () => {
     console.log('Connected to Tibber!');
 });
@@ -74,4 +74,4 @@ setInterval(async () => {
     if (!tibberFeed.connected)
         await tibberFeed.connect();
 
-}, 1000);
+}, 10000);
