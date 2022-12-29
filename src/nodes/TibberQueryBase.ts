@@ -1,7 +1,7 @@
 import { IConfig } from '../models/IConfig';
 import * as url from 'url';
 import https, { RequestOptions } from 'https';
-import http from 'http';
+import http, { IncomingMessage } from 'http';
 import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { version } from "../../Version"
@@ -93,14 +93,15 @@ export class TibberQueryBase {
                 );
 
                 const client = (uri.protocol === "https:") ? https : http;
-                const req: http.ClientRequest = client.request(options, (res: any) => {
+                const req: http.ClientRequest = client.request(options, (res: IncomingMessage) => {
                     let str: string = '';
                     res.on('data', (chunk: string) => {
                         str += chunk;
                     });
                     res.on('end', () => {
                         const response: any = this.JsonTryParse(str);
-                        if (res?.statusCode >= 200 && res?.statusCode < 300) {
+                        const statusCode: number = Number(res?.statusCode);
+                        if (statusCode >= 200 && statusCode < 300) {
                             resolve(response.data ? response.data : response);
                         } else {
                             response.httpCode = res?.statusCode;
@@ -111,13 +112,12 @@ export class TibberQueryBase {
                     });
                 });
                 req.on('error', (e: any) => {
-                    // console.error(`problem with request: ${e.message}`);
                     reject(e);
                 });
                 if (data) {
                     req.write(data);
                 }
-                req.end();
+                req.end(() => { });
             } catch (error) {
                 reject(error);
             }

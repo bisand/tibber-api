@@ -31,7 +31,6 @@
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "args": [
                 "--runInBand",
-                "--detectOpenHandles",
                 "--config",
                 "${workspaceFolder}/jestconfig.json"
             ],
@@ -49,7 +48,7 @@
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "args": [
                 "${fileBasenameNoExtension}",
-                "--detectOpenHandles",
+                "--runInBand",
                 "--config",
                 "${workspaceFolder}/jestconfig.json"
             ],
