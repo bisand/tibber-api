@@ -93,7 +93,7 @@ export class TibberQueryBase {
                 );
 
                 const client = (uri.protocol === "https:") ? https : http;
-                const req = client.request(options, (res: any) => {
+                const req: http.ClientRequest = client.request(options, (res: any) => {
                     let str: string = '';
                     res.on('data', (chunk: string) => {
                         str += chunk;
