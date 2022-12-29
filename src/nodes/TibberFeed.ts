@@ -18,7 +18,9 @@ export class TibberFeed extends EventEmitter {
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
     private _heartbeatTimeout: NodeJS.Timer | null;
+    private _reconnectTimeout: NodeJS.Timer | null;
     private _isClosing: boolean;
+    private _isUnauthenticated: boolean;
 
     private _lastRetry: number;
     private _retryBackoff: number;
@@ -45,9 +47,11 @@ export class TibberFeed extends EventEmitter {
         this._config = tibberQuery.config;
         this._active = this._config.active;
         this._heartbeatTimeout = null;
+        this._reconnectTimeout = null;
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
+        this._isUnauthenticated = false;
         this._gql = '';
 
         this._realTimeConsumptionEnabled = null;
@@ -153,7 +157,7 @@ export class TibberFeed extends EventEmitter {
         }
         this._active = value;
         if (this._active) {
-            this.connect();
+            this.connectWithTimeout();
         } else {
             this.close();
         }
@@ -163,11 +167,19 @@ export class TibberFeed extends EventEmitter {
         return this._isConnected;
     }
 
-    private get canConnect(): boolean {
-        if (!this._realTimeConsumptionEnabled) {
-            this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
-            return false;
+    private connectWithTimeout() {
+        if (this._reconnectTimeout) {
+            clearTimeout(this._reconnectTimeout);
+            this._reconnectTimeout = null;
         }
+        this._reconnectTimeout = setTimeout(() => {
+            this.log('Reconnecting...');
+            this.emit('heatbeat_reconnect', { timeout: this._timeout, retryBackoff: this._retryBackoff });
+            this.connect();
+        }, this._retryBackoff + this._backoffDelayBase);
+    }
+
+    private get canConnect(): boolean {
         let result = false;
         if (result = Date.now() > (this._lastRetry + this._retryBackoff)) {
             this._lastRetry = Date.now();
@@ -187,19 +199,47 @@ export class TibberFeed extends EventEmitter {
         const delay = Math.min(exponential, this._backoffDelayMax);
         return delay / 2 + this.getRandomInt(delay / 2);
     }
+
     /**
      * Connect to Tibber feed.
      */
     public async connect(): Promise<void> {
+
+        if (this._isConnecting || this._isConnected) { return; }
+        this._isConnecting = true;
+
+        if (!this.canConnect) {
+            this._isConnecting = false;
+            return;
+        }
+
+        const unauthenticatedMessage = `Unauthenticated! Invalid token. Please provide a valid token and try again.`;
+        if (this._isUnauthenticated) {
+            this.error(unauthenticatedMessage);
+            this._isConnecting = false;
+            return;
+        }
+
         if (this._realTimeConsumptionEnabled === null) {
             try {
                 this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(this._config.homeId ?? '');
-            } catch (error) {
-                this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
+            } catch (error: any) {
+                if (error?.httpCode === 400
+                    && Array.isArray(error?.errors)
+                    && error?.errors.find((x: any) => x?.extensions?.code === 'UNAUTHENTICATED')) {
+                    this._isUnauthenticated = true;
+                    this.error(unauthenticatedMessage);
+                } else {
+                    this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
+                }
+                this._isConnecting = false;
+                return;
             }
+        } else if (!this._realTimeConsumptionEnabled) {
+            this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
+            return;
         }
-        if (!this.canConnect || this._isConnecting || this._isConnected) { return; }
-        this._isConnecting = true;
+
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
             const options = {
@@ -268,8 +308,7 @@ export class TibberFeed extends EventEmitter {
                             this.log('Received complete message. Closing connection.');
                             this.close();
                             if (this._active) {
-                                this.log('Reconnecting...');
-                                this.connect();
+                                this.connectWithTimeout();
                             }
                             break;
 
@@ -313,6 +352,10 @@ export class TibberFeed extends EventEmitter {
             clearTimeout(this._heartbeatTimeout);
             this._heartbeatTimeout = null;
         }
+        if (this._reconnectTimeout) {
+            clearTimeout(this._reconnectTimeout);
+            this._reconnectTimeout = null;
+        }
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.stopSubscription();
@@ -345,11 +388,7 @@ export class TibberFeed extends EventEmitter {
                 this.warn(`Connection timed out after ${this._timeout} ms.`);
                 this.emit('heatbeat_timeout', { timeout: this._timeout });
                 if (this._active) {
-                    setTimeout(() => {
-                        this.log('Reconnecting...');
-                        this.emit('heatbeat_reconnect', { timeout: this._timeout, retryBackoff: this._retryBackoff });
-                        this.connect();
-                    }, this._retryBackoff + this._backoffDelayBase);
+                    this.connectWithTimeout();
                 }
                 this._heartbeatTimeout = null;
             }
