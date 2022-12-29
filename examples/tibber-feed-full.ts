@@ -74,4 +74,4 @@ setInterval(async () => {
     if (!tibberFeed.connected)
         await tibberFeed.connect();
 
-}, 10000);
+}, 1000);
