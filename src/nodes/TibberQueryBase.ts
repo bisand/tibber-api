@@ -6,8 +6,8 @@ import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { version } from "../../Version"
 import { gqlHomeRealTime } from '../gql/home.gql';
+import { TimeoutError } from './models/TimeoutError';
 
-class TimeoutError extends Error { }
 export class TibberQueryBase {
     public active: boolean;
     private _config: IConfig;
@@ -125,7 +125,7 @@ export class TibberQueryBase {
                 if (data) {
                     req.write(data);
                 }
-                req.end(() => { });
+                req.end();
             } catch (error) {
                 reject(error);
             }
