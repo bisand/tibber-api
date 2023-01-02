@@ -34,10 +34,10 @@ export class TibberFeed extends EventEmitter {
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @constructor
-     * @param tibberQuery TibberQueryBase object.
-     * @param timeout Feed idle timeout. The feed will reconnect after being idle for more than the specified number of milliseconds.
-     * @param returnAllFields Specify if you want to return all fields from the data feed.
-     * @param connectionTimeout Feed connection timeout.
+     * @param {TibberQueryBase} tibberQuery TibberQueryBase object.
+     * @param {number} timeout Feed idle timeout. The feed will reconnect after being idle for more than the specified number of milliseconds.
+     * @param {boolean} returnAllFields Specify if you want to return all fields from the data feed.
+     * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
      */
     constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 10000) {
@@ -187,7 +187,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Clear timeout for a timer.
-     * @param timer Timer handle to clear
+     * @param {NodeJS.Timer | null} timer Timer handle to clear
      */
     private clearTimer(timer: NodeJS.Timer | null) {
         if (timer) {
@@ -198,7 +198,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Generate random number with a max value.
-     * @param max Maximum number
+     * @param {number} max Maximum number
      * @returns {number} Random number.
      */
     private getRandomInt(max: number): number {
@@ -207,8 +207,8 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Exponential backoff with jitter
-     * @param attempt Connection attempt
-     * @returns @typedef number
+     * @param {number} attempt Connection attempt
+     * @returns {number}
      */
     private getBackoffWithJitter(attempt: number): number {
         const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
@@ -476,7 +476,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Stops subscribing to a resource with a specified operation Id
-     * @param operationId Operation Id to stop subscribing to.
+     * @param {number} operationId Operation Id to stop subscribing to.
      */
     private stopSubscription(operationId?: number) {
         const query: IQuery = {
@@ -488,9 +488,8 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
-     * 
-     * @param query Tibber GQL query
-     * @returns @typedef void
+     * Send websocket query to Tibber
+     * @param {IQuery} query Tibber GQL query
      */
     private sendQuery(query: IQuery): void {
         if (!this._webSocket) {
@@ -508,7 +507,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Log function to emit log data to subscribers.
-     * @param message Log message
+     * @param {string} message Log message
      */
     private log(message: string) {
         try {
@@ -520,7 +519,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Log function to emit warning log data to subscribers.
-     * @param message Log message
+     * @param {string} message Log message
      */
     private warn(message: string) {
         try {
@@ -532,7 +531,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Log function to emit error log data to subscribers.
-     * @param message Log message
+     * @param {any} message Log message
      */
     private error(message: any) {
         try {
