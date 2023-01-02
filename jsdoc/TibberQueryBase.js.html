@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: TibberQueryBase.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: TibberQueryBase.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+var __createBinding = (this &amp;&amp; this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this &amp;&amp; this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this &amp;&amp; this.__importStar) || function (mod) {
+    if (mod &amp;&amp; mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" &amp;&amp; Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this &amp;&amp; this.__importDefault) || function (mod) {
+    return (mod &amp;&amp; mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TibberQueryBase = void 0;
+const url = __importStar(require("url"));
+const https_1 = __importDefault(require("https"));
+const http_1 = __importDefault(require("http"));
+const HttpMethod_1 = require("./models/HttpMethod");
+const websocketSubscriptionUrl_1 = require("../gql/websocketSubscriptionUrl");
+const Version_1 = require("../../Version");
+const home_gql_1 = require("../gql/home.gql");
+const TimeoutError_1 = require("./models/TimeoutError");
+class TibberQueryBase {
+    /**
+     *
+     */
+    constructor(config) {
+        var _a, _b, _c, _d;
+        this.active = false;
+        this._config = config;
+        this._requestTimeout = Number((_b = (_a = this._config) === null || _a === void 0 ? void 0 : _a.apiEndpoint) === null || _b === void 0 ? void 0 : _b.requestTimeout) > 0 ? Number((_d = (_c = this._config) === null || _c === void 0 ? void 0 : _c.apiEndpoint) === null || _d === void 0 ? void 0 : _d.requestTimeout) : 5000;
+    }
+    get config() {
+        return this._config;
+    }
+    set config(value) {
+        this._config = value;
+    }
+    /**
+     * Try to parse a string and return a valid JSON object.
+     * If string is not valid JSON, it will return an empty object instead.
+     * @param input Input string to try to parse as a JSON object
+     * @returns Parsed or empty Json object
+     */
+    JsonTryParse(input) {
+        try {
+            // check if the string exists
+            if (input) {
+                const o = JSON.parse(input);
+                // validate the result too
+                if (o &amp;&amp; o.constructor === Object) {
+                    return o;
+                }
+            }
+        }
+        catch (e) {
+            // TODO: Add logging.
+        }
+        return { responseMessage: input };
+    }
+    ;
+    /**
+     *
+     * @param method HTTP method to use
+     * @param uri Uri to use
+     * @returns An object containing request options
+     */
+    getRequestOptions(method, uri) {
+        var _a;
+        return {
+            host: uri.host,
+            port: uri.port,
+            path: uri.path,
+            protocol: uri.protocol,
+            method,
+            headers: {
+                Connection: 'Keep-Alive',
+                Accept: 'application/json',
+                Host: uri.hostname,
+                'User-Agent': (`${(_a = this._config.apiEndpoint.userAgent) !== null &amp;&amp; _a !== void 0 ? _a : ''} bisand/tibber-api/${Version_1.version}`).trim(),
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
+            },
+        };
+    }
+    /**
+     * General GQL query
+     * @param query GQL query.
+     * @param variables Variables used by query parameter.
+     * @return Query result as JSON data
+     */
+    async query(query, variables) {
+        return await new Promise((resolve, reject) => {
+            try {
+                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
+                const options = this.getRequestOptions(HttpMethod_1.HttpMethod.Post, uri);
+                const data = new TextEncoder().encode(JSON.stringify({
+                    query,
+                    variables,
+                }));
+                const client = (uri.protocol === "https:") ? https_1.default : http_1.default;
+                const req = client.request(options, (res) => {
+                    let str = '';
+                    res.on('data', (chunk) => {
+                        str += chunk;
+                    });
+                    res.on('end', () => {
+                        const response = this.JsonTryParse(str);
+                        const statusCode = Number(res === null || res === void 0 ? void 0 : res.statusCode);
+                        if (statusCode >= 200 &amp;&amp; statusCode &lt; 300) {
+                            resolve(response.data ? response.data : response);
+                        }
+                        else {
+                            response.httpCode = res === null || res === void 0 ? void 0 : res.statusCode;
+                            response.statusCode = res === null || res === void 0 ? void 0 : res.statusCode;
+                            response.statusMessage = res === null || res === void 0 ? void 0 : res.statusMessage;
+                            reject(response);
+                        }
+                        req.destroy();
+                    });
+                });
+                req.on('error', (e) => {
+                    reject(e);
+                });
+                req.setTimeout(this._requestTimeout, () => {
+                    req.destroy(new TimeoutError_1.TimeoutError(`Request imeout for uri ${uri}`));
+                });
+                if (data) {
+                    req.write(data);
+                }
+                req.end();
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    }
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    async getWebsocketSubscriptionUrl() {
+        const result = await this.query(websocketSubscriptionUrl_1.qglWebsocketSubscriptionUrl);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.websocketSubscriptionUrl) {
+            return new url.URL(result.viewer.websocketSubscriptionUrl);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    async getRealTimeEnabled(homeId) {
+        var _a, _b, _c, _d;
+        const variables = { homeId };
+        const result = await this.query(home_gql_1.gqlHomeRealTime, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            return (_d = (_c = (_b = (_a = result === null || result === void 0 ? void 0 : result.viewer) === null || _a === void 0 ? void 0 : _a.home) === null || _b === void 0 ? void 0 : _b.features) === null || _c === void 0 ? void 0 : _c.realTimeConsumptionEnabled) !== null &amp;&amp; _d !== void 0 ? _d : false;
+        }
+        return false;
+    }
+}
+exports.TibberQueryBase = TibberQueryBase;
+//# sourceMappingURL=TibberQueryBase.js.map</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="TibberFeed.html">TibberFeed</a></li><li><a href="TibberQuery.html">TibberQuery</a></li><li><a href="TibberQueryBase.html">TibberQueryBase</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Jan 02 2023 08:11:59 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

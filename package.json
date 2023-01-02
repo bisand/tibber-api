@@ -33,6 +33,8 @@
     "@types/node": "^16",
     "@types/ws": "^8.5.3",
     "jest": "^28.1.1",
+    "jsdoc": "^4.0.0",
+    "jsdoc-to-markdown": "^8.0.0",
     "mkver": "^2.0.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
