@@ -15,7 +15,7 @@
     "test": "jest --runInBand --config jestconfig.json --forceExit",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
-    "jsdoc": "./node_modules/.bin/jsdoc lib/src/nodes -d ./jsdoc",
+    "jsdoc": "tsc && ./node_modules/.bin/jsdoc lib/src/nodes -d ./jsdoc",
     "prepare": "tsc",
     "preversion": "npm test",
     "version": "",

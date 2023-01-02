@@ -187,7 +187,7 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Clear timeout for a timer.
-     * @param {NodeJS.Timer | null} timer Timer handle to clear
+     * @param {NodeJS.Timer} timer Timer handle to clear
      */
     private clearTimer(timer: NodeJS.Timer | null) {
         if (timer) {
