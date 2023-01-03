@@ -174,6 +174,40 @@ export class TibberFeed extends EventEmitter {
         return this._isConnected;
     }
 
+    get feedIdleTimeout(): number {
+        return this._feedIdleTimeout;
+    }
+
+    set feedIdleTimeout(value: number) {
+        if (value === this._feedIdleTimeout) {
+            return;
+        }
+        this._feedIdleTimeout = value;
+    }
+
+    get feedConnectionTimeout(): number {
+        return this._feedConnectionTimeout;
+    }
+
+    set feedConnectionTimeout(value: number) {
+        if (value === this._feedConnectionTimeout) {
+            return;
+        }
+        this._feedConnectionTimeout = value;
+    }
+
+    get queryRequestTimeout(): number {
+        return this._tibberQuery?.requestTimeout;
+    }
+
+    set queryRequestTimeout(value: number) {
+        if (value === this._tibberQuery?.requestTimeout) {
+            return;
+        }
+        if (this._tibberQuery)
+            this._tibberQuery.requestTimeout = value;
+    }
+
     private get canConnect(): boolean {
         const result = Date.now() > (this._lastRetry + this._retryBackoff);
         if (result) {

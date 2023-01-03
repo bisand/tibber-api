@@ -13,6 +13,13 @@ export class TibberQueryBase {
     private _config: IConfig;
     private _requestTimeout: number;
 
+    public get requestTimeout(): number {
+        return this._requestTimeout;
+    }
+    public set requestTimeout(value: number) {
+        this._requestTimeout = value;
+    }
+
     public get config(): IConfig {
         return this._config;
     }
