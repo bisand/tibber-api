@@ -9,7 +9,6 @@ const config: IConfig = {
     apiEndpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
-        requestTimeout: 5000,
     },
     // Query configuration.
     homeId: '96a14971-525a-4420-aae9-e5aedaa129ff',

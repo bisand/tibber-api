@@ -30,10 +30,10 @@ export class TibberQueryBase {
     /**
      *
      */
-    constructor(config: IConfig) {
+    constructor(config: IConfig, requestTimeout: number = 30000) {
         this.active = false;
         this._config = config;
-        this._requestTimeout = Number(this._config?.apiEndpoint?.requestTimeout) > 0 ? Number(this._config?.apiEndpoint?.requestTimeout) : 5000
+        this._requestTimeout = requestTimeout;
     }
 
     /**

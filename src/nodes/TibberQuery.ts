@@ -16,11 +16,12 @@ export class TibberQuery extends TibberQueryBase {
     /**
      * Constructor
      * Create an instace of TibberQuery class
-     * @param config IConfig object
+     * @param {IConfig} config Config object
+     * @param {number} requestTimeout Request timeout in milliseconds.
      * @see IConfig
      */
-    constructor(config: IConfig) {
-        super(config);
+    constructor(config: IConfig, requestTimeout: number = 30000) {
+        super(config, requestTimeout);
     }
 
     /**

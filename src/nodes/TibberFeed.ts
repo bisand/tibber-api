@@ -35,7 +35,7 @@ export class TibberFeed extends EventEmitter {
      * Constructor for creating a new instance if TibberFeed.
      * @constructor
      * @param {TibberQueryBase} tibberQuery TibberQueryBase object.
-     * @param {number} timeout Feed idle timeout. The feed will reconnect after being idle for more than the specified number of milliseconds.
+     * @param {number} timeout Feed idle timeout in milliseconds. The feed will reconnect after being idle for more than the specified number of milliseconds. Min 5000 ms.
      * @param {boolean} returnAllFields Specify if you want to return all fields from the data feed.
      * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
@@ -47,8 +47,8 @@ export class TibberFeed extends EventEmitter {
             throw new Error('Missing mandatory parameter [tibberQuery]');
         }
 
-        this._feedConnectionTimeout = connectionTimeout;
-        this._feedIdleTimeout = timeout;
+        this._feedConnectionTimeout = connectionTimeout >= 1000 ? connectionTimeout : 1000;
+        this._feedIdleTimeout = timeout >= 5000 ? timeout : 5000;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._active = this._config.active;
