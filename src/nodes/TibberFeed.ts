@@ -47,8 +47,8 @@ export class TibberFeed extends EventEmitter {
             throw new Error('Missing mandatory parameter [tibberQuery]');
         }
 
-        this._feedConnectionTimeout = connectionTimeout >= 5000 ? connectionTimeout : 5000;
-        this._feedIdleTimeout = timeout >= 5000 ? timeout : 5000;
+        this._feedConnectionTimeout = connectionTimeout > 5000 ? connectionTimeout : 5000;
+        this._feedIdleTimeout = timeout > 5000 ? timeout : 5000;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._active = this._config.active;

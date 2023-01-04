@@ -33,7 +33,7 @@ export class TibberQueryBase {
     constructor(config: IConfig, requestTimeout: number = 30000) {
         this.active = false;
         this._config = config;
-        this._requestTimeout = requestTimeout;
+        this._requestTimeout = requestTimeout > 1000 ? requestTimeout : 1000;
     }
 
     /**
