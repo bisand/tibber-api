@@ -31,8 +31,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - if: ${{ github.event.release.prerelease }}
-        run: npm publish --tag beta
+        run: npm publish . --tag beta
       - if: ${{ !github.event.release.prerelease }}
-        run: npm publish
+        run: npm publish .
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
