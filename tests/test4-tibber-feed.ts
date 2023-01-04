@@ -70,7 +70,6 @@ test('TibberFeed - Should be created', () => {
                 apiKey: '1337',
                 queryUrl: 'ws://localhost:1337',
                 userAgent: 'test4-tibber-feed',
-                requestTimeout: 5000,
             },
             homeId: '1337',
         });
@@ -86,7 +85,6 @@ test('TibberFeed - should be connected', done => {
             apiKey: '1337',
             queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
-            requestTimeout: 5000,
         },
         homeId: '1337',
     });
@@ -107,7 +105,6 @@ test('TibberFeed - Should receive data', done => {
             apiKey: '1337',
             queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
-            requestTimeout: 5000,
         },
         homeId: '1337',
     });
@@ -131,7 +128,6 @@ test('TibberFeed - Should be active', () => {
             apiKey: '1337',
             queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
-            requestTimeout: 5000,
         },
         homeId: '1337',
     });
@@ -152,7 +148,6 @@ test('TibberFeed - Should timeout after 3 sec', done => {
             apiKey: '1337',
             queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
-            requestTimeout: 5000,
         },
         homeId: '1337',
     });
@@ -179,7 +174,6 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
             apiKey: '1337',
             queryUrl: 'ws://localhost:1337',
             userAgent: 'test4-tibber-feed',
-            requestTimeout: 5000,
         },
         homeId: '1337',
     });
