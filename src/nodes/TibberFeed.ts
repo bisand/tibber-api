@@ -40,14 +40,14 @@ export class TibberFeed extends EventEmitter {
      * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
      */
-    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 10000) {
+    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 30000) {
         super();
 
         if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase)) {
             throw new Error('Missing mandatory parameter [tibberQuery]');
         }
 
-        this._feedConnectionTimeout = connectionTimeout >= 1000 ? connectionTimeout : 1000;
+        this._feedConnectionTimeout = connectionTimeout >= 5000 ? connectionTimeout : 5000;
         this._feedIdleTimeout = timeout >= 5000 ? timeout : 5000;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
