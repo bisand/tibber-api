@@ -21,6 +21,7 @@ export class TibberFeed extends EventEmitter {
     private _timerHeartbeat: NodeJS.Timer | null;
     private _timerConnect: NodeJS.Timer | null;
     private _timerConnectionTimeout: NodeJS.Timer | null;
+    private _timerSubtractRetryAttempts: NodeJS.Timer | null;
     private _isClosing: boolean;
     private _isUnauthenticated: boolean;
 
@@ -55,6 +56,7 @@ export class TibberFeed extends EventEmitter {
         this._timerHeartbeat = null;
         this._timerConnect = null;
         this._timerConnectionTimeout = null;
+        this._timerSubtractRetryAttempts = null;
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
@@ -152,6 +154,9 @@ export class TibberFeed extends EventEmitter {
             this._gql += 'signalStrength ';
         }
         this._gql += '}}';
+
+        // Start subtracting connection retry attempts after 5 minutes.
+        this.subtractRetryAttempts(5 * 60 * 1000);
     }
 
     get active(): boolean {
@@ -217,6 +222,18 @@ export class TibberFeed extends EventEmitter {
         }
         this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
         return result;
+    }
+
+    /**
+     * Subtract connection attempts after given delay.
+     * @param {number} delay Delay in milliseconds before the subtraction will start.
+     */
+    private subtractRetryAttempts(delay: number) {
+        this._timerSubtractRetryAttempts = setTimeout(() => {
+            if (this._connectionAttempts > 0)
+                this._connectionAttempts--;
+            this.subtractRetryAttempts(delay);
+        }, delay);
     }
 
     /**
@@ -363,8 +380,6 @@ export class TibberFeed extends EventEmitter {
                             if (!msg.payload || !msg.payload.data) {
                                 return;
                             }
-                            if (this._connectionAttempts > 0)
-                                this._connectionAttempts--;
                             const data = msg.payload.data.liveMeasurement;
                             this.emit('data', data);
                             this.heartbeat();
