@@ -47,16 +47,21 @@ Realtime power consuption data from Tibber Pulse. Provide API token, Home ID and
 
 > Note! There should be only one instance running of _TibberFeed_ per API key. Doing otherwise may return unpredictable result, or even error responses from the API.
 
+[JSDoc documentation](https://htmlpreview.github.io/?https://raw.githubusercontent.com/bisand/tibber-api/master/jsdoc/TibberFeed.html)
+
 ### Constructor
 
 ```typescript
 /**
  * Constructor for creating a new instance if TibberFeed.
- * @param tibberQuery TibberQuery object
- * @param timeout Reconnection timeout
- * @see TibberQuery
+ * @constructor
+ * @param {TibberQueryBase} tibberQuery TibberQueryBase object.
+ * @param {number} timeout Feed idle timeout in milliseconds. The feed will reconnect after being idle for more than the specified number of milliseconds. Min 5000 ms.
+ * @param {boolean} returnAllFields Specify if you want to return all fields from the data feed.
+ * @param {number} connectionTimeout Feed connection timeout.
+ * @see {@linkcode TibberQueryBase}
  */
-TibberFeed(tibberQuery: TibberQuery, timeout: number = 30000)
+TibberFeed(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 30000)
 ```
 
 > Created a new instance of TibberFeed with with an instance of [TibberQuery](#TibberQuery) and timeout. The timeout is used for reconnection when no data is received within the specified time. The [config object](#config-object) is described later in this document.
@@ -72,7 +77,7 @@ TibberFeed(tibberQuery: TibberQuery, timeout: number = 30000)
 Connect();
 ```
 
-> Connect to Tibber Pulse realtime data feed.
+> Connect to Tibber Pulse realtime data feed. The connect method has a backoff logic with jitter applied to prevent too many reconnection attemts. There is also an idle timeout functionality that ensures that the feed is always connected when it's active.
 
 ### Close
 
@@ -180,16 +185,20 @@ log(message: string)
 
 Do basic calls to Tibber API using GraphQL queries. To query the Tibber API, simply provide raw GraphQL queries in the payload of the incoming message. See Tibber API documentation and API Explorer for more informations.
 
+[JSDoc documentation](https://htmlpreview.github.io/?https://raw.githubusercontent.com/bisand/tibber-api/master/jsdoc/TibberQuery.html)
+
+
 ### Constructor
 
 ```typescript
 /**
  * Constructor
  * Create an instace of TibberQuery class
- * @param config IConfig object
+ * @param {IConfig} config Config object
+ * @param {number} requestTimeout Request timeout in milliseconds.
  * @see IConfig
  */
-TibberQuery(config: IConfig);
+TibberQuery(config: IConfig, requestTimeout: number = 30000);
 ```
 
 > Created a new instance of TibberQuery with the desired configuration. The config object is described later in this document.
@@ -331,13 +340,13 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 
 ```typescript
 /**
-     * Sends a push notification to the current user's tibber app.
-     * Returns a ISendPushNotification Object
-     * @param title: "The title of your message";
-       @param message: "The message you want to send";
-       @param screenToOpen: AppScreen Object, example: AppScreen.HOME ;
-     * @return ISendPushNotification Object
-     */
+ * Sends a push notification to the current user's tibber app.
+ * Returns a ISendPushNotification Object
+ * @param title: "The title of your message";
+ * @param message: "The message you want to send";
+ * @param screenToOpen: AppScreen Object, example: AppScreen.HOME ;
+ * @return ISendPushNotification Object
+ */
 ```
 
 > Send a notification to the tibber app. You can specify which route shoule be opened in the App when opening the message. The notification will be send to all devices registered for that tibber account. If the send is successful the response will show how many devices the message reached.
