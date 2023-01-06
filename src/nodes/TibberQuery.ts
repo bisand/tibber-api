@@ -5,7 +5,7 @@ import { EnergyResolution } from '../models/enums/EnergyResolution';
 import { IConsumption } from '../models/IConsumption';
 import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
-import { gqlHome, gqlHomeComplete, gqlHomeRealTime } from '../gql/home.gql';
+import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';

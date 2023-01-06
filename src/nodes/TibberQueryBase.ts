@@ -160,9 +160,6 @@ export class TibberQueryBase {
     public async getRealTimeEnabled(homeId: string): Promise<boolean> {
         const variables = { homeId };
         const result = await this.query(gqlHomeRealTime, variables);
-        if (result && result.viewer && result.viewer.home) {
-            return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false;
-        }
-        return false;
+        return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false;
     }
 }
