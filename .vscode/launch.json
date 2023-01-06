@@ -49,6 +49,7 @@
             "args": [
                 "${fileBasenameNoExtension}",
                 "--runInBand",
+                "--detectOpenHandles",
                 "--config",
                 "${workspaceFolder}/jestconfig.json"
             ],
