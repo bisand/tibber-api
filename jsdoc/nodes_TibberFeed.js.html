@@ -1,89 +1,83 @@
-import { EventEmitter } from 'events';
-import { IConfig } from '../models/IConfig';
-import { IQuery } from '../models/IQuery';
-import { IQueryPayload } from "../models/IQueryPayload";
-import WebSocket from 'ws';
-import { GQL } from './models/GQL';
-import { TibberQueryBase } from './TibberQueryBase';
-import { version } from "../../Version"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: nodes/TibberFeed.js</title>
 
-export class TibberFeed extends EventEmitter {
-    private _operationId: number = 0;
-    private _feedConnectionTimeout: number;
-    private _feedIdleTimeout: number;
-    private _config: IConfig;
-    private _active: boolean;
-    private _isConnected: boolean;
-    private _isConnecting: boolean;
-    private _gql: string;
-    private _webSocket!: WebSocket;
-    private _tibberQuery: TibberQueryBase;
-    private _timerHeartbeat: NodeJS.Timeout[];
-    private _timerConnect: NodeJS.Timeout[];
-    private _timerConnectionTimeout: NodeJS.Timeout[];
-    private _timerSubtractRetryAttempts: NodeJS.Timeout[];
-    private _isClosing: boolean;
-    private _isUnauthenticated: boolean;
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
 
-    private _lastRetry: number;
-    private _retryBackoff: number;
-    private _connectionAttempts: number;
-    private _backoffDelayBase: number;
-    private _backoffDelayMax: number;
-    private _realTimeConsumptionEnabled?: boolean | null;
+<body>
 
-    private _timeoutCount: number;
-    public get timeoutCount(): number {
-        return this._timeoutCount;
-    }
+<div id="main">
 
+    <h1 class="page-title">Source: nodes/TibberFeed.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+var __importDefault = (this &amp;&amp; this.__importDefault) || function (mod) {
+    return (mod &amp;&amp; mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TibberFeed = void 0;
+const events_1 = require("events");
+const ws_1 = __importDefault(require("ws"));
+const GQL_1 = require("./models/GQL");
+const TibberQueryBase_1 = require("./TibberQueryBase");
+const Version_1 = require("../../Version");
+class TibberFeed extends events_1.EventEmitter {
     /**
      * Constructor for creating a new instance if TibberFeed.
      * @constructor
      * @param {TibberQueryBase} tibberQuery TibberQueryBase object.
-     * @param {number} timeout Feed idle timeout in milliseconds. The feed will reconnect after being idle for more than the specified number of milliseconds. Min 5000 ms.
+     * @param {number} timeout Feed idle timeout. The feed will reconnect after being idle for more than the specified number of milliseconds.
      * @param {boolean} returnAllFields Specify if you want to return all fields from the data feed.
      * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
      */
-    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 30000) {
+    constructor(tibberQuery, timeout = 60000, returnAllFields = false, connectionTimeout = 10000) {
         super();
-
-        if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase)) {
+        this._operationId = 0;
+        if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase_1.TibberQueryBase)) {
             throw new Error('Missing mandatory parameter [tibberQuery]');
         }
-
-        this._feedConnectionTimeout = connectionTimeout > 5000 ? connectionTimeout : 5000;
-        this._feedIdleTimeout = timeout > 5000 ? timeout : 5000;
+        this._feedConnectionTimeout = connectionTimeout;
+        this._feedIdleTimeout = timeout;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._active = this._config.active;
-        this._timerHeartbeat = [];
-        this._timerConnect = [];
-        this._timerConnectionTimeout = [];
-        this._timerSubtractRetryAttempts = [];
+        this._timerHeartbeat = null;
+        this._timerConnect = null;
+        this._timerConnectionTimeout = null;
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
         this._isUnauthenticated = false;
         this._gql = '';
-
         this._realTimeConsumptionEnabled = null;
         this._lastRetry = 0;
         this._connectionAttempts = 0;
         this._backoffDelayBase = 1000; // 1 second
         this._backoffDelayMax = 1000 * 60 * 60 * 24; // 1 day
         this._retryBackoff = 1000;
-
-        this._timeoutCount = 0;
-
         if (!this._config.apiEndpoint || !this._config.apiEndpoint.apiKey || !this._config.homeId) {
             this._active = false;
             this._config.active = false;
             this.warn('Missing mandatory parameters. Execution will halt.');
             return;
         }
-
         this._gql = 'subscription($homeId:ID!){liveMeasurement(homeId:$homeId){';
         if (this._config.timestamp || returnAllFields) {
             this._gql += 'timestamp ';
@@ -162,64 +156,25 @@ export class TibberFeed extends EventEmitter {
         }
         this._gql += '}}';
     }
-
-    get active(): boolean {
+    get active() {
         return this._active;
     }
-
-    set active(value: boolean) {
+    set active(value) {
         if (value === this._active) {
-            if (!this._active)
-                this.close();
             return;
         }
         this._active = value;
         if (this._active) {
-            this.connectWithTimeout();
-        } else {
+            this.connectWithDelay();
+        }
+        else {
             this.close();
         }
     }
-
-    get connected(): boolean {
+    get connected() {
         return this._isConnected;
     }
-
-    get feedIdleTimeout(): number {
-        return this._feedIdleTimeout;
-    }
-
-    set feedIdleTimeout(value: number) {
-        if (value === this._feedIdleTimeout) {
-            return;
-        }
-        this._feedIdleTimeout = value;
-    }
-
-    get feedConnectionTimeout(): number {
-        return this._feedConnectionTimeout;
-    }
-
-    set feedConnectionTimeout(value: number) {
-        if (value === this._feedConnectionTimeout) {
-            return;
-        }
-        this._feedConnectionTimeout = value;
-    }
-
-    get queryRequestTimeout(): number {
-        return this._tibberQuery?.requestTimeout;
-    }
-
-    set queryRequestTimeout(value: number) {
-        if (value === this._tibberQuery?.requestTimeout) {
-            return;
-        }
-        if (this._tibberQuery)
-            this._tibberQuery.requestTimeout = value;
-    }
-
-    private get canConnect(): boolean {
+    get canConnect() {
         const result = Date.now() > (this._lastRetry + this._retryBackoff);
         if (result) {
             this._lastRetry = Date.now();
@@ -229,168 +184,137 @@ export class TibberFeed extends EventEmitter {
         this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
         return result;
     }
-
-    /**
-     * Add a timeout to an array of timeouts.
-     * @param {NodeJS.Timeout[]} timers List og timeouts
-     * @param {void} callback Callback function to call when timeout is reached.
-     * @param {number} delayMs Delay in milliseconds before callback will be called.
-     */
-    private addTimeout(timers: NodeJS.Timeout[], callback: () => void, delayMs: number) {
-        this._timeoutCount++;
-        timers.push(setTimeout(callback, delayMs));
-    }
-
     /**
      * Clear timeout for a timer.
-     * @param {NodeJS.Timeout[]} timers Timer handle to clear
+     * @param {NodeJS.Timer} timer Timer handle to clear
      */
-    private cancelTimeouts(timers: NodeJS.Timeout[]) {
-        while (timers.length) {
-            const timer = timers.pop();
-            if (timer) {
-                this._timeoutCount--;
-                clearTimeout(timer);
-            }
+    clearTimer(timer) {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
         }
     }
-
-    /**
-     * Subtract connection attempts after given delay.
-     * @param {number} delay Delay in milliseconds before the subtraction will start.
-     */
-    private subtractRetryAttempts(delay: number) {
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
-        this.addTimeout(this._timerSubtractRetryAttempts, () => {
-            if (this._connectionAttempts > 0)
-                this._connectionAttempts--;
-            this.subtractRetryAttempts(delay);
-        }, delay);
-    }
-
     /**
      * Generate random number with a max value.
      * @param {number} max Maximum number
      * @returns {number} Random number.
      */
-    private getRandomInt(max: number): number {
+    getRandomInt(max) {
         return Math.floor(Math.random() * max);
     }
-
     /**
      * Exponential backoff with jitter
      * @param {number} attempt Connection attempt
      * @returns {number}
      */
-    private getBackoffWithJitter(attempt: number): number {
+    getBackoffWithJitter(attempt) {
         const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
         const delay = Math.min(exponential, this._backoffDelayMax);
         return delay / 2 + this.getRandomInt(delay / 2);
     }
-
     /**
      * Connect to feed with built in delay, timeout and backoff.
      */
-    private async connectWithTimeout(): Promise<void> {
-        if (this._isConnecting || this._isConnected) { return; }
+    async connectWithDelay(delay) {
+        var _a;
+        if (this._isConnecting || this._isConnected) {
+            return;
+        }
         this._isConnecting = true;
-
         if (!this.canConnect) {
             this._isConnecting = false;
             return;
         }
-
         const unauthenticatedMessage = `Unauthenticated! Invalid token. Please provide a valid token and try again.`;
         if (this._isUnauthenticated) {
             this.error(unauthenticatedMessage);
             this._isConnecting = false;
             return;
         }
-
         if (this._realTimeConsumptionEnabled === null) {
             try {
-                this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(this._config.homeId ?? '');
-            } catch (error: any) {
-                if (error?.httpCode === 400
-                    && Array.isArray(error?.errors)
-                    && error?.errors.find((x: any) => x?.extensions?.code === 'UNAUTHENTICATED')) {
+                this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled((_a = this._config.homeId) !== null &amp;&amp; _a !== void 0 ? _a : '');
+            }
+            catch (error) {
+                if ((error === null || error === void 0 ? void 0 : error.httpCode) === 400
+                    &amp;&amp; Array.isArray(error === null || error === void 0 ? void 0 : error.errors)
+                    &amp;&amp; (error === null || error === void 0 ? void 0 : error.errors.find((x) => { var _a; return ((_a = x === null || x === void 0 ? void 0 : x.extensions) === null || _a === void 0 ? void 0 : _a.code) === 'UNAUTHENTICATED'; }))) {
                     this._isUnauthenticated = true;
                     this.error(unauthenticatedMessage);
-                } else {
+                }
+                else {
                     this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
                 }
                 this._isConnecting = false;
                 return;
             }
-        } else if (!this._realTimeConsumptionEnabled) {
+        }
+        else if (!this._realTimeConsumptionEnabled) {
             this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
             return;
         }
-
-        this.cancelTimeouts(this._timerConnect);
-        this.cancelTimeouts(this._timerConnectionTimeout);
-        this.log('Connecting...');
-        this.emit('connecting', { timeout: this._retryBackoff + this._backoffDelayBase, retryBackoff: this._retryBackoff });
-        // Set connection timeout.
-        this.addTimeout(this._timerConnectionTimeout, () => {
-            this.error('Connection timeout');
-            this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
-            if (this._webSocket)
-                this.terminateConnection();
-            if (this._active)
-                this.connectWithTimeout();
-        }, this._feedConnectionTimeout);
-        // Perform connection.
-        await this.internalConnect();
+        this.clearTimer(this._timerConnect);
+        this.clearTimer(this._timerConnectionTimeout);
+        this._timerConnect = setTimeout(async () => {
+            this.log('Connecting...');
+            this.emit('connecting', { timeout: this._retryBackoff + this._backoffDelayBase, retryBackoff: this._retryBackoff });
+            await this.internalConnect();
+            this._timerConnectionTimeout = setTimeout(() => {
+                this.error('Connection timeout');
+                this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
+                if (this._webSocket)
+                    this.terminateConnection();
+                if (this._active)
+                    this.connectWithDelay(delay);
+            }, this._feedConnectionTimeout);
+        }, delay !== null &amp;&amp; delay !== void 0 ? delay : (this._retryBackoff + this._backoffDelayBase));
     }
-
     /**
      * Internal connection method that handles the communication with tibber feed.
      */
-    private async internalConnect(): Promise<void> {
+    async internalConnect() {
+        var _a;
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
             const options = {
                 headers: {
                     'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
-                    'User-Agent': (`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
+                    'User-Agent': (`${(_a = this._config.apiEndpoint.userAgent) !== null &amp;&amp; _a !== void 0 ? _a : ''} bisand/tibber-api/${Version_1.version}`).trim()
                 }
-            }
-            this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
-
+            };
+            this._webSocket = new ws_1.default(url.href, ['graphql-transport-ws'], options);
             /**
              * Event: open
              * Called when websocket connection is established.
              */
-            this._webSocket.onopen = (event: WebSocket.Event) => {
+            this._webSocket.onopen = (event) => {
                 if (!this._webSocket) {
                     return;
                 }
                 this.initConnection();
             };
-
             /**
              * Event: message
              * Called when data is received from the feed.
              */
-            this._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
-                if (message.data && message.data.toString().startsWith('{')) {
+            this._webSocket.onmessage = (message) => {
+                if (message.data &amp;&amp; message.data.toString().startsWith('{')) {
                     const msg = JSON.parse(message.data.toString());
                     switch (msg.type) {
-                        case GQL.CONNECTION_ERROR:
+                        case GQL_1.GQL.CONNECTION_ERROR:
                             this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
                             this.close();
                             break;
-                        case GQL.CONNECTION_ACK:
+                        case GQL_1.GQL.CONNECTION_ACK:
                             this._isConnected = true;
-                            this.cancelTimeouts(this._timerConnectionTimeout);
+                            this.clearTimer(this._timerConnectionTimeout);
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
-                            this.heartbeat();
                             this.emit('connected', 'Connected to Tibber feed.');
-                            this.emit(GQL.CONNECTION_ACK, msg);
+                            this.emit(GQL_1.GQL.CONNECTION_ACK, msg);
+                            this.heartbeat();
                             break;
-                        case GQL.NEXT:
-                            if (msg.payload && msg.payload.errors) {
+                        case GQL_1.GQL.NEXT:
+                            if (msg.payload &amp;&amp; msg.payload.errors) {
                                 this.emit('error', msg.payload.errors);
                             }
                             if (Number(msg.id) !== this._operationId) {
@@ -401,14 +325,16 @@ export class TibberFeed extends EventEmitter {
                             if (!msg.payload || !msg.payload.data) {
                                 return;
                             }
+                            if (this._connectionAttempts > 0)
+                                this._connectionAttempts--;
                             const data = msg.payload.data.liveMeasurement;
-                            this.heartbeat();
                             this.emit('data', data);
+                            this.heartbeat();
                             break;
-                        case GQL.ERROR:
+                        case GQL_1.GQL.ERROR:
                             this.error(`An error occurred: ${JSON.stringify(msg)}`);
                             break;
-                        case GQL.COMPLETE:
+                        case GQL_1.GQL.COMPLETE:
                             if (Number(msg.id) !== this._operationId) {
                                 this.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
                                 return;
@@ -417,207 +343,213 @@ export class TibberFeed extends EventEmitter {
                             this.close();
                             if (this._active) {
                                 const delay = this.getRandomInt(60000);
-                                this.addTimeout(this._timerConnect, () => {
-                                    this.connectWithTimeout();
-                                }, delay);
+                                this.connectWithDelay(delay);
                             }
                             break;
-
                         default:
                             this.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
                             break;
                     }
                 }
             };
-
             /**
              * Event: close
              * Called when feed is closed.
              */
-            this._webSocket.onclose = (event: WebSocket.CloseEvent) => {
+            this._webSocket.onclose = (event) => {
                 this._isConnected = false;
                 this.emit('disconnected', 'Disconnected from Tibber feed.');
             };
-
             /**
              * Event: error
              * Called when an error has occurred.
              */
-            this._webSocket.onerror = (error: WebSocket.ErrorEvent) => {
+            this._webSocket.onerror = (error) => {
                 this.error(error);
             };
-        } catch (reason) {
+        }
+        catch (reason) {
             this.error(reason);
-        } finally {
-            this._isConnecting = false
-            // Start subtracting connection retry attempts after 5 minutes.
-            this.subtractRetryAttempts(5 * 60 * 1000);
-        };
+        }
+        finally {
+            this._isConnecting = false;
+        }
+        ;
     }
-
     /**
      * Connect to Tibber feed.
      */
-    public async connect(): Promise<void> {
-        await this.connectWithTimeout();
+    async connect() {
+        await this.connectWithDelay();
     }
-
     /**
      * Close the Tibber feed.
      */
-    public close() {
+    close() {
         this._isClosing = true;
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.cancelTimeouts(this._timerConnect);
-        this.cancelTimeouts(this._timerConnectionTimeout);
+        this.clearTimer(this._timerHeartbeat);
+        this.clearTimer(this._timerConnect);
         if (this._webSocket) {
-            if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
+            if (this._isConnected &amp;&amp; this._webSocket.readyState === ws_1.default.OPEN) {
                 this.closeConnection();
             }
         }
         this._isClosing = false;
         this.log('Closed Tibber Feed.');
     }
-
     /**
      * Heartbeat function used to keep connection alive.
      * Mostly for internal use, even if it is public.
      */
-    public heartbeat() {
+    heartbeat() {
         if (this._isClosing)
             return;
-
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.addTimeout(this._timerHeartbeat, () => {
+        this.clearTimer(this._timerHeartbeat);
+        this._timerHeartbeat = setTimeout(() => {
             if (this._webSocket) {
                 this.terminateConnection();
+                this._timerHeartbeat = null;
             }
             this.warn(`Connection timed out after ${this._feedIdleTimeout} ms.`);
-            this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
+            this.emit('heatbeat_timeout', { timeout: this._feedIdleTimeout });
             if (this._active) {
-                this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
-                this.connectWithTimeout();
+                this.connectWithDelay();
             }
         }, this._feedIdleTimeout);
     }
-
     /**
      * Gracefully close connection with Tibber.
      */
-    private closeConnection() {
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+    closeConnection() {
         this.stopSubscription();
         this._webSocket.close(1000, 'Normal Closure');
         this._webSocket.terminate();
     }
-
     /**
      * Forcefully terminate connection with Tibber.
      */
-    private terminateConnection() {
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+    terminateConnection() {
         this.stopSubscription();
         this._webSocket.terminate();
         this._isConnected = false;
     }
-
     /**
      * Initialize connection with Tibber.
      */
-    private initConnection() {
-        const query: IQuery = {
-            type: GQL.CONNECTION_INIT,
+    initConnection() {
+        const query = {
+            type: GQL_1.GQL.CONNECTION_INIT,
             payload: { 'token': this._config.apiEndpoint.apiKey },
         };
         this.sendQuery(query);
         this.emit('init_connection', 'Initiating Tibber feed.');
     }
-
     /**
      * Subscribe to a specified resource.
      * @param subscription @typedef string Name of the resource to subscribe to.
-     * @param variables @typedef Record<string, unknown> Variable to use with the resource.
+     * @param variables @typedef Record&lt;string, unknown> Variable to use with the resource.
      */
-    private startSubscription(subscription: string, variables: Record<string, unknown> | null) {
-        const query: IQuery = {
+    startSubscription(subscription, variables) {
+        const query = {
             id: `${++this._operationId}`,
-            type: GQL.SUBSCRIBE,
+            type: GQL_1.GQL.SUBSCRIBE,
             payload: {
                 variables,
                 extensions: {},
                 operationName: null,
                 query: subscription,
-            } as IQueryPayload,
+            },
         };
         this.sendQuery(query);
     }
-
     /**
      * Stops subscribing to a resource with a specified operation Id
      * @param {number} operationId Operation Id to stop subscribing to.
      */
-    private stopSubscription(operationId?: number) {
-        const query: IQuery = {
-            id: `${operationId ?? this._operationId}`,
-            type: GQL.COMPLETE,
+    stopSubscription(operationId) {
+        const query = {
+            id: `${operationId !== null &amp;&amp; operationId !== void 0 ? operationId : this._operationId}`,
+            type: GQL_1.GQL.COMPLETE,
         };
         this.sendQuery(query);
         this.emit('disconnecting', 'Sent stop to Tibber feed.');
     }
-
     /**
      * Send websocket query to Tibber
      * @param {IQuery} query Tibber GQL query
      */
-    private sendQuery(query: IQuery): void {
+    sendQuery(query) {
         if (!this._webSocket) {
             this.error('Invalid websocket.');
             return;
         }
         try {
-            if (this._webSocket.readyState === WebSocket.OPEN) {
+            if (this._webSocket.readyState === ws_1.default.OPEN) {
                 this._webSocket.send(JSON.stringify(query));
             }
-        } catch (error) {
+        }
+        catch (error) {
             this.error(error);
         }
     }
-
     /**
      * Log function to emit log data to subscribers.
      * @param {string} message Log message
      */
-    private log(message: string) {
+    log(message) {
         try {
             this.emit('log', message);
-        } catch (error) {
+        }
+        catch (error) {
             // console.error(error);
         }
     }
-
     /**
      * Log function to emit warning log data to subscribers.
      * @param {string} message Log message
      */
-    private warn(message: string) {
+    warn(message) {
         try {
             this.emit('warn', message);
-        } catch (error) {
+        }
+        catch (error) {
             // console.error(error);
         }
     }
-
     /**
      * Log function to emit error log data to subscribers.
      * @param {any} message Log message
      */
-    private error(message: any) {
+    error(message) {
         try {
             this.emit('error', message);
-        } catch (error) {
+        }
+        catch (error) {
             // console.error(error);
         }
     }
 }
+exports.TibberFeed = TibberFeed;
+//# sourceMappingURL=TibberFeed.js.map</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="TibberFeed.html">TibberFeed</a></li><li><a href="TibberQuery.html">TibberQuery</a></li><li><a href="TibberQueryBase.html">TibberQueryBase</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Jan 02 2023 08:57:07 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

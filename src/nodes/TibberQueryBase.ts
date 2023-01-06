@@ -1,14 +1,25 @@
 import { IConfig } from '../models/IConfig';
 import * as url from 'url';
 import https, { RequestOptions } from 'https';
-import http from 'http';
+import http, { IncomingMessage } from 'http';
 import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { version } from "../../Version"
+import { gqlHomeRealTime } from '../gql/home.gql';
+import { TimeoutError } from './models/TimeoutError';
 
 export class TibberQueryBase {
     public active: boolean;
     private _config: IConfig;
+    private _requestTimeout: number;
+
+    public get requestTimeout(): number {
+        return this._requestTimeout;
+    }
+    public set requestTimeout(value: number) {
+        this._requestTimeout = value;
+    }
+
     public get config(): IConfig {
         return this._config;
     }
@@ -19,9 +30,10 @@ export class TibberQueryBase {
     /**
      *
      */
-    constructor(config: IConfig) {
+    constructor(config: IConfig, requestTimeout: number = 30000) {
         this.active = false;
         this._config = config;
+        this._requestTimeout = requestTimeout > 1000 ? requestTimeout : 1000;
     }
 
     /**
@@ -32,17 +44,18 @@ export class TibberQueryBase {
      */
     protected JsonTryParse(input: string): object {
         try {
-            //check if the string exists
+            // check if the string exists
             if (input) {
-                let o = JSON.parse(input);
+                const o = JSON.parse(input);
 
-                //validate the result too
+                // validate the result too
                 if (o && o.constructor === Object) {
                     return o;
                 }
             }
         }
         catch (e: any) {
+            // TODO: Add logging.
         }
 
         return { responseMessage: input };
@@ -90,15 +103,16 @@ export class TibberQueryBase {
                     }),
                 );
 
-                const client = (uri.protocol == "https:") ? https : http;
-                const req = client.request(options, (res: any) => {
+                const client = (uri.protocol === "https:") ? https : http;
+                const req: http.ClientRequest = client.request(options, (res: IncomingMessage) => {
                     let str: string = '';
                     res.on('data', (chunk: string) => {
                         str += chunk;
                     });
                     res.on('end', () => {
                         const response: any = this.JsonTryParse(str);
-                        if (res?.statusCode >= 200 && res?.statusCode < 300) {
+                        const statusCode: number = Number(res?.statusCode);
+                        if (statusCode >= 200 && statusCode < 300) {
                             resolve(response.data ? response.data : response);
                         } else {
                             response.httpCode = res?.statusCode;
@@ -106,11 +120,14 @@ export class TibberQueryBase {
                             response.statusMessage = res?.statusMessage;
                             reject(response);
                         }
+                        req.destroy();
                     });
                 });
                 req.on('error', (e: any) => {
-                    // console.error(`problem with request: ${e.message}`);
                     reject(e);
+                });
+                req.setTimeout(this._requestTimeout, () => {
+                    req.destroy(new TimeoutError(`Request imeout for uri ${uri}`));
                 });
                 if (data) {
                     req.write(data);
@@ -135,4 +152,14 @@ export class TibberQueryBase {
         return result && result.error ? result : {};
     }
 
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    public async getRealTimeEnabled(homeId: string): Promise<boolean> {
+        const variables = { homeId };
+        const result = await this.query(gqlHomeRealTime, variables);
+        return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false;
+    }
 }

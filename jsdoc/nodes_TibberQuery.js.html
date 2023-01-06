@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: nodes/TibberQuery.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: nodes/TibberQuery.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TibberQuery = void 0;
+const consumption_gql_1 = require("../gql/consumption.gql");
+const homes_gql_1 = require("../gql/homes.gql");
+const home_gql_1 = require("../gql/home.gql");
+const energy_gql_1 = require("../gql/energy.gql");
+const sendPushNotification_gql_1 = require("../gql/sendPushNotification.gql");
+const TibberQueryBase_1 = require("./TibberQueryBase");
+class TibberQuery extends TibberQueryBase_1.TibberQueryBase {
+    /**
+     * Constructor
+     * Create an instace of TibberQuery class
+     * @param config IConfig object
+     * @see IConfig
+     */
+    constructor(config) {
+        super(config);
+    }
+    /**
+     * Get selected home with some selected properties, including address and owner.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    async getHome(homeId) {
+        const variables = { homeId };
+        const result = await this.query(home_gql_1.gqlHome, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            return Object.assign({}, result.viewer.home);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get homes with all properties, including energy price, consumption and production.
+     * @param homeId Tibber home ID
+     * @return IHome object
+     */
+    async getHomeComplete(homeId) {
+        const variables = { homeId };
+        const result = await this.query(home_gql_1.gqlHomeComplete, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            return Object.assign({}, result.viewer.home);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get homes with some selected properties, including address and owner.
+     * @return Array of IHome.
+     */
+    async getHomes() {
+        const result = await this.query(homes_gql_1.gqlHomes);
+        if (result &amp;&amp; result.viewer &amp;&amp; Array.isArray(result.viewer.homes)) {
+            return Object.assign([], result.viewer.homes);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get homes with all properties, including energy price, consumption and production.
+     * @return Array of IHome
+     */
+    async getHomesComplete() {
+        const result = await this.query(homes_gql_1.gqlHomesComplete);
+        if (result &amp;&amp; result.viewer &amp;&amp; Array.isArray(result.viewer.homes)) {
+            return Object.assign([], result.viewer.homes);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get current energy price for selected home.
+     * @param homeId Tibber home ID
+     * @return IPrice object
+     */
+    async getCurrentEnergyPrice(homeId) {
+        const variables = { homeId };
+        const result = await this.query(energy_gql_1.gqlCurrentEnergyPrice, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            const home = result.viewer.home;
+            return Object.assign({}, home.currentSubscription &amp;&amp; home.currentSubscription.priceInfo ? home.currentSubscription.priceInfo.current : {});
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get current energy prices from all homes registered to current user
+     * @return Array of IPrice
+     */
+    async getCurrentEnergyPrices() {
+        const result = await this.query(energy_gql_1.gqlCurrentEnergyPrices);
+        if (result &amp;&amp; result.viewer &amp;&amp; Array.isArray(result.viewer.homes)) {
+            const homes = result.viewer.homes;
+            const prices = homes.map((item) => {
+                if (item &amp;&amp; item.currentSubscription &amp;&amp; item.currentSubscription.priceInfo &amp;&amp; item.currentSubscription.priceInfo.current) {
+                    const price = item.currentSubscription.priceInfo.current;
+                    price.homeId = item.id;
+                    return price;
+                }
+            });
+            return Object.assign([], prices);
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get energy prices for today.
+     * @param homeId Tibber home ID
+     * @return Array of IPrice
+     */
+    async getTodaysEnergyPrices(homeId) {
+        const variables = { homeId };
+        const result = await this.query(energy_gql_1.gqlTodaysEnergyPrices, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            const data = result.viewer.home;
+            return Object.assign([], data.currentSubscription &amp;&amp; data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.today : {});
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get energy prices for tomorrow. These will only be available between 12:00 and 23:59
+     * @param homeId Tibber home ID
+     * @return Array of IPrice
+     */
+    async getTomorrowsEnergyPrices(homeId) {
+        const variables = { homeId };
+        const result = await this.query(energy_gql_1.gqlTomorrowsEnergyPrices, variables);
+        if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+            const data = result.viewer.home;
+            return Object.assign([], data.currentSubscription &amp;&amp; data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.tomorrow : {});
+        }
+        return result &amp;&amp; result.error ? result : {};
+    }
+    /**
+     * Get energy consumption for one or more homes.
+     * Returns an array of IConsumption
+     * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+     * @param lastCount Return the last number of records
+     * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
+     * @return Array of IConsumption
+     */
+    async getConsumption(resolution, lastCount, homeId) {
+        const variables = { homeId, resolution, lastCount };
+        if (homeId) {
+            const result = await this.query(consumption_gql_1.gqlHomeConsumption, variables);
+            if (result &amp;&amp; result.viewer &amp;&amp; result.viewer.home) {
+                const home = result.viewer.home;
+                return Object.assign([], home.consumption ? home.consumption.nodes : []);
+            }
+            return result &amp;&amp; result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+        }
+        else {
+            const result = await this.query(consumption_gql_1.gqlHomesConsumption, variables);
+            if (result &amp;&amp; result.viewer &amp;&amp; Array.isArray(result.viewer.homes)) {
+                const consumptions = result.viewer.homes.map((item) => {
+                    const nodes = item.consumption.nodes.map((node) => {
+                        node.homeId = item.id;
+                        return node;
+                    });
+                    return nodes;
+                });
+                return Object.assign([], consumptions);
+            }
+            return result &amp;&amp; result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+        }
+    }
+    /**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param title: "The title of your message";
+     * @param message: "The message you want to send";
+     * @param screen: AppScreen Object, example: AppScreen.HOME ;
+     * @return ISendPushNotification Object
+     */
+    async sendPushNotification(message, title, screen) {
+        const messagePayloadVariables = {
+            input: { title, message, screenToOpen: screen },
+        };
+        const result = await this.query(sendPushNotification_gql_1.gqlSendPushNotification, messagePayloadVariables);
+        if (result.sendPushNotification || result.errors) {
+            return Object.assign({}, result);
+        }
+        else
+            return Object.assign({}, { errors: [{ message: 'Undefined error' }] });
+    }
+}
+exports.TibberQuery = TibberQuery;
+//# sourceMappingURL=TibberQuery.js.map</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="TibberFeed.html">TibberFeed</a></li><li><a href="TibberQuery.html">TibberQuery</a></li><li><a href="TibberQueryBase.html">TibberQueryBase</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Jan 02 2023 08:57:07 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

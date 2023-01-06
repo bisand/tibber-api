@@ -16,11 +16,12 @@ export class TibberQuery extends TibberQueryBase {
     /**
      * Constructor
      * Create an instace of TibberQuery class
-     * @param config IConfig object
+     * @param {IConfig} config Config object
+     * @param {number} requestTimeout Request timeout in milliseconds.
      * @see IConfig
      */
-    constructor(config: IConfig) {
-        super(config);
+    constructor(config: IConfig, requestTimeout: number = 30000) {
+        super(config, requestTimeout);
     }
 
     /**
@@ -186,13 +187,13 @@ export class TibberQuery extends TibberQueryBase {
      * Sends a push notification to the current user's tibber app.
      * Returns a ISendPushNotification Object
      * @param title: "The title of your message";
-       @param message: "The message you want to send";
-       @param screen: AppScreen Object, example: AppScreen.HOME ;
+     * @param message: "The message you want to send";
+     * @param screen: AppScreen Object, example: AppScreen.HOME ;
      * @return ISendPushNotification Object
      */
     public async sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
         const messagePayloadVariables = {
-            input: { title: title, message: message, screenToOpen: screen },
+            input: { title, message, screenToOpen: screen },
         };
 
         const result = await this.query(gqlSendPushNotification, messagePayloadVariables);
