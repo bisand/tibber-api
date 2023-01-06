@@ -62,22 +62,6 @@ afterAll(() => {
     }
 });
 
-test('TibberFeed - Should be created', () => {
-    expect(() => {
-        const query = new FakeTibberQuery({
-            active: true,
-            apiEndpoint: {
-                apiKey: '1337',
-                queryUrl: 'ws://localhost:1337',
-                userAgent: 'test4-tibber-feed',
-            },
-            homeId: '1337',
-        });
-        const feed = new TibberFeed(query);
-        return feed;
-    }).toBeDefined();
-});
-
 test('TibberFeed - should be connected', done => {
     const query = new FakeTibberQuery({
         active: true,
@@ -88,12 +72,18 @@ test('TibberFeed - should be connected', done => {
         },
         homeId: '1337',
     });
-    const feed = new TibberFeed(query);
+    const feed = new TibberFeed(query, 30000, true, 5000);
     feed.on(GQL.CONNECTION_ACK, (data: any) => {
         expect(data).toBeDefined();
         expect(data.payload?.token).toBe('1337');
-        feed.close();
+        feed.active = false;
         done();
+    });
+    feed.on('heartbeat_timeout', data => {
+        // console.log('heartbeat_timeout -> TibberFeed - should be connected');
+    });
+    feed.on('connection_timeout', data => {
+        // console.log('connection_timeout -> TibberFeed - should be connected');
     });
     feed.connect();
 });
@@ -117,12 +107,15 @@ test('TibberFeed - Should receive data', done => {
         });
         feed.on('disconnected', data => {
             feed.active = false;
+            feed.close();
             done();
+        });
+        feed.on('heartbeat_timeout', data => {
+            // console.log('heartbeat_timeout -> TibberFeed - Should receive data');
         });
         await feed.connect();
     })(done);
 });
-
 
 test('TibberFeed - Should be active', () => {
     const query = new FakeTibberQuery({
@@ -135,13 +128,23 @@ test('TibberFeed - Should be active', () => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query);
+    feed.on('heartbeat_timeout', data=>{
+        // console.log('heartbeat_timeout -> TibberFeed - Should be active');
+    });
     expect(feed.active).toBe(true);
+    feed.active = false;
+    feed.close();
 });
 
 test('TibberFeed - Should be inactive', () => {
     const query = new FakeTibberQuery({ active: false, apiEndpoint: { apiKey: '', queryUrl: '', userAgent: '' } });
     const feed = new TibberFeed(query);
+    feed.on('heartbeat_timeout', data=>{
+        // console.log('heartbeat_timeout -> TibberFeed - should be inactive');
+    });
     expect(feed.active).toBe(false);
+    feed.active = false;
+    feed.close();
 });
 
 test('TibberFeed - Should timeout after 3 sec', done => {
@@ -159,18 +162,22 @@ test('TibberFeed - Should timeout after 3 sec', done => {
     feed.on(GQL.CONNECTION_ACK, data => {
         // feed.heartbeat();
     });
+    feed.on('heartbeat_timeout', data=>{
+        // console.log('heartbeat_timeout -> TibberFeed - Should timeout after 3 sec');
+    });
     feed.on('disconnected', data => {
         expect(data).toBeDefined();
         if (!called) {
             called = true;
             feed.active = false;
+            feed.close();
             done();
         }
     });
     feed.connect();
 }, 10000);
-/*
-test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
+
+test('TibberFeed - Should reconnect 3 times after 5 sec. timeout', done => {
     const query = new FakeTibberQuery({
         active: true,
         apiEndpoint: {
@@ -180,24 +187,27 @@ test('TibberFeed - Should reconnect 5 times after 1 sec. timeout', done => {
         },
         homeId: '1337',
     });
-    const feed = new TibberFeed(query, 1000);
-    let callCount = 0;
+    const feed = new TibberFeed(query, 5000);
+    const maxRetry = 3;
+    let timeoutCount = 0;
+    let reconnectCount = 0;
     feed.on(GQL.CONNECTION_ACK, data => {
         expect(data).toBeDefined();
         expect(data.payload?.token).toBe('1337');
     });
-    feed.on('heatbeat_timeout', data => {
+    feed.on('heartbeat_timeout', data => {
+        timeoutCount++;
         expect(data).toBeDefined();
-        if (callCount === 4) {
+        // console.log('heartbeat_timeout -> TibberFeed - Should reconnect 3 times after 5 sec. timeout', Date.now().toLocaleString(), data);
+    });
+    feed.on('heartbeat_reconnect', data => {
+        reconnectCount++;
+        expect(data).toBeDefined();
+        if (timeoutCount === maxRetry && reconnectCount == maxRetry) {
             feed.active = false;
             done();
         }
-        callCount++;
+        // console.log('heartbeat_reconnect -> TibberFeed - Should reconnect 3 times after 5 sec. timeout', Date.now().toLocaleString(), data);
     });
-    feed.on('heatbeat_reconnect', data => {
-        expect(data).toBeDefined();
-    });
-    console.log('Connecting...')
     feed.connect();
 }, 60000);
-*/

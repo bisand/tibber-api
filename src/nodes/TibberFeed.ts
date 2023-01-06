@@ -18,10 +18,10 @@ export class TibberFeed extends EventEmitter {
     private _gql: string;
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
-    private _timerHeartbeat: NodeJS.Timeout | null;
-    private _timerConnect: NodeJS.Timeout | null;
-    private _timerConnectionTimeout: NodeJS.Timeout | null;
-    private _timerSubtractRetryAttempts: NodeJS.Timeout | null;
+    private _timerHeartbeat: NodeJS.Timeout[];
+    private _timerConnect: NodeJS.Timeout[];
+    private _timerConnectionTimeout: NodeJS.Timeout[];
+    private _timerSubtractRetryAttempts: NodeJS.Timeout[];
     private _isClosing: boolean;
     private _isUnauthenticated: boolean;
 
@@ -31,6 +31,11 @@ export class TibberFeed extends EventEmitter {
     private _backoffDelayBase: number;
     private _backoffDelayMax: number;
     private _realTimeConsumptionEnabled?: boolean | null;
+
+    private _timeoutCount: number;
+    public get timeoutCount(): number {
+        return this._timeoutCount;
+    }
 
     /**
      * Constructor for creating a new instance if TibberFeed.
@@ -53,10 +58,10 @@ export class TibberFeed extends EventEmitter {
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._active = this._config.active;
-        this._timerHeartbeat = null;
-        this._timerConnect = null;
-        this._timerConnectionTimeout = null;
-        this._timerSubtractRetryAttempts = null;
+        this._timerHeartbeat = [];
+        this._timerConnect = [];
+        this._timerConnectionTimeout = [];
+        this._timerSubtractRetryAttempts = [];
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
@@ -69,6 +74,8 @@ export class TibberFeed extends EventEmitter {
         this._backoffDelayBase = 1000; // 1 second
         this._backoffDelayMax = 1000 * 60 * 60 * 24; // 1 day
         this._retryBackoff = 1000;
+
+        this._timeoutCount = 0;
 
         if (!this._config.apiEndpoint || !this._config.apiEndpoint.apiKey || !this._config.homeId) {
             this._active = false;
@@ -162,6 +169,8 @@ export class TibberFeed extends EventEmitter {
 
     set active(value: boolean) {
         if (value === this._active) {
+            if (!this._active)
+                this.close();
             return;
         }
         this._active = value;
@@ -222,28 +231,41 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
-     * Subtract connection attempts after given delay.
-     * @param {number} delay Delay in milliseconds before the subtraction will start.
+     * Add a timeout to an array of timeouts.
+     * @param {NodeJS.Timeout[]} timers List og timeouts
+     * @param {void} callback Callback function to call when timeout is reached.
+     * @param {number} delayMs Delay in milliseconds before callback will be called.
      */
-    private subtractRetryAttempts(delay: number) {
-        this._timerSubtractRetryAttempts = this.clearTimer(this._timerSubtractRetryAttempts);
-        this._timerSubtractRetryAttempts = setTimeout(() => {
-            console.log(`Subtracting connection attemts (${this._connectionAttempts}) with delay: ${delay}`)
-            if (this._connectionAttempts > 0)
-                this._connectionAttempts--;
-            this.subtractRetryAttempts(delay);
-        }, delay);
+    private addTimeout(timers: NodeJS.Timeout[], callback: () => void, delayMs: number) {
+        this._timeoutCount++;
+        timers.push(setTimeout(callback, delayMs));
     }
 
     /**
      * Clear timeout for a timer.
-     * @param {NodeJS.Timeout} timer Timer handle to clear
+     * @param {NodeJS.Timeout[]} timers Timer handle to clear
      */
-    private clearTimer(timer: NodeJS.Timeout | null) {
-        if (timer) {
-            clearTimeout(timer);
+    private cancelTimeouts(timers: NodeJS.Timeout[]) {
+        while (timers.length) {
+            const timer = timers.pop();
+            if (timer) {
+                this._timeoutCount--;
+                clearTimeout(timer);
+            }
         }
-        return null;
+    }
+
+    /**
+     * Subtract connection attempts after given delay.
+     * @param {number} delay Delay in milliseconds before the subtraction will start.
+     */
+    private subtractRetryAttempts(delay: number) {
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+        this.addTimeout(this._timerSubtractRetryAttempts, () => {
+            if (this._connectionAttempts > 0)
+                this._connectionAttempts--;
+            this.subtractRetryAttempts(delay);
+        }, delay);
     }
 
     /**
@@ -305,13 +327,12 @@ export class TibberFeed extends EventEmitter {
             return;
         }
 
-        this._timerConnect = this.clearTimer(this._timerConnect);
-        this._timerConnectionTimeout = this.clearTimer(this._timerConnectionTimeout);
-        console.log(`Connection attempts: ${this._connectionAttempts} | Backoff delay: ${this._retryBackoff}`);
+        this.cancelTimeouts(this._timerConnect);
+        this.cancelTimeouts(this._timerConnectionTimeout);
         this.log('Connecting...');
         this.emit('connecting', { timeout: this._retryBackoff + this._backoffDelayBase, retryBackoff: this._retryBackoff });
-        await this.internalConnect();
-        this._timerConnectionTimeout = setTimeout(() => {
+        // Set connection timeout.
+        this.addTimeout(this._timerConnectionTimeout, () => {
             this.error('Connection timeout');
             this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
             if (this._webSocket)
@@ -319,6 +340,8 @@ export class TibberFeed extends EventEmitter {
             if (this._active)
                 this.connectWithTimeout();
         }, this._feedConnectionTimeout);
+        // Perform connection.
+        await this.internalConnect();
     }
 
     /**
@@ -360,11 +383,11 @@ export class TibberFeed extends EventEmitter {
                             break;
                         case GQL.CONNECTION_ACK:
                             this._isConnected = true;
-                            this._timerConnectionTimeout = this.clearTimer(this._timerConnectionTimeout);
+                            this.cancelTimeouts(this._timerConnectionTimeout);
                             this.startSubscription(this._gql, { homeId: this._config.homeId });
+                            this.heartbeat();
                             this.emit('connected', 'Connected to Tibber feed.');
                             this.emit(GQL.CONNECTION_ACK, msg);
-                            this.heartbeat();
                             break;
                         case GQL.NEXT:
                             if (msg.payload && msg.payload.errors) {
@@ -379,8 +402,8 @@ export class TibberFeed extends EventEmitter {
                                 return;
                             }
                             const data = msg.payload.data.liveMeasurement;
-                            this.emit('data', data);
                             this.heartbeat();
+                            this.emit('data', data);
                             break;
                         case GQL.ERROR:
                             this.error(`An error occurred: ${JSON.stringify(msg)}`);
@@ -394,7 +417,7 @@ export class TibberFeed extends EventEmitter {
                             this.close();
                             if (this._active) {
                                 const delay = this.getRandomInt(60000);
-                                this._timerConnect = setTimeout(async () => {
+                                this.addTimeout(this._timerConnect, () => {
                                     this.connectWithTimeout();
                                 }, delay);
                             }
@@ -444,9 +467,10 @@ export class TibberFeed extends EventEmitter {
      */
     public close() {
         this._isClosing = true;
-        this._timerSubtractRetryAttempts = this.clearTimer(this._timerSubtractRetryAttempts);
-        this._timerHeartbeat = this.clearTimer(this._timerHeartbeat);
-        this._timerConnect = this.clearTimer(this._timerConnect);
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+        this.cancelTimeouts(this._timerHeartbeat);
+        this.cancelTimeouts(this._timerConnect);
+        this.cancelTimeouts(this._timerConnectionTimeout);
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.closeConnection();
@@ -464,16 +488,16 @@ export class TibberFeed extends EventEmitter {
         if (this._isClosing)
             return;
 
-        this._timerSubtractRetryAttempts = this.clearTimer(this._timerSubtractRetryAttempts);
-        this._timerHeartbeat = this.clearTimer(this._timerHeartbeat);
-        this._timerHeartbeat = setTimeout(() => {
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+        this.cancelTimeouts(this._timerHeartbeat);
+        this.addTimeout(this._timerHeartbeat, () => {
             if (this._webSocket) {
                 this.terminateConnection();
-                this._timerHeartbeat = null;
             }
             this.warn(`Connection timed out after ${this._feedIdleTimeout} ms.`);
-            this.emit('heatbeat_timeout', { timeout: this._feedIdleTimeout });
+            this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
             if (this._active) {
+                this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
                 this.connectWithTimeout();
             }
         }, this._feedIdleTimeout);
@@ -483,7 +507,7 @@ export class TibberFeed extends EventEmitter {
      * Gracefully close connection with Tibber.
      */
     private closeConnection() {
-        this._timerSubtractRetryAttempts = this.clearTimer(this._timerSubtractRetryAttempts);
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
         this.stopSubscription();
         this._webSocket.close(1000, 'Normal Closure');
         this._webSocket.terminate();
@@ -493,7 +517,7 @@ export class TibberFeed extends EventEmitter {
      * Forcefully terminate connection with Tibber.
      */
     private terminateConnection() {
-        this._timerSubtractRetryAttempts = this.clearTimer(this._timerSubtractRetryAttempts);
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
         this.stopSubscription();
         this._webSocket.terminate();
         this._isConnected = false;
