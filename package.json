@@ -12,7 +12,7 @@
     "compile": "tsc",
     "prebuild": "mkver",
     "build": "tsc",
-    "test": "jest --runInBand --config jestconfig.json --forceExit",
+    "test": "jest --runInBand --config jestconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "jsdoc": "tsc && ./node_modules/.bin/jsdoc ./lib/src -r -d ./jsdoc",
