@@ -468,8 +468,8 @@ export class TibberFeed extends EventEmitter {
             this.error(reason);
         } finally {
             this._isConnecting = false
-            // Start subtracting connection retry attempts after 5 minutes.
-            this.subtractRetryAttempts(5 * 60 * 1000);
+            // Start subtracting connection retry attempts after 1 minutes.
+            this.subtractRetryAttempts(1 * 60 * 1000);
         };
     }
 
