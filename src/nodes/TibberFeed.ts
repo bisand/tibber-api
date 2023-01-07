@@ -175,7 +175,7 @@ export class TibberFeed extends EventEmitter {
         }
         this._active = value;
         if (this._active) {
-            this.connectWithTimeout();
+            this.connectWithDelayWorker(1);
         } else {
             this.close();
         }
@@ -246,12 +246,16 @@ export class TibberFeed extends EventEmitter {
      * @param {NodeJS.Timeout[]} timers Timer handle to clear
      */
     private cancelTimeouts(timers: NodeJS.Timeout[]) {
-        while (timers.length) {
-            const timer = timers.pop();
-            if (timer) {
-                this._timeoutCount--;
-                clearTimeout(timer);
+        try {
+            while (timers.length) {
+                const timer = timers.pop();
+                if (timer) {
+                    this._timeoutCount--;
+                    clearTimeout(timer);
+                }
             }
+        } catch (error) {
+            this.error(error);
         }
     }
 
@@ -338,10 +342,27 @@ export class TibberFeed extends EventEmitter {
             if (this._webSocket)
                 this.terminateConnection();
             if (this._active)
-                this.connectWithTimeout();
+                this.connectWithDelayWorker();
         }, this._feedConnectionTimeout);
         // Perform connection.
         await this.internalConnect();
+    }
+
+    /**
+     * Connect with a delay if the feed is still active.
+     */
+    private connectWithDelayWorker(delay: number = 1000) {
+        this.cancelTimeouts(this._timerConnect);
+        if (this._active) {
+            this.addTimeout(this._timerConnect, () => {
+                try {
+                    this.connectWithTimeout();
+                } catch (error) {
+                    this.error(error);
+                }
+                this.connectWithDelayWorker();
+            }, delay);
+        }
     }
 
     /**
@@ -415,12 +436,9 @@ export class TibberFeed extends EventEmitter {
                             }
                             this.log('Received complete message. Closing connection.');
                             this.close();
-                            if (this._active) {
-                                const delay = this.getRandomInt(60000);
-                                this.addTimeout(this._timerConnect, () => {
-                                    this.connectWithTimeout();
-                                }, delay);
-                            }
+                            this.cancelTimeouts(this._timerConnect);
+                            const delay = this.getRandomInt(60000);
+                            this.connectWithDelayWorker(delay);
                             break;
 
                         default:
@@ -459,7 +477,7 @@ export class TibberFeed extends EventEmitter {
      * Connect to Tibber feed.
      */
     public async connect(): Promise<void> {
-        await this.connectWithTimeout();
+        this.connectWithDelayWorker(1);
     }
 
     /**
@@ -498,7 +516,7 @@ export class TibberFeed extends EventEmitter {
             this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
             if (this._active) {
                 this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
-                this.connectWithTimeout();
+                this.connectWithDelayWorker();
             }
         }, this._feedIdleTimeout);
     }
