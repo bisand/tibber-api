@@ -250,6 +250,16 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
+     * Decreases the connection backoff.
+     */
+    private decreaseConnectionBackoff() {
+        if (this._connectionAttempts > 0) {
+            this._connectionAttempts--;
+            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
+        }
+    }
+
+    /**
      * Add a timeout to an array of timeouts.
      * @param {NodeJS.Timeout[]} timers List og timeouts
      * @param {void} callback Callback function to call when timeout is reached.
@@ -408,8 +418,7 @@ export class TibberFeed extends EventEmitter {
                             if (!msg.payload || !msg.payload.data) {
                                 return;
                             }
-                            if (this._connectionAttempts > 0)
-                                this._connectionAttempts--;
+                            this.decreaseConnectionBackoff();
                             const data = msg.payload.data.liveMeasurement;
                             this.heartbeat();
                             this.emit('data', data);
