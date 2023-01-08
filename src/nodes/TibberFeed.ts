@@ -72,7 +72,7 @@ export class TibberFeed extends EventEmitter {
         this._lastRetry = 0;
         this._connectionAttempts = 0;
         this._backoffDelayBase = 1000; // 1 second
-        this._backoffDelayMax = 1000 * 60 * 60 * 24; // 1 day
+        this._backoffDelayMax = 1000 * 60 * 60 * 1; // 1 hour
         this._retryBackoff = 1000;
 
         this._timeoutCount = 0;
@@ -223,11 +223,45 @@ export class TibberFeed extends EventEmitter {
         const result = Date.now() > (this._lastRetry + this._retryBackoff);
         if (result) {
             this._lastRetry = Date.now();
-            this._connectionAttempts++;
+            if (this._retryBackoff < this._backoffDelayMax)
+                this._connectionAttempts++;
             this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
         }
         this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
         return result;
+    }
+
+    /**
+     * Generate random number with a max value.
+     * @param {number} max Maximum number
+     * @returns {number} Random number.
+     */
+    private getRandomInt(max: number): number {
+        return Math.floor(Math.random() * max);
+    }
+
+    /**
+     * Exponential backoff with jitter
+     * @param {number} attempt Connection attempt
+     * @returns {number}
+     */
+    private getBackoffWithJitter(attempt: number): number {
+        const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
+        const delay = Math.min(exponential, this._backoffDelayMax);
+        return delay / 2 + this.getRandomInt(delay / 2);
+    }
+
+    /**
+     * Subtract connection attempts after given delay.
+     * @param {number} delay Delay in milliseconds before the subtraction will start.
+     */
+    private subtractRetryAttempts(delay: number) {
+        this.cancelTimeouts(this._timerSubtractRetryAttempts);
+        this.addTimeout(this._timerSubtractRetryAttempts, () => {
+            if (this._connectionAttempts > 0)
+                this._connectionAttempts--;
+            this.subtractRetryAttempts(delay);
+        }, delay);
     }
 
     /**
@@ -257,39 +291,6 @@ export class TibberFeed extends EventEmitter {
         } catch (error) {
             this.error(error);
         }
-    }
-
-    /**
-     * Subtract connection attempts after given delay.
-     * @param {number} delay Delay in milliseconds before the subtraction will start.
-     */
-    private subtractRetryAttempts(delay: number) {
-        this.cancelTimeouts(this._timerSubtractRetryAttempts);
-        this.addTimeout(this._timerSubtractRetryAttempts, () => {
-            if (this._connectionAttempts > 0)
-                this._connectionAttempts--;
-            this.subtractRetryAttempts(delay);
-        }, delay);
-    }
-
-    /**
-     * Generate random number with a max value.
-     * @param {number} max Maximum number
-     * @returns {number} Random number.
-     */
-    private getRandomInt(max: number): number {
-        return Math.floor(Math.random() * max);
-    }
-
-    /**
-     * Exponential backoff with jitter
-     * @param {number} attempt Connection attempt
-     * @returns {number}
-     */
-    private getBackoffWithJitter(attempt: number): number {
-        const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
-        const delay = Math.min(exponential, this._backoffDelayMax);
-        return delay / 2 + this.getRandomInt(delay / 2);
     }
 
     /**
