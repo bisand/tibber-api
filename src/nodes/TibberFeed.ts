@@ -217,6 +217,14 @@ export class TibberFeed extends EventEmitter {
             this._tibberQuery.requestTimeout = value;
     }
 
+    public get config(): IConfig {
+        return this._tibberQuery.config;
+    }
+
+    public set config(value: IConfig) {
+        this._tibberQuery.config = value;
+    }
+
     private get canConnect(): boolean {
         const result = Date.now() > (this._lastRetry + this._retryBackoff);
         if (result) {
