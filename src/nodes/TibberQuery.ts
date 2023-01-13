@@ -11,6 +11,7 @@ import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { AppScreen } from '../models/enums/AppScreen';
 import { TibberQueryBase } from './TibberQueryBase';
+import { ISendMeterReading } from '../models/ISendMeterReading';
 
 export class TibberQuery extends TibberQueryBase {
     /**
@@ -192,6 +193,46 @@ export class TibberQuery extends TibberQueryBase {
      * @return ISendPushNotification Object
      */
     public async sendPushNotification(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
+        const messagePayloadVariables = {
+            input: { title, message, screenToOpen: screen },
+        };
+
+        const result = await this.query(gqlSendPushNotification, messagePayloadVariables);
+
+        if (result.sendPushNotification || result.errors) {
+            return Object.assign({} as ISendPushNotification, result);
+        } else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendPushNotification);
+    }
+
+    /**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param {string} homeId: HomeId for the home you want to update meter reading for.
+     * @param {string} time: Time for reading in datetime format YYYY-MM-DD HH:mm:ss
+     * @param {number} reading: Number of KW/h registered from the meter.
+     * @return ISendPushNotification Object
+     */
+    public async sendMeterReading(homeId: string, time: string, reading: number): Promise<ISendMeterReading> {
+        const messagePayloadVariables = {
+            input: { homeId, time, reading },
+        };
+
+        const result = await this.query(gqlSendPushNotification, messagePayloadVariables);
+
+        if (result.sendPushNotification || result.errors) {
+            return Object.assign({} as ISendMeterReading, result);
+        } else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendMeterReading);
+    }
+
+    /**
+     * Sends a push notification to the current user's tibber app.
+     * Returns a ISendPushNotification Object
+     * @param title: "The title of your message";
+     * @param message: "The message you want to send";
+     * @param screen: AppScreen Object, example: AppScreen.HOME ;
+     * @return ISendPushNotification Object
+     */
+    public async updateHome(message: string, title: string, screen: AppScreen): Promise<ISendPushNotification> {
         const messagePayloadVariables = {
             input: { title, message, screenToOpen: screen },
         };
