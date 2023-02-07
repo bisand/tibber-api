@@ -103,6 +103,7 @@ export class TibberQueryBase {
                     }),
                 );
 
+                // TODO: Implement proxy. Considr this: https://stackoverflow.com/a/41027319/214549
                 const client = (uri.protocol === "https:") ? https : http;
                 const req: http.ClientRequest = client.request(options, (res: IncomingMessage) => {
                     let str: string = '';
