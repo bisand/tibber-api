@@ -419,8 +419,7 @@ export class TibberFeed extends EventEmitter {
                                 this.emit('error', msg.payload.errors);
                             }
                             if (Number(msg.id) !== this._operationId) {
-                                this.log(`Message contains unexpected id ${JSON.stringify(msg)}`);
-                                this.stopSubscription(Number(msg.id));
+                                this.log(`Message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                                 return;
                             }
                             if (!msg.payload || !msg.payload.data) {
@@ -436,7 +435,7 @@ export class TibberFeed extends EventEmitter {
                             break;
                         case GQL.COMPLETE:
                             if (Number(msg.id) !== this._operationId) {
-                                this.log(`Complete message contains unexpected id ${JSON.stringify(msg)}`);
+                                this.log(`Complete message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                                 return;
                             }
                             this.log('Received complete message. Closing connection.');
