@@ -17,7 +17,14 @@ This Node.js module is used for communication with [Tibber API](https://develope
 >
 > Version 5 introduces breaking changes in **TibberFeed**. Due to the fact that [Tibber also has introduced breaking changes in their API](https://developer.tibber.com/docs/overview#breaking-websocket-change) we had to do some small changes.
 >
->Instead of changing the whole implementation, the only noticable change is done to the [constructor](#TibberFeed) of `TibberFeed` which takes a `TibberQuery` instead of and `IConfig` object and uses the config from the provided `TibberQuery`.
+>Instead of changing the whole implementation, the only noticable change is done to the [constructor](#TibberFeed) of `TibberFeed` which takes a `TibberQuery` instead of and `IConfig` object and uses the config from the provided `TibberQuery`. See example below.
+```typescript
+...
+// Instantiate TibberFeed.
+const tibberQuery = new TibberQuery(config);
+const tibberFeed = new TibberFeed(tibberQuery, 5000);
+...
+```
 
 ## Prerequisites
 
