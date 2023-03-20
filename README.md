@@ -356,14 +356,14 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 TibberFeed: typescript example.
 
 ```typescript
-import { TibberFeed, IConfig } from 'tibber-api';
+import { TibberFeed, TibberQuery, TibberQueryBase, IConfig } from 'tibber-api';
 
 // Config object needed when instantiating TibberQuery
 const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
-        queryUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
         requestTimeout: 5000,
     },
     // Query configuration.
@@ -373,7 +373,8 @@ const config: IConfig = {
 };
 
 // Instantiate TibberFeed.
-const tibberFeed = new TibberFeed(config);
+const tibberQuery = new TibberQuery(config);
+const tibberFeed = new TibberFeed(tibberQuery, 5000);
 
 // Subscribe to "data" event.
 tibberFeed.on('data', (data) => {
@@ -433,7 +434,7 @@ const config: IConfig = {
     // Endpoint configuration.
     apiEndpoint: {
         apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
-        url: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
         requestTimeout: 5000,
     },
     // Query configuration.
@@ -466,4 +467,5 @@ const config: IConfig = {
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](
+//choosealicense.com/licenses/mit/)
