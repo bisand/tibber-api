@@ -26,23 +26,24 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "ws": "^8.11.0"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@jest/test-sequencer": "^28.1.1",
     "@types/jest": "^28.1.1",
     "@types/node": "^16",
     "@types/ws": "^8.5.3",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "eslint": "^8.44.0",
     "jest": "^28.1.1",
-    "jsdoc": "^4.0.0",
+    "jsdoc": "^4.0.2",
     "jsdoc-to-markdown": "^8.0.0",
-    "mkver": "^2.0.0",
+    "mkver": "^2.1.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",
-    "tslint": "^6.1.3",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^4.7.3",
+    "typescript": "^5.1.6",
     "websocket": "^1.0.34"
   },
   "directories": {

@@ -2,11 +2,10 @@
 	"name": "Node.js & TypeScript",
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:18-bullseye",
 	"features": {
-		"ghcr.io/devcontainers/features/docker-from-docker:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:1": {},
 		"ghcr.io/devcontainers/features/git:1": {},
 		"ghcr.io/devcontainers/features/git-lfs:1": {},
 		"ghcr.io/devcontainers/features/github-cli:1": {},
-		"ghcr.io/dhoeric/features/act:1": {},
 		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
 	},
 	// Features to add to the dev container. More info: https://containers.dev/implementors/features.
