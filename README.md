@@ -28,9 +28,9 @@ const tibberFeed = new TibberFeed(tibberQuery, 5000);
 
 ## Prerequisites
 
-Click the link below to sign up, and receive 500 NOK to shop smart home gadgets from [Tibber Store](https://tibber.com/no/store):
+Click the link below to sign up, and receive 400 NOK to shop smart home gadgets from [Tibber Store](https://tibber.com/no/store):
 
-> **https://invite.tibber.com/kxef7w6x**
+> **[https://invite.tibber.com/fjafad7b](https://invite.tibber.com/fjafad7b)**
 
 You will also need an API token from Tibber. Get it here:
 
