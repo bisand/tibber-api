@@ -41,7 +41,7 @@
     "jsdoc-to-markdown": "^8.0.0",
     "mkver": "^2.1.0",
     "nock": "^13.2.7",
-    "prettier": "^2.7.1",
+    "prettier": "^3.2.5",
     "ts-jest": "^28.0.5",
     "typescript": "^5.1.6",
     "websocket": "^1.0.34"
