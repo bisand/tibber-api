@@ -1,6 +1,6 @@
 {
   "name": "tibber-api",
-  "version": "5.1.9",
+  "version": "5.1.10",
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -35,7 +35,7 @@
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
-    "eslint": "^8.44.0",
+    "eslint": "^8.57.0",
     "jest": "^28.1.1",
     "jsdoc": "^4.0.2",
     "jsdoc-to-markdown": "^8.0.0",
