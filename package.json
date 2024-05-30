@@ -39,7 +39,7 @@
     "jest": "^28.1.1",
     "jsdoc": "^4.0.2",
     "jsdoc-to-markdown": "^8.0.0",
-    "mkver": "^2.1.0",
+    "mkver": "^3.0.2",
     "nock": "^13.2.7",
     "prettier": "^3.2.5",
     "ts-jest": "^28.0.5",
