@@ -26,7 +26,7 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "ws": "^8.17.0"
+    "ws": "^8.17.1"
   },
   "devDependencies": {
     "@jest/test-sequencer": "^29.7.0",
