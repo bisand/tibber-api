@@ -42,7 +42,7 @@
     "mkver": "^3.0.2",
     "nock": "^13.5.4",
     "prettier": "^3.3.0",
-    "ts-jest": "^29.1.4",
+    "ts-jest": "^29.1.5",
     "typescript": "^5.4.5",
     "websocket": "^1.0.35"
   },
