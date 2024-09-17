@@ -12,6 +12,8 @@ query getConsumption($resolution: EnergyResolution! $lastCount:Int!){
           unitPriceVAT
           consumption
           consumptionUnit
+          totalCost
+          unitCost
           currency
         }
       }
@@ -34,6 +36,8 @@ query getConsumption($homeId:ID! $resolution: EnergyResolution! $lastCount:Int!)
           unitPriceVAT
           consumption
           consumptionUnit
+          totalCost
+          unitCost
           currency
         }
       }
