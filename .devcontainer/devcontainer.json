@@ -19,7 +19,6 @@
 		"vscode": {
 			"extensions": [
 				"github.vscode-pull-request-github",
-				"eamodio.gitlens",
 				"ms-vscode.vs-keybindings",
 				"dbaeumer.vscode-eslint",
 				"esbenp.prettier-vscode"
