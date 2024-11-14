@@ -2,7 +2,10 @@ import { version } from '../../Version';
 import { IConfig } from '../models/IConfig';
 
 export class HeaderManager {
-    private _userAgent: string | null = null;
+    private static readonly DEFAULT_USER_AGENT = `bisand/tibber-api/${version}`;
+    private static readonly USER_AGENT_MAX_LENGTH = 255 - HeaderManager.DEFAULT_USER_AGENT.length;
+
+    private static _userAgent: string | null = null;
     private _config: IConfig;
 
     /**
@@ -19,10 +22,10 @@ export class HeaderManager {
      * Gets the User-Agent from apiEndpoint and ensures it is not changed once set.
      */
     public get userAgent(): string {
-        if (this._userAgent === null) {
-            this._userAgent = this.sanitizeUserAgent(`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim();
+        if (HeaderManager._userAgent === null) {
+            HeaderManager._userAgent = `${this.sanitizeUserAgent(this._config.apiEndpoint.userAgent)} ${HeaderManager.DEFAULT_USER_AGENT}`.trim();
         }
-        return this._userAgent;
+        return HeaderManager._userAgent;
     }
 
     /**
@@ -36,8 +39,11 @@ export class HeaderManager {
      * @see {@link https://tools.ietf.org/html/rfc7230#section-3.2.6}
      * @see {@link https://tools.ietf.org/html/rfc7230#section-5.5}
      *  */
-    private sanitizeUserAgent(userAgent: string): string {
-        const sanitized = userAgent.replace(/[^a-zA-Z0-9\-._~!#$&'()*+,;=:@ ]/g, '');
-        return sanitized.length > 255 ? sanitized.substring(0, 255) : sanitized;
+    private sanitizeUserAgent(userAgent?: string): string {
+        if (!userAgent) {
+            return '';
+        }
+        const sanitized = userAgent.replace(/[^a-zA-Z0-9\-._~!#$&'()*+,;=:@ ]/g, '').trim();
+        return sanitized.length > HeaderManager.USER_AGENT_MAX_LENGTH ? sanitized.substring(0, HeaderManager.USER_AGENT_MAX_LENGTH) : sanitized;
     }
 }
