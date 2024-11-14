@@ -45,7 +45,7 @@ export class TibberFeed extends EventEmitter {
      * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
      */
-    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields = false, connectionTimeout: number = 30000) {
+    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields: boolean = false, connectionTimeout: number = 30000) {
         super();
 
         if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase)) {
@@ -75,7 +75,8 @@ export class TibberFeed extends EventEmitter {
 
         this._timeoutCount = 0;
 
-        if (!this._config.apiEndpoint || !this._config.apiEndpoint.apiKey || !this._config.homeId) {
+        const { apiEndpoint, homeId } = this._config;
+        if (!apiEndpoint || !apiEndpoint.apiKey || !homeId) {
             this._active = false;
             this._config.active = false;
             this.warn('Missing mandatory parameters. Execution will halt.');
@@ -238,6 +239,66 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
+     * PUBLIC METHODS
+     * ----------------
+     * These methods are used to interact with the TibberFeed.
+     * ----------------
+     * */
+
+    /**
+     * Connect to Tibber feed.
+     */
+    public async connect(): Promise<void> {
+        this.connectWithDelayWorker(1);
+    }
+
+    /**
+     * Close the Tibber feed.
+     */
+    public close() {
+        this._isClosing = true;
+        this.cancelTimeouts(this._timerHeartbeat);
+        this.cancelTimeouts(this._timerConnect);
+        this.cancelTimeouts(this._timerConnectionTimeout);
+        if (this._webSocket) {
+            if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
+                this.closeConnection();
+            }
+        }
+        this._isClosing = false;
+        this.log('Closed Tibber Feed.');
+    }
+
+    /**
+     * Heartbeat function used to keep connection alive.
+     * Mostly for internal use, even if it is public.
+     */
+    public heartbeat() {
+        if (this._isClosing)
+            return;
+
+        this.cancelTimeouts(this._timerHeartbeat);
+        this.addTimeout(this._timerHeartbeat, () => {
+            if (this._webSocket) {
+                this.terminateConnection();
+            }
+            this.warn(`Connection timed out after ${this._feedIdleTimeout} ms.`);
+            this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
+            if (this._active) {
+                this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
+                this.connectWithDelayWorker();
+            }
+        }, this._feedIdleTimeout);
+    }
+
+    /**
+     * PRIVATE METHODS
+     * ----------------
+     * These methods are used internally by the TibberFeed.
+     * ----------------
+     * */
+
+    /**
      * Generate random number with a max value.
      * @param {number} max Maximum number
      * @returns {number} Random number.
@@ -252,9 +313,8 @@ export class TibberFeed extends EventEmitter {
      * @returns {number}
      */
     private getBackoffWithJitter(attempt: number): number {
-        const exponential = Math.pow(2, attempt) * this._backoffDelayBase;
-        const delay = Math.min(exponential, this._backoffDelayMax);
-        return delay / 2 + this.getRandomInt(delay / 2);
+        const exponential = Math.min(Math.pow(2, attempt) * this._backoffDelayBase, this._backoffDelayMax);
+        return exponential / 2 + this.getRandomInt(exponential / 2);
     }
 
     /**
@@ -373,101 +433,25 @@ export class TibberFeed extends EventEmitter {
      * Internal connection method that handles the communication with tibber feed.
      */
     private async internalConnect(): Promise<void> {
+        const { apiEndpoint } = this._config;
+        if (!apiEndpoint || !apiEndpoint.apiKey) {
+            this.error('Missing mandatory parameters: apiEndpoint or apiKey. Execution will halt.');
+            throw new Error('Missing mandatory parameters: apiEndpoint or apiKey.');
+        }
+
         try {
             const url = await this._tibberQuery.getWebsocketSubscriptionUrl();
             const options = {
                 headers: {
-                    'Authorization': `Bearer ${this._config.apiEndpoint.apiKey}`,
-                    'User-Agent': (`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
+                    'Authorization': `Bearer ${apiEndpoint.apiKey}`,
+                    'User-Agent': (`${apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
                 }
             }
             this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
-
-            /**
-             * Event: open
-             * Called when websocket connection is established.
-             */
-            this._webSocket.onopen = (event: WebSocket.Event) => {
-                if (!this._webSocket) {
-                    return;
-                }
-                this.initConnection();
-            };
-
-            /**
-             * Event: message
-             * Called when data is received from the feed.
-             */
-            this._webSocket.onmessage = (message: WebSocket.MessageEvent) => {
-                if (message.data && message.data.toString().startsWith('{')) {
-                    const msg = JSON.parse(message.data.toString());
-                    switch (msg.type) {
-                        case GQL.CONNECTION_ERROR:
-                            this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
-                            this.close();
-                            break;
-                        case GQL.CONNECTION_ACK:
-                            this._isConnected = true;
-                            this.cancelTimeouts(this._timerConnectionTimeout);
-                            this.startSubscription(this._gql, { homeId: this._config.homeId });
-                            this.heartbeat();
-                            this.emit('connected', 'Connected to Tibber feed.');
-                            this.emit(GQL.CONNECTION_ACK, msg);
-                            break;
-                        case GQL.NEXT:
-                            if (msg.payload && msg.payload.errors) {
-                                this.emit('error', msg.payload.errors);
-                            }
-                            if (Number(msg.id) !== this._operationId) {
-                                // this.log(`Message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
-                                return;
-                            }
-                            if (!msg.payload || !msg.payload.data) {
-                                return;
-                            }
-                            this.decreaseConnectionBackoff();
-                            const data = msg.payload.data.liveMeasurement;
-                            this.heartbeat();
-                            this.emit('data', data);
-                            break;
-                        case GQL.ERROR:
-                            this.error(`An error occurred: ${JSON.stringify(msg)}`);
-                            break;
-                        case GQL.COMPLETE:
-                            if (Number(msg.id) !== this._operationId) {
-                                // this.log(`Complete message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
-                                return;
-                            }
-                            this.log('Received complete message. Closing connection.');
-                            this.close();
-                            this.cancelTimeouts(this._timerConnect);
-                            const delay = this.getRandomInt(60000);
-                            this.connectWithDelayWorker(delay);
-                            break;
-
-                        default:
-                            this.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
-                            break;
-                    }
-                }
-            };
-
-            /**
-             * Event: close
-             * Called when feed is closed.
-             */
-            this._webSocket.onclose = (event: WebSocket.CloseEvent) => {
-                this._isConnected = false;
-                this.emit('disconnected', 'Disconnected from Tibber feed.');
-            };
-
-            /**
-             * Event: error
-             * Called when an error has occurred.
-             */
-            this._webSocket.onerror = (error: WebSocket.ErrorEvent) => {
-                this.error(error);
-            };
+            this._webSocket.onopen = this.onWebSocketOpen.bind(this);
+            this._webSocket.onmessage = this.onWebSocketMessage.bind(this);
+            this._webSocket.onclose = this.onWebSocketClose.bind(this);
+            this._webSocket.onerror = this.onWebSocketError.bind(this);
         } catch (reason) {
             this.error(reason);
         } finally {
@@ -476,49 +460,93 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
-     * Connect to Tibber feed.
+     * Event: onWebSocketOpen
+     * Called when websocket connection is established.
      */
-    public async connect(): Promise<void> {
-        this.connectWithDelayWorker(1);
+    private onWebSocketOpen(event: WebSocket.Event) {
+        if (!this._webSocket) {
+            return;
+        }
+        this.initConnection();
     }
 
     /**
-     * Close the Tibber feed.
+     * Event: onWebSocketClose
+     * Called when feed is closed.
+     * @param {WebSocket.CloseEvent} event Close event
      */
-    public close() {
-        this._isClosing = true;
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.cancelTimeouts(this._timerConnect);
-        this.cancelTimeouts(this._timerConnectionTimeout);
-        if (this._webSocket) {
-            if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
-                this.closeConnection();
+    private onWebSocketClose(event: WebSocket.CloseEvent) {
+        this._isConnected = false;
+        this.emit('disconnected', 'Disconnected from Tibber feed.');
+    }
+
+    /**
+     * Event: onWebSocketMessage
+     * Called when data is received from the feed.
+     * @param {WebSocket.MessageEvent} event Message event
+     */
+    private onWebSocketMessage(message: WebSocket.MessageEvent) {
+        if (message.data && message.data.toString().startsWith('{')) {
+            const msg = JSON.parse(message.data.toString());
+            switch (msg.type) {
+                case GQL.CONNECTION_ERROR:
+                    this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
+                    this.close();
+                    break;
+                case GQL.CONNECTION_ACK:
+                    this._isConnected = true;
+                    this.cancelTimeouts(this._timerConnectionTimeout);
+                    this.startSubscription(this._gql, { homeId: this._config.homeId });
+                    this.heartbeat();
+                    this.emit('connected', 'Connected to Tibber feed.');
+                    this.emit(GQL.CONNECTION_ACK, msg);
+                    break;
+                case GQL.NEXT:
+                    if (msg.payload && msg.payload.errors) {
+                        this.emit('error', msg.payload.errors);
+                    }
+                    if (Number(msg.id) !== this._operationId) {
+                        // this.log(`Message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
+                        return;
+                    }
+                    if (!msg.payload || !msg.payload.data) {
+                        return;
+                    }
+                    this.decreaseConnectionBackoff();
+                    const data = msg.payload.data.liveMeasurement;
+                    this.heartbeat();
+                    this.emit('data', data);
+                    break;
+                case GQL.ERROR:
+                    this.error(`An error occurred: ${JSON.stringify(msg)}`);
+                    break;
+                case GQL.COMPLETE:
+                    if (Number(msg.id) !== this._operationId) {
+                        // this.log(`Complete message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
+                        return;
+                    }
+                    this.log('Received complete message. Closing connection.');
+                    this.close();
+                    this.cancelTimeouts(this._timerConnect);
+                    const delay = this.getRandomInt(60000);
+                    this.connectWithDelayWorker(delay);
+                    break;
+
+                default:
+                    this.warn(`Unrecognized message type: ${JSON.stringify(msg)}`);
+                    break;
             }
         }
-        this._isClosing = false;
-        this.log('Closed Tibber Feed.');
-    }
+    };
 
     /**
-     * Heartbeat function used to keep connection alive.
-     * Mostly for internal use, even if it is public.
+     * Event: onWebSocketError
+     * Called when an error has occurred.
+     * @param {WebSocket.ErrorEvent} event Error event
      */
-    public heartbeat() {
-        if (this._isClosing)
-            return;
-
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.addTimeout(this._timerHeartbeat, () => {
-            if (this._webSocket) {
-                this.terminateConnection();
-            }
-            this.warn(`Connection timed out after ${this._feedIdleTimeout} ms.`);
-            this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
-            if (this._active) {
-                this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
-                this.connectWithDelayWorker();
-            }
-        }, this._feedIdleTimeout);
+    private onWebSocketError(event: WebSocket.ErrorEvent) {
+        this.error(`An error occurred: ${JSON.stringify(event)}`);
+        this.close();
     }
 
     /**
