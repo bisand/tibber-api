@@ -6,6 +6,7 @@ import WebSocket from 'ws';
 import { GQL } from './models/GQL';
 import { TibberQueryBase } from './TibberQueryBase';
 import { version } from "../../Version"
+import { HeaderManager } from './HeaderManager';
 
 export class TibberFeed extends EventEmitter {
     private _operationId: number = 0;
@@ -23,6 +24,7 @@ export class TibberFeed extends EventEmitter {
     private _timerConnectionTimeout: NodeJS.Timeout[];
     private _isClosing: boolean;
     private _isUnauthenticated: boolean;
+    private _headerManager: HeaderManager;
 
     private _lastRetry: number;
     private _retryBackoff: number;
@@ -56,6 +58,7 @@ export class TibberFeed extends EventEmitter {
         this._feedIdleTimeout = timeout > 5000 ? timeout : 5000;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
+        this._headerManager = new HeaderManager(this._config);
         this._active = this._config.active;
         this._timerHeartbeat = [];
         this._timerConnect = [];
@@ -444,7 +447,7 @@ export class TibberFeed extends EventEmitter {
             const options = {
                 headers: {
                     'Authorization': `Bearer ${apiEndpoint.apiKey}`,
-                    'User-Agent': (`${apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim()
+                    'User-Agent': this._headerManager.userAgent,
                 }
             }
             this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);

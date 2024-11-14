@@ -4,13 +4,15 @@ import https, { RequestOptions } from 'https';
 import http, { IncomingMessage } from 'http';
 import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
-import { version } from "../../Version"
 import { gqlHomeRealTime } from '../gql/home.gql';
 import { TimeoutError } from './models/TimeoutError';
+import { HeaderManager } from './HeaderManager';
 
 export class TibberQueryBase {
     public active: boolean;
     private _config: IConfig;
+    private _headerManager: HeaderManager;
+
     private _requestTimeout: number;
 
     public get requestTimeout(): number {
@@ -33,6 +35,7 @@ export class TibberQueryBase {
     constructor(config: IConfig, requestTimeout: number = 30000) {
         this.active = false;
         this._config = config;
+        this._headerManager = new HeaderManager(config);
         this._requestTimeout = requestTimeout > 1000 ? requestTimeout : 1000;
     }
 
@@ -78,7 +81,7 @@ export class TibberQueryBase {
                 Connection: 'Keep-Alive',
                 Accept: 'application/json',
                 Host: uri.hostname as string,
-                'User-Agent': (`${this._config.apiEndpoint.userAgent ?? ''} bisand/tibber-api/${version}`).trim(),
+                'User-Agent': this._headerManager.userAgent,
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${this._config.apiEndpoint.apiKey}`,
             },
