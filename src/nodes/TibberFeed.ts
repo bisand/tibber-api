@@ -5,7 +5,6 @@ import { IQueryPayload } from "../models/IQueryPayload";
 import WebSocket from 'ws';
 import { GQL } from './models/GQL';
 import { TibberQueryBase } from './TibberQueryBase';
-import { version } from "../../Version"
 import { HeaderManager } from './HeaderManager';
 
 export class TibberFeed extends EventEmitter {
