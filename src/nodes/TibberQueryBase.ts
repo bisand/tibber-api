@@ -6,7 +6,7 @@ import { HttpMethod } from './models/HttpMethod';
 import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
 import { gqlHomeRealTime } from '../gql/home.gql';
 import { TimeoutError } from './models/TimeoutError';
-import { HeaderManager } from './HeaderManager';
+import { HeaderManager } from '../tools/HeaderManager';
 
 export class TibberQueryBase {
     public active: boolean;

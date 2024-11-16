@@ -3,7 +3,7 @@ import { IConfig } from '../models/IConfig';
 
 export class HeaderManager {
     private static readonly DEFAULT_USER_AGENT = `bisand/tibber-api/${version}`;
-    private static readonly USER_AGENT_MAX_LENGTH = 255 - HeaderManager.DEFAULT_USER_AGENT.length;
+    private static readonly USER_AGENT_MAX_LENGTH = 255 - HeaderManager.DEFAULT_USER_AGENT.length - 1;
 
     private static _userAgent: string | null = null;
     private _config: IConfig;
@@ -15,7 +15,8 @@ export class HeaderManager {
      * @see IConfig
      */
     constructor(config: IConfig) {
-        this._config = config;
+        // Clone the config object to avoid changing the original object
+        this._config = JSON.parse(JSON.stringify(config));
     }
 
     /**

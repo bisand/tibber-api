@@ -21,7 +21,8 @@
 				"github.vscode-pull-request-github",
 				"ms-vscode.vs-keybindings",
 				"dbaeumer.vscode-eslint",
-				"esbenp.prettier-vscode"
+				"esbenp.prettier-vscode",
+				"Orta.vscode-jest"
 			]
 		}
 	},
