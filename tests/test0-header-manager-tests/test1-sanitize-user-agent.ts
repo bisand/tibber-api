@@ -27,7 +27,7 @@ describe('HeaderManager', () => {
 
         it('should remove invalid characters from the user agent', () => {
             const headerManager = new HeaderManager(config);
-            expect(headerManager['sanitizeUserAgent']('Invalid@UserAgent!function now() { [native code] }')).toBe('Invalid@UserAgent!function now()  native code');
+            expect(headerManager['sanitizeUserAgent']('Invalid@UserAgent!function now()\n{ [native code] }')).toBe('Invalid@UserAgent!function now(){ [native code] }');
         });
 
         it('should truncate the user agent if it exceeds the maximum length', () => {

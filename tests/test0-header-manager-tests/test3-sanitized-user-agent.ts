@@ -21,9 +21,9 @@ describe('HeaderManager', () => {
 
 	describe('Sanitized invalid User-Agent', () => {
 		it('should sanitize and return the user agent with default user agent appended', () => {
-			config.apiEndpoint.userAgent = 'Invalid@UserAgent!function now() { [native code] }';
+			config.apiEndpoint.userAgent = 'Invalid@UserAgent!function now()\n{ [native code] }';
 			const headerManager = new HeaderManager(config);
-			expect(headerManager.userAgent).toBe(`Invalid@UserAgent!function now()  native code ${defaultUserAgent}`);
+			expect(headerManager.userAgent).toBe(`Invalid@UserAgent!function now(){ [native code] } ${defaultUserAgent}`);
 		});
 	});
 });
