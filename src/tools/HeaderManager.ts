@@ -44,7 +44,13 @@ export class HeaderManager {
         if (!userAgent) {
             return '';
         }
-        const sanitized = userAgent.replace(/[^a-zA-Z0-9\-._~!#$&'()*+,;=:@ ]/g, '').trim();
+        // Regex to match valid characters (printable ASCII excluding control characters)
+        const validCharsRegex = /[^\x20-\x7E]+/g;
+        // Remove invalid characters
+        let sanitized = userAgent.replace(validCharsRegex, '');
+        // Normalize excessive spaces
+        sanitized = sanitized.replace(/\s+/g, ' ').trim();
+
         return sanitized.length > HeaderManager.USER_AGENT_MAX_LENGTH ? sanitized.substring(0, HeaderManager.USER_AGENT_MAX_LENGTH) : sanitized;
     }
 }
