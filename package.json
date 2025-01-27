@@ -40,7 +40,7 @@
     "jsdoc": "^4.0.4",
     "jsdoc-to-markdown": "^9.0.5",
     "mkver": "^3.0.2",
-    "nock": "^13.5.6",
+    "nock": "^14.0.0",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.3",
