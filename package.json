@@ -43,7 +43,7 @@
     "nock": "^13.5.6",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3",
+    "typescript": "^5.8.2",
     "websocket": "^1.0.35"
   },
   "directories": {
