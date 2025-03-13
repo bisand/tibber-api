@@ -32,7 +32,7 @@
     "@jest/test-sequencer": "^29.7.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
-    "@types/ws": "^8.5.13",
+    "@types/ws": "^8.18.0",
     "@typescript-eslint/eslint-plugin": "^8.14.0",
     "@typescript-eslint/parser": "^8.14.0",
     "eslint": "^9.14.0",
