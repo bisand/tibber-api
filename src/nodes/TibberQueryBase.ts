@@ -152,7 +152,11 @@ export class TibberQueryBase {
         if (result && result.viewer && result.viewer.websocketSubscriptionUrl) {
             return new url.URL(result.viewer.websocketSubscriptionUrl);
         }
-        return result && result.error ? result : {};
+        throw new Error(
+            result && result.error
+                ? `Failed to get websocket subscription URL: ${result.error}`
+                : 'Websocket subscription URL not found in response'
+        );
     }
 
     /**

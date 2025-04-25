@@ -11,6 +11,7 @@ import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { AppScreen } from '../models/enums/AppScreen';
 import { TibberQueryBase } from './TibberQueryBase';
+import { IGeneralError } from '../models/IGeneralError';
 
 export class TibberQuery extends TibberQueryBase {
     /**
@@ -61,7 +62,7 @@ export class TibberQuery extends TibberQueryBase {
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             return Object.assign([] as IHome[], result.viewer.homes);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -73,7 +74,7 @@ export class TibberQuery extends TibberQueryBase {
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             return Object.assign([] as IHome[], result.viewer.homes);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -111,7 +112,7 @@ export class TibberQuery extends TibberQueryBase {
             });
             return Object.assign([] as IPrice[], prices);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -129,7 +130,7 @@ export class TibberQuery extends TibberQueryBase {
                 data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.today : {},
             );
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -147,7 +148,7 @@ export class TibberQuery extends TibberQueryBase {
                 data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.tomorrow : {},
             );
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -158,7 +159,7 @@ export class TibberQuery extends TibberQueryBase {
      * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
      * @return Array of IConsumption
      */
-    public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]> {
+    public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[] | IGeneralError> {
         const variables = { homeId, resolution, lastCount };
         if (homeId) {
             const result = await this.query(gqlHomeConsumption, variables);
@@ -171,7 +172,7 @@ export class TibberQuery extends TibberQueryBase {
             const result = await this.query(gqlHomesConsumption, variables);
             if (result && result.viewer && Array.isArray(result.viewer.homes)) {
                 const consumptions = result.viewer.homes.map((item: IHome) => {
-                    const nodes = item.consumption.nodes.map((node: IConsumption) => {
+                    const nodes = item.consumption?.nodes.map((node: IConsumption) => {
                         node.homeId = item.id;
                         return node;
                     });
