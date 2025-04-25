@@ -62,7 +62,7 @@ export class TibberQueryBase {
             }
         }
         catch (e: any) {
-            // TODO: Add logging.
+            // TODO - Add logging.
         }
 
         return { responseMessage: input }

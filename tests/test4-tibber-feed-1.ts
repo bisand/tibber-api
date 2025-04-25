@@ -1,11 +1,11 @@
 /* eslint-env mocha */
 import * as url from 'url';
 import { IConfig, TibberFeed } from '../src/index';
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { GQL } from '../src/nodes/models/GQL';
 import { TibberQueryBase } from '../src/nodes/TibberQueryBase';
 
-let server: WebSocket.Server;
+let server: WebSocketServer;
 
 export class FakeTibberQuery extends TibberQueryBase {
     /**
@@ -28,8 +28,8 @@ export class FakeTibberQuery extends TibberQueryBase {
 
 }
 
-beforeAll(() => {
-    server = new WebSocket.Server({ port: 1337 });
+beforeAll(async () => {
+    server = new WebSocketServer({ port: 1337 });
     server.on('connection', socket => {
         socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);
@@ -55,10 +55,14 @@ beforeAll(() => {
     });
 });
 
-afterAll(() => {
+afterAll(async () => {
     if (server) {
-        server.close();
-        server.clients.forEach(ws => { ws.close() });
+        // Close all client sockets first
+        for (const ws of server.clients) {
+            ws.terminate(); // terminate is safer for test cleanup
+        }
+        // Wait for server to close
+        await new Promise<void>(resolve => server.close(() => resolve()));
     }
 });
 
@@ -128,7 +132,7 @@ test('TibberFeed - Should be active', () => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query);
-    feed.on('heartbeat_timeout', data=>{
+    feed.on('heartbeat_timeout', data => {
         // console.log('heartbeat_timeout -> TibberFeed - Should be active');
     });
     expect(feed.active).toBe(true);
@@ -139,7 +143,7 @@ test('TibberFeed - Should be active', () => {
 test('TibberFeed - Should be inactive', () => {
     const query = new FakeTibberQuery({ active: false, apiEndpoint: { apiKey: '', queryUrl: '', userAgent: '' } });
     const feed = new TibberFeed(query);
-    feed.on('heartbeat_timeout', data=>{
+    feed.on('heartbeat_timeout', data => {
         // console.log('heartbeat_timeout -> TibberFeed - should be inactive');
     });
     expect(feed.active).toBe(false);
@@ -162,7 +166,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
     feed.on(GQL.CONNECTION_ACK, data => {
         // feed.heartbeat();
     });
-    feed.on('heartbeat_timeout', data=>{
+    feed.on('heartbeat_timeout', data => {
         // console.log('heartbeat_timeout -> TibberFeed - Should timeout after 3 sec');
     });
     feed.on('disconnected', data => {
