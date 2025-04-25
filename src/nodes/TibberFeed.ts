@@ -31,6 +31,8 @@ export class TibberFeed extends EventEmitter {
     private _backoffDelayBase: number;
     private _backoffDelayMax: number;
     private _realTimeConsumptionEnabled?: boolean | null;
+    private _failedAttempts: number = 0;
+    private _maxFailedAttempts: number = 10; // You can tune this value
 
     private _timeoutCount: number;
     public get timeoutCount(): number {
@@ -367,6 +369,7 @@ export class TibberFeed extends EventEmitter {
 
         if (!this.canConnect) {
             this._isConnecting = false;
+            this.incrementFailedAttempts();
             return;
         }
 
@@ -374,6 +377,7 @@ export class TibberFeed extends EventEmitter {
         if (this._isUnauthenticated) {
             this.error(unauthenticatedMessage);
             this._isConnecting = false;
+            this.incrementFailedAttempts();
             return;
         }
 
@@ -390,10 +394,12 @@ export class TibberFeed extends EventEmitter {
                     this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
                 }
                 this._isConnecting = false;
+                this.incrementFailedAttempts();
                 return;
             }
         } else if (!this._realTimeConsumptionEnabled) {
             this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
+            this.incrementFailedAttempts();
             return;
         }
 
@@ -407,11 +413,48 @@ export class TibberFeed extends EventEmitter {
             this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
             if (this._webSocket)
                 this.terminateConnection();
+            this.incrementFailedAttempts();
             if (this._active)
                 this.connectWithDelayWorker();
         }, this._feedConnectionTimeout);
         // Perform connection.
         await this.internalConnect();
+    }
+
+    private incrementFailedAttempts() {
+        this._failedAttempts++;
+        if (this._failedAttempts >= this._maxFailedAttempts) {
+            this.warn(`Max failed attempts (${this._maxFailedAttempts}) reached. Performing hard reset.`);
+            this.hardReset();
+        }
+    }
+
+    private resetFailedAttempts() {
+        this._failedAttempts = 0;
+    }
+
+    private hardReset() {
+        this.log('Performing hard reset of TibberFeed...');
+        this._isConnecting = false;
+        this._isConnected = false;
+        this._isClosing = false;
+        this._isUnauthenticated = false;
+        this._realTimeConsumptionEnabled = null;
+        this._connectionAttempts = 0;
+        this._retryBackoff = this._backoffDelayBase;
+        this.resetFailedAttempts();
+        this.cancelTimeouts(this._timerHeartbeat);
+        this.cancelTimeouts(this._timerConnect);
+        this.cancelTimeouts(this._timerConnectionTimeout);
+        if (this._webSocket) {
+            try {
+                this._webSocket.terminate();
+            } catch (e) {}
+            this._webSocket = undefined as any;
+        }
+        if (this._active) {
+            this.connectWithDelayWorker(5000); // Wait a bit before retrying
+        }
     }
 
     /**
@@ -497,6 +540,7 @@ export class TibberFeed extends EventEmitter {
                     break;
                 case GQL.CONNECTION_ACK:
                     this._isConnected = true;
+                    this.resetFailedAttempts();
                     this.cancelTimeouts(this._timerConnectionTimeout);
                     this.startSubscription(this._gql, { homeId: this._config.homeId });
                     this.heartbeat();

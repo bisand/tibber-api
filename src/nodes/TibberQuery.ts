@@ -11,7 +11,6 @@ import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
 import { AppScreen } from '../models/enums/AppScreen';
 import { TibberQueryBase } from './TibberQueryBase';
-import { IGeneralError } from '../models/IGeneralError';
 
 export class TibberQuery extends TibberQueryBase {
     /**
@@ -159,7 +158,7 @@ export class TibberQuery extends TibberQueryBase {
      * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
      * @return Array of IConsumption
      */
-    public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[] | IGeneralError> {
+    public async getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IConsumption[]> {
         const variables = { homeId, resolution, lastCount };
         if (homeId) {
             const result = await this.query(gqlHomeConsumption, variables);
@@ -167,7 +166,7 @@ export class TibberQuery extends TibberQueryBase {
                 const home: IHome = result.viewer.home;
                 return Object.assign([] as IConsumption[], home.consumption ? home.consumption.nodes : []);
             }
-            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+            return result && result.error ? result : [];
         } else {
             const result = await this.query(gqlHomesConsumption, variables);
             if (result && result.viewer && Array.isArray(result.viewer.homes)) {
@@ -180,7 +179,7 @@ export class TibberQuery extends TibberQueryBase {
                 });
                 return Object.assign([] as IConsumption[], consumptions);
             }
-            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+            return result && result.error ? result : [];
         }
     }
 
