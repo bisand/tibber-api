@@ -23,7 +23,8 @@
 				"dbaeumer.vscode-eslint",
 				"esbenp.prettier-vscode",
 				"Orta.vscode-jest",
-				"Gruntfuggly.todo-tree"
+				"Gruntfuggly.todo-tree",
+				"github.vscode-github-actions"
 			]
 		}
 	},
