@@ -585,7 +585,8 @@ export class TibberFeed extends EventEmitter {
             switch (msg.type) {
                 case GQL.CONNECTION_ERROR:
                     this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
-                    this.close();
+                    // this.close();
+                    this.handleConnectionError();
                     break;
                 case GQL.CONNECTION_ACK:
                     this._isConnected = true;
@@ -650,7 +651,8 @@ export class TibberFeed extends EventEmitter {
 
         // Prevent recursive close if already closing
         if (!this._isClosing) {
-            this.close();
+            // this.close();
+            this.handleConnectionError();
         }
     }
 
@@ -767,6 +769,13 @@ export class TibberFeed extends EventEmitter {
             this.emit('error', message);
         } catch (error) {
             // console.error(error);
+        }
+    }
+
+    private handleConnectionError() {
+        this.terminateConnection();
+        if (this._active) {
+            this.connectWithDelayWorker(this._retryBackoff);
         }
     }
 }
