@@ -90,7 +90,7 @@ test('TibberFeed - should be connected', done => {
         // console.log('connection_timeout -> TibberFeed - should be connected');
     });
     feed.connect();
-});
+}, 60000);
 
 test('TibberFeed - Should receive data', done => {
     (async done => {

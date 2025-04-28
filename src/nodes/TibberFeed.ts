@@ -18,10 +18,6 @@ export class TibberFeed extends EventEmitter {
     private _gql: string;
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
-    // TODO - Remove these timers
-    // private _timerHeartbeat: NodeJS.Timeout[];
-    // private _timerConnect: NodeJS.Timeout[];
-    // private _timerConnectionTimeout: NodeJS.Timeout[];
     private _isClosing: boolean;
     private _isUnauthenticated: boolean;
     private _headerManager: HeaderManager;
@@ -33,7 +29,7 @@ export class TibberFeed extends EventEmitter {
     private _backoffDelayMax: number;
     private _realTimeConsumptionEnabled?: boolean | null;
     private _failedAttempts: number = 0;
-    private _maxFailedConnectionAttempts: number = 10; // You can tune this value
+    private _maxFailedConnectionAttempts: number = 15; // You can tune this value
     private _timeoutCount: number;
     private _webSocketFactory: ((url: string, protocols: string[], options: any) => WebSocket) | undefined;
 
@@ -82,9 +78,6 @@ export class TibberFeed extends EventEmitter {
         this._config = tibberQuery.config;
         this._headerManager = new HeaderManager(this._config);
         this._active = this._config.active;
-        // this._timerHeartbeat = [];
-        // this._timerConnect = [];
-        // this._timerConnectionTimeout = [];
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
@@ -252,15 +245,7 @@ export class TibberFeed extends EventEmitter {
     }
 
     private get canConnect(): boolean {
-        const result = Date.now() > (this._lastRetry + this._retryBackoff);
-        if (result) {
-            this._lastRetry = Date.now();
-            if (this._retryBackoff < this._backoffDelayMax)
-                this._connectionAttempts++;
-            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
-        }
-        this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
-        return result;
+        return Date.now() > (this._lastRetry + this._retryBackoff);
     }
 
     /**
@@ -352,35 +337,6 @@ export class TibberFeed extends EventEmitter {
         }
     }
 
-    // /**
-    //  * Add a timeout to an array of timeouts.
-    //  * @param {NodeJS.Timeout[]} timers List og timeouts
-    //  * @param {void} callback Callback function to call when timeout is reached.
-    //  * @param {number} delayMs Delay in milliseconds before callback will be called.
-    //  */
-    // private addTimeout(timers: NodeJS.Timeout[], callback: () => void, delayMs: number) {
-    //     this._timeoutCount++;
-    //     timers.push(setTimeout(callback, delayMs));
-    // }
-
-    // /**
-    //  * Clear timeout for a timer.
-    //  * @param {NodeJS.Timeout[]} timers Timer handle to clear
-    //  */
-    // private cancelTimeouts(timers: NodeJS.Timeout[]) {
-    //     try {
-    //         while (timers.length) {
-    //             const timer = timers.pop();
-    //             if (timer) {
-    //                 this._timeoutCount--;
-    //                 clearTimeout(timer);
-    //             }
-    //         }
-    //     } catch (error) {
-    //         this.error(error);
-    //     }
-    // }
-
     /**
      * addTimeout
      * Adds a timeout to the list of timeouts.
@@ -421,6 +377,12 @@ export class TibberFeed extends EventEmitter {
                 this.incrementFailedAttempts();
                 return;
             }
+
+            // Only update retry state here, just before attempting connection
+            this._lastRetry = Date.now();
+            if (this._retryBackoff < this._backoffDelayMax)
+                this._connectionAttempts++;
+            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
 
             if (this._isUnauthenticated) {
                 this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
@@ -508,6 +470,7 @@ export class TibberFeed extends EventEmitter {
         this._realTimeConsumptionEnabled = null;
         this._connectionAttempts = 0;
         this._retryBackoff = this._backoffDelayBase;
+        this._lastRetry = 0;
         this.resetFailedAttempts();
         this.cancelTimeout('heartbeat');
         this.cancelTimeout('connect');
@@ -528,16 +491,26 @@ export class TibberFeed extends EventEmitter {
      */
     private connectWithDelayWorker(delay: number = 1000) {
         this.cancelTimeout('connect');
-        if (this._active) {
-            this.addTimeout('connect', () => {
-                try {
-                    this.connectWithTimeout();
-                } catch (error) {
-                    this.error(error);
+        if (!this._active) return;
+
+        // Use the current backoff as the delay if not provided
+        const nextDelay = delay ?? this._retryBackoff;
+
+        this.addTimeout('connect', async () => {
+            try {
+                // Only attempt to connect if allowed by backoff
+                if (this.canConnect) {
+                    await this.connectWithTimeout();
                 }
-                this.connectWithDelayWorker();
-            }, delay);
-        }
+            } catch (error) {
+                this.error(error);
+            } finally {
+                // Only schedule next attempt if not connected and still active
+                if (!this._isConnected && this._active) {
+                    this.connectWithDelayWorker(this._retryBackoff);
+                }
+            }
+        }, nextDelay);
     }
 
     /**
@@ -628,7 +601,6 @@ export class TibberFeed extends EventEmitter {
                         this.emit('error', msg.payload.errors);
                     }
                     if (Number(msg.id) !== this._operationId) {
-                        // this.log(`Message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                         return;
                     }
                     if (!msg.payload || !msg.payload.data) {
@@ -644,7 +616,6 @@ export class TibberFeed extends EventEmitter {
                     break;
                 case GQL.COMPLETE:
                     if (Number(msg.id) !== this._operationId) {
-                        // this.log(`Complete message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                         return;
                     }
                     this.log('Received complete message. Closing connection.');
@@ -667,8 +638,20 @@ export class TibberFeed extends EventEmitter {
      * @param {WebSocket.ErrorEvent} event Error event
      */
     private onWebSocketError(event: WebSocket.ErrorEvent) {
-        this.error(`An error occurred: ${JSON.stringify(event)}`);
-        this.close();
+        let errorMsg = 'An error occurred';
+        if (event && typeof event === 'object') {
+            if ('message' in event && event.message) {
+                errorMsg += `: ${event.message}`;
+            } else if (Object.keys(event).length > 0) {
+                errorMsg += `: ${JSON.stringify(event)}`;
+            }
+        }
+        this.error(errorMsg);
+
+        // Prevent recursive close if already closing
+        if (!this._isClosing) {
+            this.close();
+        }
     }
 
     /**
