@@ -579,6 +579,10 @@ export class TibberFeed extends EventEmitter {
     private onWebSocketClose(event: WebSocket.CloseEvent) {
         this._isConnected = false;
         this.emit('disconnected', 'Disconnected from Tibber feed.');
+        // Immediately try to reconnect if still active
+        if (this._active && !this._isClosing) {
+            this.connectWithDelayWorker(this._retryBackoff);
+        }
     }
 
     /**
