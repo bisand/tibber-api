@@ -444,6 +444,13 @@ export class TibberFeed extends EventEmitter {
 
             // Initiate WebSocket connection
             await this.internalConnect();
+        } catch (error) {
+            this.error(error);
+            this.incrementFailedAttempts();
+            // Ensure reconnect is scheduled if not connected and still active
+            if (!this._isConnected && this._active) {
+                this.connectWithDelayWorker(this._retryBackoff);
+            }
         } finally {
             this._isConnecting = false;
         }
@@ -643,15 +650,17 @@ export class TibberFeed extends EventEmitter {
         if (event && typeof event === 'object') {
             if ('message' in event && event.message) {
                 errorMsg += `: ${event.message}`;
+            } else if ('error' in event && event.error) {
+                errorMsg += `: ${event.error}`;
             } else if (Object.keys(event).length > 0) {
                 errorMsg += `: ${JSON.stringify(event)}`;
+            } else {
+                errorMsg += ': [unknown websocket error]';
             }
         }
         this.error(errorMsg);
 
-        // Prevent recursive close if already closing
         if (!this._isClosing) {
-            // this.close();
             this.handleConnectionError();
         }
     }
