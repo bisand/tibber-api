@@ -1,6 +1,6 @@
 {
   "name": "tibber-api",
-  "version": "5.4.0-beta.3",
+  "version": "5.4.0-beta.4",
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
