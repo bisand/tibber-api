@@ -1,9 +1,9 @@
-export const version = "5.4.0-beta.5";
+export const version = "5.4.0-beta.6";
 export const versionMajor = 5;
 export const versionMinor = 4;
 export const versionPatch = 0;
-export const versionPrerelease = ["beta",5];
-export const release = "5.4.0-beta.5+20250429183059";
-export const gitSha = "37c25b2cc8fbe6adbc64bf9d2f067feaba4e1ade";
-export const gitDate = new Date(1745951459000);
+export const versionPrerelease = ["beta",6];
+export const release = "5.4.0-beta.6+20250429202403";
+export const gitSha = "5ab1a9b1b718eee8ab0f6d97700f150c394da012";
+export const gitDate = new Date(1745958243000);
 export default {version,versionMajor,versionMinor,versionPatch,versionPrerelease,release,gitSha,gitDate};
