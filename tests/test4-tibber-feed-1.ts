@@ -66,6 +66,17 @@ afterAll(async () => {
     }
 });
 
+const feeds: TibberFeed[] = [];
+
+afterEach(() => {
+    for (const feed of feeds) {
+        feed.active = false;
+        feed.close();
+        feed.removeAllListeners();
+    }
+    feeds.length = 0;
+});
+
 test('TibberFeed - should be connected', done => {
     const query = new FakeTibberQuery({
         active: true,
@@ -77,6 +88,7 @@ test('TibberFeed - should be connected', done => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query, 30000, true, 5000);
+    feeds.push(feed);
     feed.on(GQL.CONNECTION_ACK, (data: any) => {
         expect(data).toBeDefined();
         expect(data.payload?.token).toBe('1337');
@@ -104,6 +116,7 @@ test('TibberFeed - Should receive data', done => {
             homeId: '1337',
         });
         const feed = new TibberFeed(query);
+        feeds.push(feed);
         feed.on('data', data => {
             expect(data).toBeDefined();
             expect(data.value).toBe(1337);
@@ -132,6 +145,7 @@ test('TibberFeed - Should be active', () => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query);
+    feeds.push(feed);
     feed.on('heartbeat_timeout', data => {
         // console.log('heartbeat_timeout -> TibberFeed - Should be active');
     });
@@ -143,6 +157,7 @@ test('TibberFeed - Should be active', () => {
 test('TibberFeed - Should be inactive', () => {
     const query = new FakeTibberQuery({ active: false, apiEndpoint: { apiKey: '', queryUrl: '', userAgent: '' } });
     const feed = new TibberFeed(query);
+    feeds.push(feed);
     feed.on('heartbeat_timeout', data => {
         // console.log('heartbeat_timeout -> TibberFeed - should be inactive');
     });
@@ -162,6 +177,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query, 3000);
+    feeds.push(feed);
     let called = false;
     feed.on(GQL.CONNECTION_ACK, data => {
         // feed.heartbeat();
@@ -192,6 +208,7 @@ test('TibberFeed - Should reconnect 3 times after 5 sec. timeout', done => {
         homeId: '1337',
     });
     const feed = new TibberFeed(query, 5000);
+    feeds.push(feed);
     const maxRetry = 3;
     let timeoutCount = 0;
     let reconnectCount = 0;

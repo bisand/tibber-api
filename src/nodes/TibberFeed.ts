@@ -29,11 +29,12 @@ export class TibberFeed extends EventEmitter {
     private _backoffDelayMax: number;
     private _realTimeConsumptionEnabled?: boolean | null;
     private _failedAttempts: number = 0;
-    private _maxFailedConnectionAttempts: number = 15; // You can tune this value
+    private _maxFailedConnectionAttempts: number;
     private _timeoutCount: number;
     private _webSocketFactory: ((url: string, protocols: string[], options: any) => WebSocket) | undefined;
 
     private _timeouts = new Map<string, NodeJS.Timeout>();
+    private _lastConnectedAt: number;
 
     /// <summary>
     ///     Number of timeouts that have been created.
@@ -92,6 +93,8 @@ export class TibberFeed extends EventEmitter {
         this._retryBackoff = 1000;
 
         this._timeoutCount = 0;
+        this._maxFailedConnectionAttempts = 10;
+        this._lastConnectedAt = 0;
 
         const { apiEndpoint, homeId } = this._config;
         if (!apiEndpoint || !apiEndpoint.apiKey || !homeId) {
@@ -457,6 +460,13 @@ export class TibberFeed extends EventEmitter {
     }
 
     private incrementFailedAttempts() {
+        const now = Date.now();
+        const STABLE_CONNECTION_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+        if (now - this._lastConnectedAt > STABLE_CONNECTION_THRESHOLD) {
+            // Connection was stable, reset backoff
+            this._connectionAttempts = 0;
+            this._retryBackoff = this._backoffDelayBase;
+        }
         this._failedAttempts++;
         if (this._failedAttempts >= this._maxFailedConnectionAttempts) {
             this.warn(`Max failed attempts (${this._maxFailedConnectionAttempts}) reached. Performing hard reset.`);
@@ -597,6 +607,7 @@ export class TibberFeed extends EventEmitter {
                     break;
                 case GQL.CONNECTION_ACK:
                     this._isConnected = true;
+                    this._lastConnectedAt = Date.now(); // Track when we last connected
                     this.resetFailedAttempts();
                     this.cancelTimeout('connection_timeout');
                     this.startSubscription(this._gql, { homeId: this._config.homeId });

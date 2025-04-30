@@ -15,6 +15,8 @@ function createFakeWebSocket(): any {
 
 describe('Testing TibberFeed ', () => {
 
+    const feeds: TibberFeed[] = [];
+
     beforeAll(() => { })
     afterAll(() => {
         nock.restore()
@@ -23,8 +25,15 @@ describe('Testing TibberFeed ', () => {
     afterEach(() => {
         jest.clearAllTimers?.();
         jest.clearAllMocks();
-    })
-
+        for (const feed of feeds) {
+            feed.active = false;
+            feed.close();
+            feed.removeAllListeners();
+        }
+        feeds.length = 0;
+    });
+    
+    
     const mockQuery = new FakeTibberQuery({
         active: true,
         apiEndpoint: {
@@ -45,6 +54,7 @@ describe('Testing TibberFeed ', () => {
             homeId: '1337',
         });
         const connector = new TibberFeed(queryMissingKey, 30000, true, 5000);
+        feeds.push(connector);
 
         await expect((connector as any).internalConnect()).rejects.toThrow('Missing mandatory parameters');
     });
@@ -64,6 +74,7 @@ describe('Testing TibberFeed ', () => {
         const factory = jest.fn().mockReturnValue(createFakeWebSocket());
 
         const connector = new TibberFeed(mockQuery, 30000, true, 5000);
+        feeds.push(connector);
         connector['_webSocketFactory'] = factory;
 
         await (connector as any).internalConnect();
@@ -81,6 +92,7 @@ describe('Testing TibberFeed ', () => {
         const factory = jest.fn().mockReturnValue(wsMock);
 
         const connector = new TibberFeed(mockQuery, 30000, true, 5000);
+        feeds.push(connector);
         connector['_webSocketFactory'] = factory;
 
         const open = jest.fn(), msg = jest.fn(), err = jest.fn(), close = jest.fn();
