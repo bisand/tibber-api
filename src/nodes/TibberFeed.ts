@@ -383,13 +383,11 @@ export class TibberFeed extends EventEmitter {
 
             // Only update retry state here, just before attempting connection
             this._lastRetry = Date.now();
-            if (this._retryBackoff < this._backoffDelayMax)
-                this._connectionAttempts++;
-            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
 
             if (this._isUnauthenticated) {
                 this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
                 this.incrementFailedAttempts();
+                this.updateBackoff(); // <-- update backoff after failure
                 return;
             }
 
@@ -405,10 +403,15 @@ export class TibberFeed extends EventEmitter {
                     ) {
                         this._isUnauthenticated = true;
                         this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
+                    } else if (error?.httpCode === 429 || error?.statusCode === 429) {
+                        // Too many requests: set a long backoff (e.g., 10 minutes)
+                        this._retryBackoff = 10 * 60 * 1000 + this.getRandomInt(60 * 1000); // 10-11 min
+                        this.warn(`Received 429 Too Many Requests. Backing off for ${Math.round(this._retryBackoff / 1000)} seconds.`);
                     } else {
                         this.error(`Error checking real-time consumption status.\n${JSON.stringify(error)}`);
                     }
                     this.incrementFailedAttempts();
+                    this.updateBackoff(error); // <-- update backoff after failure
                     return;
                 }
             }
@@ -416,6 +419,7 @@ export class TibberFeed extends EventEmitter {
             if (!this._realTimeConsumptionEnabled) {
                 this.warn(`Unable to connect. Real Time Consumption is not enabled.`);
                 this.incrementFailedAttempts();
+                this.updateBackoff(); // <-- update backoff after failure
                 return;
             }
 
@@ -439,6 +443,7 @@ export class TibberFeed extends EventEmitter {
                 }
 
                 this.incrementFailedAttempts();
+                this.updateBackoff(); // <-- update backoff after failure
 
                 if (this._active) {
                     this.connectWithDelayWorker();
@@ -450,6 +455,7 @@ export class TibberFeed extends EventEmitter {
         } catch (error) {
             this.error(error);
             this.incrementFailedAttempts();
+            this.updateBackoff(error); // <-- update backoff after failure
             // Ensure reconnect is scheduled if not connected and still active
             if (!this._isConnected && this._active) {
                 this.connectWithDelayWorker(this._retryBackoff);
@@ -457,6 +463,17 @@ export class TibberFeed extends EventEmitter {
         } finally {
             this._isConnecting = false;
         }
+    }
+
+    private updateBackoff(error?: any) {
+        // If 429, don't increase attempts, just use the long backoff already set
+        if (error?.httpCode === 429 || error?.statusCode === 429) {
+            return;
+        }
+        if (this._retryBackoff < this._backoffDelayMax) {
+            this._connectionAttempts++;
+        }
+        this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
     }
 
     private incrementFailedAttempts() {
