@@ -379,7 +379,7 @@ export class TibberFeed extends EventEmitter {
         if (Date.now() < this._rateLimitUntil) {
             const wait = this._rateLimitUntil - Date.now();
             this.warn(`Rate limited. Waiting ${Math.ceil(wait / 1000)} seconds before reconnecting.`);
-            this.connectWithDelayWorker(wait + 1000); // try again after cooldown
+            this.connectWithDelayWorker(wait + 1000);
             return;
         }
 
@@ -390,13 +390,12 @@ export class TibberFeed extends EventEmitter {
                 return;
             }
 
-            // Only update retry state here, just before attempting connection
             this._lastRetry = Date.now();
 
             if (this._isUnauthenticated) {
                 this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
                 this.incrementFailedAttempts();
-                this.updateBackoff(); // <-- update backoff after failure
+                this.updateBackoff();
                 return;
             }
 
@@ -414,13 +413,19 @@ export class TibberFeed extends EventEmitter {
                         this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
                     } else if (error?.httpCode === 429 || error?.statusCode === 429) {
                         // Too many requests: set a long backoff (e.g., 10 minutes)
-                        this._retryBackoff = 10 * 60 * 1000 + this.getRandomInt(60 * 1000); // 10-11 min
-                        this.warn(`Received 429 Too Many Requests. Backing off for ${Math.round(this._retryBackoff / 1000)} seconds.`);
+                        const cooldown = 10 * 60 * 1000 + this.getRandomInt(60 * 1000); // 10-11 min
+                        this._rateLimitUntil = Date.now() + cooldown;
+                        this._retryBackoff = cooldown;
+                        this.warn(`Received 429 Too Many Requests. Backing off for ${Math.round(cooldown / 1000)} seconds.`);
+                        this.emit('rate_limited', { until: this._rateLimitUntil, cooldown });
+                        // Only schedule a reconnect after the cooldown, then return
+                        this.connectWithDelayWorker(cooldown + 1000);
+                        return;
                     } else {
                         this.error(`Error checking real-time consumption status.\n${JSON.stringify(error)}`);
                     }
                     this.incrementFailedAttempts();
-                    this.updateBackoff(error); // <-- update backoff after failure
+                    this.updateBackoff(error);
                     return;
                 }
             }
@@ -428,11 +433,10 @@ export class TibberFeed extends EventEmitter {
             if (!this._realTimeConsumptionEnabled) {
                 this.warn(`Unable to connect. Real Time Consumption is not enabled.`);
                 this.incrementFailedAttempts();
-                this.updateBackoff(); // <-- update backoff after failure
+                this.updateBackoff();
                 return;
             }
 
-            // Clear any existing timeouts
             this.cancelTimeout('connect');
             this.cancelTimeout('connection_timeout');
 
@@ -442,7 +446,6 @@ export class TibberFeed extends EventEmitter {
                 retryBackoff: this._retryBackoff
             });
 
-            // Setup connection timeout handler
             this.addTimeout('connection_timeout', () => {
                 this.error('Connection timeout');
                 this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
@@ -452,31 +455,30 @@ export class TibberFeed extends EventEmitter {
                 }
 
                 this.incrementFailedAttempts();
-                this.updateBackoff(); // <-- update backoff after failure
+                this.updateBackoff();
 
                 if (this._active) {
-                    this.connectWithDelayWorker();
+                    this.connectWithDelayWorker(this._retryBackoff);
                 }
             }, this._feedConnectionTimeout);
 
-            // Initiate WebSocket connection
             await this.internalConnect();
         } catch (error: any) {
             // Detect 429 Too Many Requests
             if (error?.httpCode === 429 || /429/.test(error?.message)) {
-                // Set a cooldown (use the backoff, or a minimum, e.g. 10 minutes)
                 const cooldown = Math.max(this._retryBackoff, 10 * 60 * 1000); // 10 minutes
                 this._rateLimitUntil = Date.now() + cooldown;
+                this._retryBackoff = cooldown;
                 this.warn(`Received 429 Too Many Requests. Backing off for ${Math.ceil(cooldown / 1000)} seconds.`);
                 this.emit('rate_limited', { until: this._rateLimitUntil, cooldown });
+                // Only schedule a reconnect after the cooldown, then return
                 this.connectWithDelayWorker(cooldown + 1000);
                 return;
             }
 
             this.error(error);
             this.incrementFailedAttempts();
-            this.updateBackoff(error); // <-- update backoff after failure
-            // Ensure reconnect is scheduled if not connected and still active
+            this.updateBackoff(error);
             if (!this._isConnected && this._active) {
                 this.connectWithDelayWorker(this._retryBackoff);
             }
@@ -833,7 +835,14 @@ export class TibberFeed extends EventEmitter {
     private handleConnectionError() {
         this.terminateConnection();
         if (this._active) {
-            this.connectWithDelayWorker(this._retryBackoff);
+            // Only schedule a reconnect if not in rate limit cooldown
+            if (Date.now() < this._rateLimitUntil) {
+                const wait = this._rateLimitUntil - Date.now();
+                this.warn(`Rate limited. Waiting ${Math.ceil(wait / 1000)} seconds before reconnecting.`);
+                this.connectWithDelayWorker(wait + 1000);
+            } else {
+                this.connectWithDelayWorker(this._retryBackoff);
+            }
         }
     }
 }
