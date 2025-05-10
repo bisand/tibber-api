@@ -35,6 +35,7 @@ export class TibberFeed extends EventEmitter {
 
     private _timeouts = new Map<string, NodeJS.Timeout>();
     private _lastConnectedAt: number;
+    private _rateLimitUntil: number = 0; // timestamp until which we should not reconnect
 
     /// <summary>
     ///     Number of timeouts that have been created.
@@ -373,8 +374,16 @@ export class TibberFeed extends EventEmitter {
      */
     private async connectWithTimeout(): Promise<void> {
         if (this._isConnecting || this._isConnected) return;
-        this._isConnecting = true;
 
+        // If we're in a rate limit cooldown, skip connection attempts
+        if (Date.now() < this._rateLimitUntil) {
+            const wait = this._rateLimitUntil - Date.now();
+            this.warn(`Rate limited. Waiting ${Math.ceil(wait / 1000)} seconds before reconnecting.`);
+            this.connectWithDelayWorker(wait + 1000); // try again after cooldown
+            return;
+        }
+
+        this._isConnecting = true;
         try {
             if (!this.canConnect) {
                 this.incrementFailedAttempts();
@@ -452,7 +461,18 @@ export class TibberFeed extends EventEmitter {
 
             // Initiate WebSocket connection
             await this.internalConnect();
-        } catch (error) {
+        } catch (error: any) {
+            // Detect 429 Too Many Requests
+            if (error?.httpCode === 429 || /429/.test(error?.message)) {
+                // Set a cooldown (use the backoff, or a minimum, e.g. 10 minutes)
+                const cooldown = Math.max(this._retryBackoff, 10 * 60 * 1000); // 10 minutes
+                this._rateLimitUntil = Date.now() + cooldown;
+                this.warn(`Received 429 Too Many Requests. Backing off for ${Math.ceil(cooldown / 1000)} seconds.`);
+                this.emit('rate_limited', { until: this._rateLimitUntil, cooldown });
+                this.connectWithDelayWorker(cooldown + 1000);
+                return;
+            }
+
             this.error(error);
             this.incrementFailedAttempts();
             this.updateBackoff(error); // <-- update backoff after failure
@@ -515,31 +535,32 @@ export class TibberFeed extends EventEmitter {
             } catch (e) { }
             this._webSocket = undefined as any;
         }
+        // Wait for rate limit cooldown if set
+        const now = Date.now();
+        const delay = this._rateLimitUntil > now ? this._rateLimitUntil - now : 5000;
         if (this._active) {
-            this.connectWithDelayWorker(5000); // Wait a bit before retrying
+            this.connectWithDelayWorker(delay);
         }
     }
 
     /**
      * Connect with a delay if the feed is still active.
      */
-    private connectWithDelayWorker(delay: number = 1000) {
+    private connectWithDelayWorker(delay?: number) {
         this.cancelTimeout('connect');
         if (!this._active) return;
 
         // Use the current backoff as the delay if not provided
-        const nextDelay = delay ?? this._retryBackoff;
+        const nextDelay = delay !== undefined ? delay : this._retryBackoff;
 
         this.addTimeout('connect', async () => {
             try {
-                // Only attempt to connect if allowed by backoff
                 if (this.canConnect) {
                     await this.connectWithTimeout();
                 }
             } catch (error) {
                 this.error(error);
             } finally {
-                // Only schedule next attempt if not connected and still active
                 if (!this._isConnected && this._active) {
                     this.connectWithDelayWorker(this._retryBackoff);
                 }
