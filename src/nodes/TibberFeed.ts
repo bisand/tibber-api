@@ -552,20 +552,25 @@ export class TibberFeed extends EventEmitter {
         this.cancelTimeout('connect');
         if (!this._active) return;
 
+        // Prevent overlapping connection attempts
+        if (this._isConnecting || this._isConnected) return;
+
         // Use the current backoff as the delay if not provided
         const nextDelay = delay !== undefined ? delay : this._retryBackoff;
 
         this.addTimeout('connect', async () => {
+            // Double-check before attempting to connect
+            if (this._isConnecting || this._isConnected) return;
             try {
                 if (this.canConnect) {
                     await this.connectWithTimeout();
                 }
             } catch (error) {
                 this.error(error);
-            } finally {
-                if (!this._isConnected && this._active) {
-                    this.connectWithDelayWorker(this._retryBackoff);
-                }
+            }
+            // Only schedule another reconnect if not connected and still active
+            if (!this._isConnected && this._active) {
+                this.connectWithDelayWorker(this._retryBackoff);
             }
         }, nextDelay);
     }
@@ -835,12 +840,12 @@ export class TibberFeed extends EventEmitter {
     private handleConnectionError() {
         this.terminateConnection();
         if (this._active) {
-            // Only schedule a reconnect if not in rate limit cooldown
             if (Date.now() < this._rateLimitUntil) {
                 const wait = this._rateLimitUntil - Date.now();
-                this.warn(`Rate limited. Waiting ${Math.ceil(wait / 1000)} seconds before reconnecting.`);
+                this.log(`Currently rate limited due to a previous 429 response. Waiting ${Math.ceil(wait / 1000)} seconds before next reconnect attempt.`);
                 this.connectWithDelayWorker(wait + 1000);
             } else {
+                this.updateBackoff();
                 this.connectWithDelayWorker(this._retryBackoff);
             }
         }
