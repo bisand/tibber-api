@@ -561,6 +561,8 @@ export class TibberFeed extends EventEmitter {
         const nextDelay = delay !== undefined ? delay : this._retryBackoff;
 
         this.addTimeout('connect', async () => {
+            if (this._isConnecting || this._isConnected) return;
+
             // Log the reason and delay for reconnect (now we know the context)
             if (reason) {
                 this.log(`Attempting reconnect after ${Math.ceil(nextDelay / 1000)} seconds due to: ${reason}`);
@@ -570,7 +572,6 @@ export class TibberFeed extends EventEmitter {
                 this.log(`Attempting initial connect after ${Math.ceil(nextDelay / 1000)} seconds (backoff: ${this._retryBackoff} ms)`);
             }
 
-            if (this._isConnecting || this._isConnected) return;
             try {
                 if (this.canConnect) {
                     await this.connectWithTimeout();
