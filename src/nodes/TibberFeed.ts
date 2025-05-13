@@ -551,25 +551,25 @@ export class TibberFeed extends EventEmitter {
     /**
      * Connect with a delay if the feed is still active.
      */
-    private connectWithDelayWorker(delay?: number, reason?: string) {
+    private connectWithDelayWorker(delay?: number, isRetry: boolean = false, reason?: string) {
         this.cancelTimeout('connect');
         if (!this._active) return;
 
         // Prevent overlapping connection attempts
         if (this._isConnecting || this._isConnected) return;
 
-        // Use the current backoff as the delay if not provided
         const nextDelay = delay !== undefined ? delay : this._retryBackoff;
 
-        // Log the reason and delay for reconnect
-        if (reason) {
-            this.log(`Scheduling reconnect in ${Math.ceil(nextDelay / 1000)} seconds due to: ${reason}`);
-        } else {
-            this.log(`Scheduling reconnect in ${Math.ceil(nextDelay / 1000)} seconds (backoff: ${this._retryBackoff} ms)`);
-        }
-
         this.addTimeout('connect', async () => {
-            // Double-check before attempting to connect
+            // Log the reason and delay for reconnect (now we know the context)
+            if (reason) {
+                this.log(`Attempting reconnect after ${Math.ceil(nextDelay / 1000)} seconds due to: ${reason}`);
+            } else if (isRetry) {
+                this.log(`Attempting reconnect after ${Math.ceil(nextDelay / 1000)} seconds due to: previous attempt failed`);
+            } else {
+                this.log(`Attempting initial connect after ${Math.ceil(nextDelay / 1000)} seconds (backoff: ${this._retryBackoff} ms)`);
+            }
+
             if (this._isConnecting || this._isConnected) return;
             try {
                 if (this.canConnect) {
@@ -581,7 +581,7 @@ export class TibberFeed extends EventEmitter {
             // Only schedule another reconnect if not connected and still active
             if (!this._isConnected && this._active) {
                 this.updateBackoff();
-                this.connectWithDelayWorker(this._retryBackoff, 'previous attempt failed');
+                this.connectWithDelayWorker(this._retryBackoff, true);
             }
         }, nextDelay);
     }
@@ -647,7 +647,7 @@ export class TibberFeed extends EventEmitter {
         this.emit('disconnected', 'Disconnected from Tibber feed.');
         if (this._active && this._autoReconnect) {
             this.updateBackoff();
-            this.connectWithDelayWorker(this._retryBackoff, 'auto-reconnect after disconnect');
+            this.connectWithDelayWorker(this._retryBackoff, true, 'auto-reconnect after disconnect');
         }
     }
 
