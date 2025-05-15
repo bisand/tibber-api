@@ -91,7 +91,7 @@ export class TibberFeed extends EventEmitter {
         this._lastRetry = 0;
         this._connectionAttempts = 0;
         this._backoffDelayBase = 1000; // 1 second
-        this._backoffDelayMax = 1000 * 60 * 60 * 1; // 1 hour
+        this._backoffDelayMax = 1000 * 60 * 10; // 10 minutes
         this._retryBackoff = 1000;
 
         this._timeoutCount = 0;
