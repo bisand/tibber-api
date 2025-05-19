@@ -110,21 +110,21 @@ export class TibberQueryBase {
                 const req = client(options, (res: IncomingMessage) => {
                     const chunks: Buffer[] = [];
 
-                    res.on('data', (chunk: Buffer) => {
+                    res?.on('data', (chunk: Buffer) => {
                         chunks.push(chunk);
                     });
 
-                    res.on('end', () => {
+                    res?.on('end', () => {
                         const body = Buffer.concat(chunks).toString('utf-8');
                         const parsed: any = this.JsonTryParse(body);
-                        const status = res.statusCode ?? 0;
+                        const status = res?.statusCode ?? 0;
 
                         if (status >= 200 && status < 300) {
                             resolve(parsed.data ?? parsed);
                         } else {
                             parsed.httpCode = status;
                             parsed.statusCode = res?.statusCode ?? 500;
-                            parsed.statusMessage = res && res.statusMessage ? res.statusMessage : 'No response received';
+                            parsed.statusMessage = res?.statusMessage ?? 'No response received';
                             if (!body) {
                                 parsed.message = 'Empty response from server';
                             }
