@@ -124,7 +124,7 @@ export class TibberQueryBase {
                         } else {
                             parsed.httpCode = status;
                             parsed.statusCode = res?.statusCode ?? 500;
-                            parsed.statusMessage = res?.statusMessage ?? 'No response received';
+                            parsed.statusMessage = res && res.statusMessage ? res.statusMessage : 'No response received';
                             if (!body) {
                                 parsed.message = 'Empty response from server';
                             }
