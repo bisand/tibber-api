@@ -123,8 +123,11 @@ export class TibberQueryBase {
                             resolve(parsed.data ?? parsed);
                         } else {
                             parsed.httpCode = status;
-                            parsed.statusCode = res?.statusCode;
-                            parsed.statusMessage = res.statusMessage;
+                            parsed.statusCode = res?.statusCode ?? 500;
+                            parsed.statusMessage = res?.statusMessage ?? 'No response received';
+                            if (!body) {
+                                parsed.message = 'Empty response from server';
+                            }
                             reject(parsed);
                         }
                     });

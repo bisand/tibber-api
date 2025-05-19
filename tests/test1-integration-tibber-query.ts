@@ -1,10 +1,5 @@
 /* eslint-env mocha */
 import { TibberQuery, IConfig } from '../src/index';
-import { EnergyResolution } from '../src/models/enums/EnergyResolution';
-import { IConsumption } from '../src/models/IConsumption';
-import { AppScreen } from '../src/models/enums/AppScreen';
-import { ISendPushNotification } from '../src/models/ISendPushNotification';
-import { UrlTools } from '../src/index';
 
 const config: IConfig = {
     active: false,
@@ -14,10 +9,10 @@ const config: IConfig = {
     },
 };
 
-let tibberQuery: TibberQuery;
+// let tibberQuery: TibberQuery;
 
 beforeAll(() => {
-    tibberQuery = new TibberQuery(config);
+    // tibberQuery = new TibberQuery(config);
 });
 
 afterAll(async () => {

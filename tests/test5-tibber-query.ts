@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 import { TibberQuery } from '../src/index'
 import nock from 'nock'
-import https from 'https'
 
 describe('Testing TibberQuery HTTP client', () => {
 

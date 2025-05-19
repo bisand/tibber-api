@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import * as url from 'url';
 import { IConfig, TibberFeed } from '../src/index';
-import WebSocket, { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { GQL } from '../src/nodes/models/GQL';
 import { TibberQueryBase } from '../src/nodes/TibberQueryBase';
 
