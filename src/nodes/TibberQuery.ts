@@ -61,7 +61,7 @@ export class TibberQuery extends TibberQueryBase {
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             return Object.assign([] as IHome[], result.viewer.homes);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -73,7 +73,7 @@ export class TibberQuery extends TibberQueryBase {
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             return Object.assign([] as IHome[], result.viewer.homes);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -111,7 +111,7 @@ export class TibberQuery extends TibberQueryBase {
             });
             return Object.assign([] as IPrice[], prices);
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -129,7 +129,7 @@ export class TibberQuery extends TibberQueryBase {
                 data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.today : {},
             );
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -147,7 +147,7 @@ export class TibberQuery extends TibberQueryBase {
                 data.currentSubscription && data.currentSubscription.priceInfo ? data.currentSubscription.priceInfo.tomorrow : {},
             );
         }
-        return result && result.error ? result : {};
+        return result && result.error ? result : [];
     }
 
     /**
@@ -166,12 +166,12 @@ export class TibberQuery extends TibberQueryBase {
                 const home: IHome = result.viewer.home;
                 return Object.assign([] as IConsumption[], home.consumption ? home.consumption.nodes : []);
             }
-            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+            return result && result.error ? result : [];
         } else {
             const result = await this.query(gqlHomesConsumption, variables);
             if (result && result.viewer && Array.isArray(result.viewer.homes)) {
                 const consumptions = result.viewer.homes.map((item: IHome) => {
-                    const nodes = item.consumption.nodes.map((node: IConsumption) => {
+                    const nodes = item.consumption?.nodes.map((node: IConsumption) => {
                         node.homeId = item.id;
                         return node;
                     });
@@ -179,7 +179,7 @@ export class TibberQuery extends TibberQueryBase {
                 });
                 return Object.assign([] as IConsumption[], consumptions);
             }
-            return result && result.error ? result : { error: 'An error occurred while loadnig consumption.' };
+            return result && result.error ? result : [];
         }
     }
 

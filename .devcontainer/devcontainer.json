@@ -22,7 +22,9 @@
 				"ms-vscode.vs-keybindings",
 				"dbaeumer.vscode-eslint",
 				"esbenp.prettier-vscode",
-				"Orta.vscode-jest"
+				"Orta.vscode-jest",
+				"Gruntfuggly.todo-tree",
+				"github.vscode-github-actions"
 			]
 		}
 	},

@@ -8,7 +8,7 @@ const config: IConfig = {
     // Endpoint configuration.
     active: true,
     apiEndpoint: {
-        apiKey: '5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE', // Demo token
+        apiKey: '3A77EECF61BD445F47241A5A36202185C35AF3AF58609E19B53F3A8872AD7BE1-1', // Demo token
         queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
     // Query configuration.

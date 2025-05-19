@@ -1,42 +1,46 @@
-import { IConfig } from '../models/IConfig';
-import * as url from 'url';
-import https, { RequestOptions } from 'https';
-import http, { IncomingMessage } from 'http';
-import { HttpMethod } from './models/HttpMethod';
-import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl';
-import { gqlHomeRealTime } from '../gql/home.gql';
-import { TimeoutError } from './models/TimeoutError';
-import { HeaderManager } from '../tools/HeaderManager';
+import { IConfig } from '../models/IConfig'
+import * as url from 'url'
+import { HttpMethod } from './models/HttpMethod'
+import { qglWebsocketSubscriptionUrl } from '../gql/websocketSubscriptionUrl'
+import { gqlHomeRealTime } from '../gql/home.gql'
+import { TimeoutError } from './models/TimeoutError'
+import { HeaderManager } from '../tools/HeaderManager'
+
+import { IncomingMessage, request as httpRequest } from 'http';
+import { request as httpsRequest } from 'https';
+import { parse as parseUrl } from 'url';
+import { RequestOptions } from 'http';
+import { TextEncoder } from 'util'; // available in Node 12+
 
 export class TibberQueryBase {
-    public active: boolean;
-    private _config: IConfig;
-    private _headerManager: HeaderManager;
+    public active: boolean
+    private _config: IConfig
+    private _headerManager: HeaderManager
 
-    private _requestTimeout: number;
+    private _requestTimeout: number
 
     public get requestTimeout(): number {
-        return this._requestTimeout;
+        return this._requestTimeout
     }
     public set requestTimeout(value: number) {
-        this._requestTimeout = value;
+        this._requestTimeout = value
     }
 
     public get config(): IConfig {
-        return this._config;
+        return this._config
     }
     public set config(value: IConfig) {
-        this._config = value;
+        this._config = value
     }
 
     /**
      *
      */
     constructor(config: IConfig, requestTimeout: number = 30000) {
-        this.active = false;
-        this._config = config;
-        this._headerManager = new HeaderManager(config);
-        this._requestTimeout = requestTimeout > 1000 ? requestTimeout : 1000;
+        this.active = false
+        this._config = config
+        this._headerManager = new HeaderManager(config)
+        this._requestTimeout = requestTimeout > 1000 ? requestTimeout : 1000
     }
 
     /**
@@ -49,20 +53,20 @@ export class TibberQueryBase {
         try {
             // check if the string exists
             if (input) {
-                const o = JSON.parse(input);
+                const o = JSON.parse(input)
 
                 // validate the result too
                 if (o && o.constructor === Object) {
-                    return o;
+                    return o
                 }
             }
         }
         catch (e: any) {
-            // TODO: Add logging.
+            // TODO - Add logging.
         }
 
-        return { responseMessage: input };
-    };
+        return { responseMessage: input }
+    }
 
     /**
      *
@@ -70,15 +74,13 @@ export class TibberQueryBase {
      * @param uri Uri to use
      * @returns An object containing request options
      */
-    protected getRequestOptions(method: HttpMethod, uri: url.UrlWithParsedQuery): RequestOptions {
+    protected getRequestOptions(method: HttpMethod, uri: url.UrlWithStringQuery): RequestOptions {
         return {
-            host: uri.host,
+            method,
+            hostname: uri.hostname,
             port: uri.port,
             path: uri.path,
-            protocol: uri.protocol,
-            method,
             headers: {
-                Connection: 'Keep-Alive',
                 Accept: 'application/json',
                 Host: uri.hostname as string,
                 'User-Agent': this._headerManager.userAgent,
@@ -95,49 +97,54 @@ export class TibberQueryBase {
      * @return Query result as JSON data
      */
     public async query(query: string, variables?: object): Promise<any> {
-        return await new Promise<any>((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             try {
-                const uri = url.parse(this._config.apiEndpoint.queryUrl, true);
-                const options: RequestOptions = this.getRequestOptions(HttpMethod.Post, uri);
-                const data = new TextEncoder().encode(
-                    JSON.stringify({
-                        query,
-                        variables,
-                    }),
-                );
+                const uri = parseUrl(this._config.apiEndpoint.queryUrl);
+                const isHttps = uri.protocol === 'https:';
+                const client = isHttps ? httpsRequest : httpRequest;
 
-                const client = (uri.protocol === "https:") ? https : http;
-                const req: http.ClientRequest = client.request(options, (res: IncomingMessage) => {
-                    let str: string = '';
-                    res.on('data', (chunk: string) => {
-                        str += chunk;
+                const payload = JSON.stringify({ query, variables });
+                const data = new TextEncoder().encode(payload);
+
+                const options: RequestOptions = this.getRequestOptions(HttpMethod.Post, uri);
+                const req = client(options, (res: IncomingMessage) => {
+                    const chunks: Buffer[] = [];
+
+                    res.on('data', (chunk: Buffer) => {
+                        chunks.push(chunk);
                     });
+
                     res.on('end', () => {
-                        const response: any = this.JsonTryParse(str);
-                        const statusCode: number = Number(res?.statusCode);
-                        if (statusCode >= 200 && statusCode < 300) {
-                            resolve(response.data ? response.data : response);
+                        const body = Buffer.concat(chunks).toString('utf-8');
+                        const parsed: any = this.JsonTryParse(body);
+                        const status = res.statusCode ?? 0;
+
+                        if (status >= 200 && status < 300) {
+                            resolve(parsed.data ?? parsed);
                         } else {
-                            response.httpCode = res?.statusCode;
-                            response.statusCode = res?.statusCode;
-                            response.statusMessage = res?.statusMessage;
-                            reject(response);
+                            parsed.httpCode = status;
+                            parsed.statusCode = res?.statusCode ?? 500;
+                            parsed.statusMessage = res?.statusMessage ?? 'No response received';
+                            if (!body) {
+                                parsed.message = 'Empty response from server';
+                            }
+                            reject(parsed);
                         }
-                        req.destroy();
                     });
                 });
-                req.on('error', (e: any) => {
-                    reject(e);
+
+                req.on('error', (err) => {
+                    reject(err);
                 });
+
                 req.setTimeout(this._requestTimeout, () => {
-                    req.destroy(new TimeoutError(`Request imeout for uri ${uri}`));
+                    req.destroy(new TimeoutError(`Request timeout for ${uri.href}`));
                 });
-                if (data) {
-                    req.write(data);
-                }
+
+                req.write(data);
                 req.end();
-            } catch (error) {
-                reject(error);
+            } catch (err) {
+                reject(err);
             }
         });
     }
@@ -148,11 +155,15 @@ export class TibberQueryBase {
      * @return IHome object
      */
     public async getWebsocketSubscriptionUrl(): Promise<url.URL> {
-        const result = await this.query(qglWebsocketSubscriptionUrl);
+        const result = await this.query(qglWebsocketSubscriptionUrl)
         if (result && result.viewer && result.viewer.websocketSubscriptionUrl) {
-            return new url.URL(result.viewer.websocketSubscriptionUrl);
+            return new url.URL(result.viewer.websocketSubscriptionUrl)
         }
-        return result && result.error ? result : {};
+        throw new Error(
+            result && result.error
+                ? `Failed to get websocket subscription URL: ${result.error}`
+                : 'Websocket subscription URL not found in response'
+        )
     }
 
     /**
@@ -161,8 +172,8 @@ export class TibberQueryBase {
      * @return IHome object
      */
     public async getRealTimeEnabled(homeId: string): Promise<boolean> {
-        const variables = { homeId };
-        const result = await this.query(gqlHomeRealTime, variables);
-        return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false;
+        const variables = { homeId }
+        const result = await this.query(gqlHomeRealTime, variables)
+        return result?.viewer?.home?.features?.realTimeConsumptionEnabled ?? false
     }
 }

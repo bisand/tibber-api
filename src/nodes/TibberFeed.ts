@@ -18,9 +18,6 @@ export class TibberFeed extends EventEmitter {
     private _gql: string;
     private _webSocket!: WebSocket;
     private _tibberQuery: TibberQueryBase;
-    private _timerHeartbeat: NodeJS.Timeout[];
-    private _timerConnect: NodeJS.Timeout[];
-    private _timerConnectionTimeout: NodeJS.Timeout[];
     private _isClosing: boolean;
     private _isUnauthenticated: boolean;
     private _headerManager: HeaderManager;
@@ -31,10 +28,34 @@ export class TibberFeed extends EventEmitter {
     private _backoffDelayBase: number;
     private _backoffDelayMax: number;
     private _realTimeConsumptionEnabled?: boolean | null;
-
+    private _failedAttempts: number = 0;
+    private _maxFailedConnectionAttempts: number;
     private _timeoutCount: number;
+    private _webSocketFactory: ((url: string, protocols: string[], options: any) => WebSocket) | undefined;
+
+    private _timeouts = new Map<string, NodeJS.Timeout>();
+    private _lastConnectedAt: number;
+    private _rateLimitUntil: number = 0; // timestamp until which we should not reconnect
+    private _autoReconnect: boolean = false;
+
+    /// <summary>
+    ///     Number of timeouts that have been created.
+    /// </summary>
     public get timeoutCount(): number {
         return this._timeoutCount;
+    }
+
+    /// <summary>
+    ///     The number of connection attempts that can be made before a hard reset is performed.
+    ///     This is used to prevent the feed from trying to connect indefinitely.
+    ///     The default value is 10.
+    ///     You can tune this value to your needs.
+    /// </summary>
+    public get maxFailedConnectionAttempts(): number {
+        return this._maxFailedConnectionAttempts;
+    }
+    public set maxFailedConnectionAttempts(value: number) {
+        this._maxFailedConnectionAttempts = value;
     }
 
     /**
@@ -46,22 +67,20 @@ export class TibberFeed extends EventEmitter {
      * @param {number} connectionTimeout Feed connection timeout.
      * @see {@linkcode TibberQueryBase}
      */
-    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields: boolean = false, connectionTimeout: number = 30000) {
+    constructor(tibberQuery: TibberQueryBase, timeout: number = 60000, returnAllFields: boolean = false, connectionTimeout: number = 30000, autoReconnect: boolean = false, webSocketFactory?: (url: string, protocols: string[], options: any) => WebSocket) {
         super();
 
         if (!tibberQuery || !(tibberQuery instanceof TibberQueryBase)) {
             throw new Error('Missing mandatory parameter [tibberQuery]');
         }
 
+        this._webSocketFactory = webSocketFactory;
         this._feedConnectionTimeout = connectionTimeout > 5000 ? connectionTimeout : 5000;
         this._feedIdleTimeout = timeout > 5000 ? timeout : 5000;
         this._tibberQuery = tibberQuery;
         this._config = tibberQuery.config;
         this._headerManager = new HeaderManager(this._config);
         this._active = this._config.active;
-        this._timerHeartbeat = [];
-        this._timerConnect = [];
-        this._timerConnectionTimeout = [];
         this._isConnected = false;
         this._isConnecting = false;
         this._isClosing = false;
@@ -72,10 +91,13 @@ export class TibberFeed extends EventEmitter {
         this._lastRetry = 0;
         this._connectionAttempts = 0;
         this._backoffDelayBase = 1000; // 1 second
-        this._backoffDelayMax = 1000 * 60 * 60 * 1; // 1 hour
+        this._backoffDelayMax = 1000 * 60 * 10; // 10 minutes
         this._retryBackoff = 1000;
 
         this._timeoutCount = 0;
+        this._maxFailedConnectionAttempts = 12;
+        this._lastConnectedAt = 0;
+        this._autoReconnect = autoReconnect;
 
         const { apiEndpoint, homeId } = this._config;
         if (!apiEndpoint || !apiEndpoint.apiKey || !homeId) {
@@ -229,15 +251,7 @@ export class TibberFeed extends EventEmitter {
     }
 
     private get canConnect(): boolean {
-        const result = Date.now() > (this._lastRetry + this._retryBackoff);
-        if (result) {
-            this._lastRetry = Date.now();
-            if (this._retryBackoff < this._backoffDelayMax)
-                this._connectionAttempts++;
-            this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
-        }
-        this.log(`Can connect: ${result}. Last retry: ${this._lastRetry}. With backoff for: ${this._retryBackoff} ms.`);
-        return result;
+        return Date.now() > (this._lastRetry + this._retryBackoff);
     }
 
     /**
@@ -259,9 +273,9 @@ export class TibberFeed extends EventEmitter {
      */
     public close() {
         this._isClosing = true;
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.cancelTimeouts(this._timerConnect);
-        this.cancelTimeouts(this._timerConnectionTimeout);
+        this.cancelTimeout('heartbeat');
+        this.cancelTimeout('connect');
+        this.cancelTimeout('connection_timeout');
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.closeConnection();
@@ -279,8 +293,8 @@ export class TibberFeed extends EventEmitter {
         if (this._isClosing)
             return;
 
-        this.cancelTimeouts(this._timerHeartbeat);
-        this.addTimeout(this._timerHeartbeat, () => {
+        this.cancelTimeout('heartbeat');
+        this.addTimeout('heartbeat', () => {
             if (this._webSocket) {
                 this.terminateConnection();
             }
@@ -288,7 +302,8 @@ export class TibberFeed extends EventEmitter {
             this.emit('heartbeat_timeout', { timeout: this._feedIdleTimeout });
             if (this._active) {
                 this.emit('heartbeat_reconnect', { connection_attempt: this._connectionAttempts, backoff: this._retryBackoff });
-                this.connectWithDelayWorker();
+                this.updateBackoff();
+                this.connectWithDelayWorker(this._retryBackoff);
             }
         }, this._feedIdleTimeout);
     }
@@ -330,31 +345,30 @@ export class TibberFeed extends EventEmitter {
     }
 
     /**
-     * Add a timeout to an array of timeouts.
-     * @param {NodeJS.Timeout[]} timers List og timeouts
-     * @param {void} callback Callback function to call when timeout is reached.
-     * @param {number} delayMs Delay in milliseconds before callback will be called.
+     * addTimeout
+     * Adds a timeout to the list of timeouts.
+     * @param {string} name Name of the timeout.
+     * @param {() => void} fn Function to call when timeout is reached.
+     * @param {number} ms Delay in milliseconds before callback will be called.
      */
-    private addTimeout(timers: NodeJS.Timeout[], callback: () => void, delayMs: number) {
-        this._timeoutCount++;
-        timers.push(setTimeout(callback, delayMs));
+    protected addTimeout(name: string, fn: () => void, ms: number): void {
+        const existing = this._timeouts.get(name);
+        if (existing) clearTimeout(existing);
+
+        const timeout = setTimeout(fn, ms);
+        this._timeouts.set(name, timeout);
     }
 
     /**
-     * Clear timeout for a timer.
-     * @param {NodeJS.Timeout[]} timers Timer handle to clear
+     * cancelTimeout
+     * Cancels a timeout with the specified name.
+     * @param name Name of the timeout to cancel.
      */
-    private cancelTimeouts(timers: NodeJS.Timeout[]) {
-        try {
-            while (timers.length) {
-                const timer = timers.pop();
-                if (timer) {
-                    this._timeoutCount--;
-                    clearTimeout(timer);
-                }
-            }
-        } catch (error) {
-            this.error(error);
+    protected cancelTimeout(name: string): void {
+        const timeout = this._timeouts.get(name);
+        if (timeout) {
+            clearTimeout(timeout);
+            this._timeouts.delete(name);
         }
     }
 
@@ -362,73 +376,215 @@ export class TibberFeed extends EventEmitter {
      * Connect to feed with built in delay, timeout and backoff.
      */
     private async connectWithTimeout(): Promise<void> {
-        if (this._isConnecting || this._isConnected) { return; }
+        if (this._isConnecting || this._isConnected) return;
+
+        // If we're in a rate limit cooldown, skip connection attempts
+        if (Date.now() < this._rateLimitUntil) {
+            const wait = this._rateLimitUntil - Date.now();
+            this.warn(`Rate limited. Waiting ${Math.ceil(wait / 1000)} seconds before reconnecting.`);
+            this.connectWithDelayWorker(wait + 1000);
+            return;
+        }
+
         this._isConnecting = true;
-
-        if (!this.canConnect) {
-            this._isConnecting = false;
-            return;
-        }
-
-        const unauthenticatedMessage = `Unauthenticated! Invalid token. Please provide a valid token and try again.`;
-        if (this._isUnauthenticated) {
-            this.error(unauthenticatedMessage);
-            this._isConnecting = false;
-            return;
-        }
-
-        if (this._realTimeConsumptionEnabled === null) {
-            try {
-                this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(this._config.homeId ?? '');
-            } catch (error: any) {
-                if (error?.httpCode === 400
-                    && Array.isArray(error?.errors)
-                    && error?.errors.find((x: any) => x?.extensions?.code === 'UNAUTHENTICATED')) {
-                    this._isUnauthenticated = true;
-                    this.error(unauthenticatedMessage);
-                } else {
-                    this.error(`An error ocurred while trying to check if real time consumption is enabled.\n${JSON.stringify(error)}`);
-                }
-                this._isConnecting = false;
+        try {
+            if (!this.canConnect) {
+                this.log(`Skipping connect attempt: waiting for backoff (retryBackoff: ${this._retryBackoff} ms, lastRetry: ${this._lastRetry})`);
                 return;
             }
-        } else if (!this._realTimeConsumptionEnabled) {
-            this.warn(`Unable to connect. Real Time Consumtion is not enabled.`);
+
+            this._lastRetry = Date.now();
+
+            if (this._isUnauthenticated) {
+                this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
+                return;
+            }
+
+            if (this._realTimeConsumptionEnabled === null) {
+                try {
+                    const homeId = this._config.homeId ?? '';
+                    this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(homeId);
+                } catch (error: any) {
+                    if (
+                        error?.httpCode === 400 &&
+                        Array.isArray(error?.errors) &&
+                        error.errors.some((x: any) => x?.extensions?.code === 'UNAUTHENTICATED')
+                    ) {
+                        this._isUnauthenticated = true;
+                        this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
+                    } else if (error?.httpCode === 429 || error?.statusCode === 429) {
+                        // Too many requests: set a long backoff (e.g., 10 minutes)
+                        const cooldown = 10 * 60 * 1000 + this.getRandomInt(60 * 1000); // 10-11 min
+                        this._rateLimitUntil = Date.now() + cooldown;
+                        this._retryBackoff = cooldown;
+                        this.warn(`Received 429 Too Many Requests. Backing off for ${Math.round(cooldown / 1000)} seconds.`);
+                        this.emit('rate_limited', { until: this._rateLimitUntil, cooldown });
+                        // Only schedule a reconnect after the cooldown, then return
+                        this.connectWithDelayWorker(cooldown + 1000);
+                        return;
+                    } else {
+                        this.error(`Error checking real-time consumption status.\n${JSON.stringify(error)}`);
+                    }
+                    this.incrementFailedAttempts();
+                    this.updateBackoff(error);
+                    return;
+                }
+            }
+
+            if (!this._realTimeConsumptionEnabled) {
+                this.warn(`Unable to connect. Real Time Consumption is not enabled.`);
+                this.incrementFailedAttempts();
+                this.updateBackoff();
+                return;
+            }
+
+            this.cancelTimeout('connect');
+            this.cancelTimeout('connection_timeout');
+
+            this.log('Connecting...');
+            this.emit('connecting', {
+                timeout: this._retryBackoff + this._backoffDelayBase,
+                retryBackoff: this._retryBackoff
+            });
+
+            this.addTimeout('connection_timeout', () => {
+                this.error('Connection timeout');
+                this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
+
+                if (this._webSocket) {
+                    this.terminateConnection();
+                }
+
+                this.incrementFailedAttempts();
+                this.updateBackoff();
+
+                if (this._active) {
+                    this.connectWithDelayWorker(this._retryBackoff);
+                }
+            }, this._feedConnectionTimeout);
+
+            await this.internalConnect();
+        } catch (error: any) {
+            // Detect 429 Too Many Requests
+            if (error?.httpCode === 429 || /429/.test(error?.message)) {
+                const cooldown = Math.max(this._retryBackoff, 10 * 60 * 1000); // 10 minutes
+                this._rateLimitUntil = Date.now() + cooldown;
+                this._retryBackoff = cooldown;
+                this.warn(`Received 429 Too Many Requests. Backing off for ${Math.ceil(cooldown / 1000)} seconds.`);
+                this.emit('rate_limited', { until: this._rateLimitUntil, cooldown });
+                // Only schedule a reconnect after the cooldown, then return
+                this.connectWithDelayWorker(cooldown + 1000);
+                return;
+            }
+
+            this.error(error);
+            this.incrementFailedAttempts();
+            this.updateBackoff(error);
+            if (!this._isConnected && this._active) {
+                this.updateBackoff();
+                this.connectWithDelayWorker(this._retryBackoff);
+            }
+        } finally {
+            this._isConnecting = false;
+        }
+    }
+
+    private updateBackoff(error?: any) {
+        // If 429, don't increase attempts, just use the long backoff already set
+        if (error?.httpCode === 429 || error?.statusCode === 429) {
             return;
         }
+        if (this._retryBackoff < this._backoffDelayMax) {
+            this._connectionAttempts++;
+        }
+        this._retryBackoff = this.getBackoffWithJitter(this._connectionAttempts);
+    }
 
-        this.cancelTimeouts(this._timerConnect);
-        this.cancelTimeouts(this._timerConnectionTimeout);
-        this.log('Connecting...');
-        this.emit('connecting', { timeout: this._retryBackoff + this._backoffDelayBase, retryBackoff: this._retryBackoff });
-        // Set connection timeout.
-        this.addTimeout(this._timerConnectionTimeout, () => {
-            this.error('Connection timeout');
-            this.emit('connection_timeout', { timeout: this._feedConnectionTimeout });
-            if (this._webSocket)
-                this.terminateConnection();
-            if (this._active)
-                this.connectWithDelayWorker();
-        }, this._feedConnectionTimeout);
-        // Perform connection.
-        await this.internalConnect();
+    private incrementFailedAttempts() {
+        const now = Date.now();
+        const STABLE_CONNECTION_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+        if (now - this._lastConnectedAt > STABLE_CONNECTION_THRESHOLD) {
+            // Connection was stable, reset backoff
+            this._connectionAttempts = 0;
+            this._retryBackoff = this._backoffDelayBase;
+        }
+        this._failedAttempts++;
+        if (this._failedAttempts >= this._maxFailedConnectionAttempts) {
+            this.warn(`Max failed attempts (${this._maxFailedConnectionAttempts}) reached. Performing hard reset.`);
+            this.hardReset();
+        }
+    }
+
+    private resetFailedAttempts() {
+        this._failedAttempts = 0;
+    }
+
+    private hardReset() {
+        this.log('Performing hard reset of TibberFeed...');
+        this._isConnecting = false;
+        this._isConnected = false;
+        this._isClosing = false;
+        this._isUnauthenticated = false;
+        this._realTimeConsumptionEnabled = null;
+        this._connectionAttempts = 0;
+        this._retryBackoff = this._backoffDelayBase;
+        this._lastRetry = 0;
+        this.resetFailedAttempts();
+        this.cancelTimeout('heartbeat');
+        this.cancelTimeout('connect');
+        this.cancelTimeout('connection_timeout');
+        if (this._webSocket) {
+            try {
+                this._webSocket.terminate();
+            } catch (e) { }
+            this._webSocket = undefined as any;
+        }
+        // Wait for rate limit cooldown if set
+        const now = Date.now();
+        const delay = this._rateLimitUntil > now ? this._rateLimitUntil - now : 5000;
+        if (this._active) {
+            this.updateBackoff();
+            this.connectWithDelayWorker(delay);
+        }
     }
 
     /**
      * Connect with a delay if the feed is still active.
      */
-    private connectWithDelayWorker(delay: number = 1000) {
-        this.cancelTimeouts(this._timerConnect);
-        if (this._active) {
-            this.addTimeout(this._timerConnect, () => {
-                try {
-                    this.connectWithTimeout();
-                } catch (error) {
-                    this.error(error);
+    private connectWithDelayWorker(delay?: number, isRetry: boolean = false, reason?: string) {
+        this.cancelTimeout('connect');
+        if (!this._active) return;
+
+        // Prevent overlapping connection attempts
+        if (this._isConnecting || this._isConnected) return;
+
+        const nextDelay = delay !== undefined ? delay : this._retryBackoff;
+
+        this.addTimeout('connect', async () => {
+            if (this._isConnecting || this._isConnected) return;
+
+            // Log the reason and delay for reconnect (now we know the context)
+            if (reason) {
+                this.log(`Attempting reconnect after ${Math.ceil(nextDelay / 1000)} seconds due to: ${reason}`);
+            } else if (isRetry) {
+                this.log(`Attempting reconnect after ${Math.ceil(nextDelay / 1000)} seconds due to: previous attempt failed`);
+            } else {
+                this.log(`Attempting initial connect after ${Math.ceil(nextDelay / 1000)} seconds (backoff: ${this._retryBackoff} ms)`);
+            }
+
+            try {
+                if (this.canConnect) {
+                    await this.connectWithTimeout();
                 }
-                this.connectWithDelayWorker();
-            }, delay);
-        }
+            } catch (error) {
+                this.error(error);
+            }
+            // Only schedule another reconnect if not connected and still active
+            if (!this._isConnected && this._active) {
+                this.updateBackoff();
+                this.connectWithDelayWorker(this._retryBackoff, true);
+            }
+        }, nextDelay);
     }
 
     /**
@@ -437,8 +593,9 @@ export class TibberFeed extends EventEmitter {
     private async internalConnect(): Promise<void> {
         const { apiEndpoint } = this._config;
         if (!apiEndpoint || !apiEndpoint.apiKey) {
-            this.error('Missing mandatory parameters: apiEndpoint or apiKey. Execution will halt.');
-            throw new Error('Missing mandatory parameters: apiEndpoint or apiKey.');
+            const msg = 'Missing mandatory parameters: apiEndpoint or apiKey. Execution will halt.';
+            this.error(msg);
+            throw new Error(msg);
         }
 
         try {
@@ -448,18 +605,27 @@ export class TibberFeed extends EventEmitter {
                     'Authorization': `Bearer ${apiEndpoint.apiKey}`,
                     'User-Agent': this._headerManager.userAgent,
                 }
-            }
-            this._webSocket = new WebSocket(url.href, ['graphql-transport-ws'], options);
-            this._webSocket.onopen = this.onWebSocketOpen.bind(this);
-            this._webSocket.onmessage = this.onWebSocketMessage.bind(this);
-            this._webSocket.onclose = this.onWebSocketClose.bind(this);
-            this._webSocket.onerror = this.onWebSocketError.bind(this);
-        } catch (reason) {
-            this.error(reason);
-        } finally {
-            this._isConnecting = false
-        };
+            };
+
+            const ws = this._webSocketFactory
+                ? this._webSocketFactory(url.href, ['graphql-transport-ws'], options)
+                : new WebSocket(url.href, ['graphql-transport-ws'], options);
+
+            this.attachWebSocketHandlers(ws);
+            this._webSocket = ws;
+        } catch (error) {
+            this.error(error);
+            throw error;
+        }
     }
+
+    private attachWebSocketHandlers(ws: WebSocket): void {
+        ws.onopen = this.onWebSocketOpen.bind(this);
+        ws.onmessage = this.onWebSocketMessage.bind(this);
+        ws.onclose = this.onWebSocketClose.bind(this);
+        ws.onerror = this.onWebSocketError.bind(this);
+    }
+
 
     /**
      * Event: onWebSocketOpen
@@ -480,6 +646,10 @@ export class TibberFeed extends EventEmitter {
     private onWebSocketClose(event: WebSocket.CloseEvent) {
         this._isConnected = false;
         this.emit('disconnected', 'Disconnected from Tibber feed.');
+        if (this._active && this._autoReconnect) {
+            this.updateBackoff();
+            this.connectWithDelayWorker(this._retryBackoff, true, 'auto-reconnect after disconnect');
+        }
     }
 
     /**
@@ -493,11 +663,14 @@ export class TibberFeed extends EventEmitter {
             switch (msg.type) {
                 case GQL.CONNECTION_ERROR:
                     this.error(`A connection error occurred: ${JSON.stringify(msg)}`);
-                    this.close();
+                    // this.close();
+                    this.handleConnectionError();
                     break;
                 case GQL.CONNECTION_ACK:
                     this._isConnected = true;
-                    this.cancelTimeouts(this._timerConnectionTimeout);
+                    this._lastConnectedAt = Date.now(); // Track when we last connected
+                    this.resetFailedAttempts();
+                    this.cancelTimeout('connection_timeout');
                     this.startSubscription(this._gql, { homeId: this._config.homeId });
                     this.heartbeat();
                     this.emit('connected', 'Connected to Tibber feed.');
@@ -508,7 +681,6 @@ export class TibberFeed extends EventEmitter {
                         this.emit('error', msg.payload.errors);
                     }
                     if (Number(msg.id) !== this._operationId) {
-                        // this.log(`Message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                         return;
                     }
                     if (!msg.payload || !msg.payload.data) {
@@ -524,13 +696,13 @@ export class TibberFeed extends EventEmitter {
                     break;
                 case GQL.COMPLETE:
                     if (Number(msg.id) !== this._operationId) {
-                        // this.log(`Complete message contains unexpected id and will be ignored.\n${JSON.stringify(msg)}`);
                         return;
                     }
                     this.log('Received complete message. Closing connection.');
                     this.close();
-                    this.cancelTimeouts(this._timerConnect);
+                    this.cancelTimeout('connect');
                     const delay = this.getRandomInt(60000);
+                    this.updateBackoff();
                     this.connectWithDelayWorker(delay);
                     break;
 
@@ -547,8 +719,23 @@ export class TibberFeed extends EventEmitter {
      * @param {WebSocket.ErrorEvent} event Error event
      */
     private onWebSocketError(event: WebSocket.ErrorEvent) {
-        this.error(`An error occurred: ${JSON.stringify(event)}`);
-        this.close();
+        let errorMsg = 'An error occurred';
+        if (event && typeof event === 'object') {
+            if ('message' in event && event.message) {
+                errorMsg += `: ${event.message}`;
+            } else if ('error' in event && event.error) {
+                errorMsg += `: ${event.error}`;
+            } else if (Object.keys(event).length > 0) {
+                errorMsg += `: ${JSON.stringify(event)}`;
+            } else {
+                errorMsg += ': [unknown websocket error]';
+            }
+        }
+        this.error(errorMsg);
+
+        if (!this._isClosing) {
+            this.handleConnectionError();
+        }
     }
 
     /**
@@ -664,6 +851,20 @@ export class TibberFeed extends EventEmitter {
             this.emit('error', message);
         } catch (error) {
             // console.error(error);
+        }
+    }
+
+    private handleConnectionError() {
+        this.terminateConnection();
+        if (this._active) {
+            if (Date.now() < this._rateLimitUntil) {
+                const wait = this._rateLimitUntil - Date.now();
+                this.log(`Currently rate limited due to a previous 429 response. Waiting ${Math.ceil(wait / 1000)} seconds before next reconnect attempt.`);
+                this.connectWithDelayWorker(wait + 1000);
+            } else {
+                this.updateBackoff();
+                this.connectWithDelayWorker(this._retryBackoff);
+            }
         }
     }
 }
