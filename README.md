@@ -11,7 +11,7 @@ Node.js module for querying data and integrating with Tibber Pulse through Tibbe
 This Node.js module is used for communication with [Tibber API](https://developer.tibber.com/) through [GraphQL](https://developer.tibber.com/docs/overview) queries and for retrieving data from Tibber Pulse via websocket.
 [Tibber](https://tibber.com) is a norwegian technology focused power company which is providing tools to get more insight and controll over your home and its power consumption.
 
-> **Note** 
+> **Note**
 >
 > **`Breaking changes!`**
 >
@@ -307,9 +307,10 @@ getCurrentEnergyPrices(): Promise<IHome[]>
 /**
  * Get energy prices for today.
  * @param homeId Tibber home ID
+ * @param resolution Can either be "HOURLY" or "QUARTER_HOURLY"
  * @return Array of IPrice
  */
-getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
+getTodaysEnergyPrices(homeId: string, resolution: string): Promise<IPrice[]>
 ```
 
 > Get NorPool energy prices for today for selected home.
@@ -320,9 +321,10 @@ getTodaysEnergyPrices(homeId: string): Promise<IPrice[]>
 /**
  * Get energy prices for tomorrow. These will only be available between 12:00 and 23:59
  * @param homeId Tibber home ID
+ * @param resolution Can either be "HOURLY" or "QUARTER_HOURLY"
  * @return Array of IPrice
  */
-getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]>
+getTomorrowsEnergyPrices(homeId: string, resolution: string): Promise<IPrice[]>
 ```
 
 > Get NorPool energy prices for tomorrow for selected home. This will only return data between 12:00 and 23:59

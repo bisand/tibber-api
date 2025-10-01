@@ -2,6 +2,7 @@ import { IConfig } from '../models/IConfig';
 import { IHome } from '../models/IHome';
 import { IPrice } from '../models/IPrice';
 import { EnergyResolution } from '../models/enums/EnergyResolution';
+import { PriceResolution } from '../models/enums/PriceResolution';
 import { IConsumption } from '../models/IConsumption';
 import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
@@ -117,10 +118,11 @@ export class TibberQuery extends TibberQueryBase {
     /**
      * Get energy prices for today.
      * @param homeId Tibber home ID
+     * @param resolution Either HOURLY or QUARTER_HOURLY
      * @return Array of IPrice
      */
-    public async getTodaysEnergyPrices(homeId: string): Promise<IPrice[]> {
-        const variables = { homeId };
+    public async getTodaysEnergyPrices(homeId: string, resolution: string = PriceResolution.HOURLY): Promise<IPrice[]> {
+        const variables = { homeId, resolution };
         const result = await this.query(gqlTodaysEnergyPrices, variables);
         if (result && result.viewer && result.viewer.home) {
             const data: IHome = result.viewer.home;
@@ -135,10 +137,11 @@ export class TibberQuery extends TibberQueryBase {
     /**
      * Get energy prices for tomorrow. These will only be available between 12:00 and 23:59
      * @param homeId Tibber home ID
+     * @param resolution Either HOURLY or QUARTER_HOURLY
      * @return Array of IPrice
      */
-    public async getTomorrowsEnergyPrices(homeId: string): Promise<IPrice[]> {
-        const variables = { homeId };
+    public async getTomorrowsEnergyPrices(homeId: string, resolution: string = PriceResolution.HOURLY): Promise<IPrice[]> {
+        const variables = { homeId, resolution };
         const result = await this.query(gqlTomorrowsEnergyPrices, variables);
         if (result && result.viewer && result.viewer.home) {
             const data: IHome = result.viewer.home;
