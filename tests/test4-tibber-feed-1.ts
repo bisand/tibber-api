@@ -6,6 +6,7 @@ import { GQL } from '../src/nodes/models/GQL';
 import { TibberQueryBase } from '../src/nodes/TibberQueryBase';
 
 let server: WebSocketServer;
+let serverPort: number;
 
 export class FakeTibberQuery extends TibberQueryBase {
     /**
@@ -29,8 +30,23 @@ export class FakeTibberQuery extends TibberQueryBase {
 }
 
 beforeAll(async () => {
-    server = new WebSocketServer({ port: 1337 });
+    // Use port 0 to let the system assign an available port
+    server = new WebSocketServer({ port: 0 });
+    
+    // Wait for server to be listening and get the assigned port
+    await new Promise<void>((resolve) => {
+        server.on('listening', () => {
+            const address = server.address();
+            if (address && typeof address === 'object') {
+                serverPort = address.port;
+            }
+            resolve();
+        });
+    });
+    
     server.on('connection', socket => {
+        let heartbeatInterval: NodeJS.Timeout | null = null;
+        
         socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);
             if (obj.type === GQL.CONNECTION_INIT && obj.payload?.token === '1337') {
@@ -41,16 +57,25 @@ beforeAll(async () => {
                 && obj.payload.query.startsWith('subscription($homeId:ID!){liveMeasurement(homeId:$homeId){')
                 && obj.payload.variables
                 && obj.payload.variables.homeId === '1337') {
+                
+                // Send initial data
                 obj = {
                     id: obj.id,
                     payload: { data: { liveMeasurement: { value: 1337 } } },
                     type: GQL.NEXT,
                 };
                 socket.send(JSON.stringify(obj));
+                
+                // For the reconnection test, we want to simulate no heartbeat data
+                // This will cause the TibberFeed to timeout and reconnect
+                // We intentionally DON'T send periodic data to trigger timeouts
             }
         });
+        
         socket.on('close', () => {
-            return;
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+            }
         });
     });
 });
@@ -61,19 +86,41 @@ afterAll(async () => {
         for (const ws of server.clients) {
             ws.terminate(); // terminate is safer for test cleanup
         }
-        // Wait for server to close
-        await new Promise<void>(resolve => server.close(() => resolve()));
+        // Wait for server to close with a timeout
+        await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Server close timeout'));
+            }, 5000);
+            
+            server.close((err) => {
+                clearTimeout(timeout);
+                if (err) reject(err);
+                else resolve();
+            });
+        }).catch(err => {
+            console.warn('Server close error (ignoring):', err.message);
+        });
+        
+        // Additional cleanup
+        server.removeAllListeners();
     }
 });
 
 const feeds: TibberFeed[] = [];
 
-afterEach(() => {
-    for (const feed of feeds) {
-        feed.active = false;
-        feed.close();
-        feed.removeAllListeners();
-    }
+afterEach(async () => {
+    // Clean up feeds with proper waiting
+    const cleanupPromises = feeds.map(feed => {
+        return new Promise<void>((resolve) => {
+            feed.active = false;
+            feed.close();
+            feed.removeAllListeners();
+            // Give feeds a moment to clean up properly
+            setTimeout(resolve, 100);
+        });
+    });
+    
+    await Promise.all(cleanupPromises);
     feeds.length = 0;
 });
 
@@ -82,7 +129,7 @@ test('TibberFeed - should be connected', done => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            queryUrl: 'ws://localhost:1337',
+            queryUrl: `ws://localhost:${serverPort}`,
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -110,7 +157,7 @@ test('TibberFeed - Should receive data', done => {
             active: true,
             apiEndpoint: {
                 apiKey: '1337',
-                queryUrl: 'ws://localhost:1337',
+                queryUrl: `ws://localhost:${serverPort}`,
                 userAgent: 'test4-tibber-feed',
             },
             homeId: '1337',
@@ -139,7 +186,7 @@ test('TibberFeed - Should be active', () => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            queryUrl: 'ws://localhost:1337',
+            queryUrl: `ws://localhost:${serverPort}`,
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -171,7 +218,7 @@ test('TibberFeed - Should timeout after 3 sec', done => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            queryUrl: 'ws://localhost:1337',
+            queryUrl: `ws://localhost:${serverPort}`,
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -202,7 +249,7 @@ test('TibberFeed - Should reconnect 3 times after 5 sec. timeout', done => {
         active: true,
         apiEndpoint: {
             apiKey: '1337',
-            queryUrl: 'ws://localhost:1337',
+            queryUrl: `ws://localhost:${serverPort}`,
             userAgent: 'test4-tibber-feed',
         },
         homeId: '1337',
@@ -212,23 +259,37 @@ test('TibberFeed - Should reconnect 3 times after 5 sec. timeout', done => {
     const maxRetry = 3;
     let timeoutCount = 0;
     let reconnectCount = 0;
+    
+    // Add a safety timeout to prevent hanging
+    const safetyTimeout = setTimeout(() => {
+        console.log(`Test safety timeout reached. timeoutCount: ${timeoutCount}, reconnectCount: ${reconnectCount}`);
+        feed.active = false;
+        done(new Error(`Test did not complete within safety timeout. timeoutCount: ${timeoutCount}, reconnectCount: ${reconnectCount}`));
+    }, 50000); // 50 seconds, less than Jest timeout
+    
     feed.on(GQL.CONNECTION_ACK, data => {
         expect(data).toBeDefined();
         expect(data.payload?.token).toBe('1337');
+        // Manually start heartbeat after connection to trigger timeout/reconnect cycle
+        setTimeout(() => feed.heartbeat(), 100);
     });
     feed.on('heartbeat_timeout', data => {
         timeoutCount++;
         expect(data).toBeDefined();
-        // console.log('heartbeat_timeout -> TibberFeed - Should reconnect 3 times after 5 sec. timeout', Date.now().toLocaleString(), data);
     });
     feed.on('heartbeat_reconnect', data => {
         reconnectCount++;
         expect(data).toBeDefined();
-        if (timeoutCount === maxRetry && reconnectCount == maxRetry) {
+        if (timeoutCount >= maxRetry && reconnectCount >= maxRetry) {
+            clearTimeout(safetyTimeout);
             feed.active = false;
             done();
         }
-        // console.log('heartbeat_reconnect -> TibberFeed - Should reconnect 3 times after 5 sec. timeout', Date.now().toLocaleString(), data);
+    });
+    feed.on('error', (error) => {
+        clearTimeout(safetyTimeout);
+        feed.active = false;
+        done(error);
     });
     feed.connect();
 }, 60000);

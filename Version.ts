@@ -3,7 +3,16 @@ export const versionMajor = 5;
 export const versionMinor = 5;
 export const versionPatch = 0;
 export const versionPrerelease = [];
-export const release = "5.5.0+20251002192916";
-export const gitSha = "3ff6da790a652227ae9b6d70e0d285235dd3bacb";
-export const gitDate = new Date(1759433356000);
-export default {version,versionMajor,versionMinor,versionPatch,versionPrerelease,release,gitSha,gitDate};
+export const release = "5.5.0+20251002193546";
+export const gitSha = "b8011e633b7fa020394ceca95b43d118b0dbd2d4";
+export const gitDate = new Date(1759433746000);
+export default {
+  version,
+  versionMajor,
+  versionMinor,
+  versionPatch,
+  versionPrerelease,
+  release,
+  gitSha,
+  gitDate,
+};
