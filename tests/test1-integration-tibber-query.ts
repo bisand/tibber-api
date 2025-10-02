@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 import { TibberQuery, IConfig } from '../src/index';
+import { PriceResolution } from '../src/models/enums/PriceResolution';
 
 const config: IConfig = {
     active: false,
@@ -9,10 +10,10 @@ const config: IConfig = {
     },
 };
 
-// let tibberQuery: TibberQuery;
+let tibberQuery: TibberQuery;
 
 beforeAll(() => {
-    // tibberQuery = new TibberQuery(config);
+    tibberQuery = new TibberQuery(config);
 });
 
 afterAll(async () => {
@@ -103,24 +104,47 @@ test('TibberQuery - Should be created', () => {
 //     });
 // }, 30000);
 
-// test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
-//     const prices = await tibberQuery.getTodaysEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
-//     expect(prices).toBeDefined();
-//     expect(prices.length).toBeGreaterThan(0);
-//     prices.forEach((price) => {
-//         expect(price.total).toBeGreaterThan(0);
-//     });
-// }, 30000);
+test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getTodaysEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    expect(prices.length).toBe(24);
+    prices.forEach((price) => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+}, 30000);
 
-// test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
-//     const prices = await tibberQuery.getTomorrowsEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
-//     expect(prices).toBeDefined();
-//     if (prices.length) {
-//         prices.forEach((price) => {
-//             expect(price.total).toBeGreaterThan(0);
-//         });
-//     }
-// }, 30000);
+test('TibberQuery.getTodaysEnergyPrices() should be valid for 15 min intervals', async () => {
+    const prices = await tibberQuery.getTodaysEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff', PriceResolution.QUARTER_HOURLY);
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    expect(prices.length).toBe(96);
+    prices.forEach((price) => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+}, 30000);
+
+test('TibberQuery.getTomorrowsEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getTomorrowsEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
+    expect(prices).toBeDefined();
+    if (prices.length) {
+    expect(prices.length).toBe(24);
+        prices.forEach((price) => {
+            expect(price.total).toBeGreaterThan(0);
+        });
+    }
+}, 30000);
+
+test('TibberQuery.getTomorrowsEnergyPrices() should be valid for 15 min intervals', async () => {
+    const prices = await tibberQuery.getTomorrowsEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff', PriceResolution.QUARTER_HOURLY);
+    expect(prices).toBeDefined();
+    if (prices.length) {
+        expect(prices.length).toBe(96);
+        prices.forEach((price) => {
+            expect(price.total).toBeGreaterThan(0);
+        });
+    }
+}, 30000);
 
 // test('TibberQuery.sendPushNotification() should return error when using demo user', async () => {
 //     const message = 'TEST_MESSAGE';

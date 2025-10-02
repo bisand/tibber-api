@@ -51,7 +51,7 @@ query getCurrentEnergyPrice($homeId:ID!) {
 `;
 
 export const gqlTodaysEnergyPrices = `
-query getTodaysEnergyPrices($homeId:ID!) {
+query getTodaysEnergyPrices($homeId:ID!, $resolution:PriceInfoResolution = HOURLY) {
   viewer {
     home(id:$homeId) {
       id
@@ -60,7 +60,7 @@ query getTodaysEnergyPrices($homeId:ID!) {
         validFrom
         validTo
         status
-        priceInfo {
+        priceInfo(resolution:$resolution) {
           today {
             total
             energy
@@ -77,7 +77,7 @@ query getTodaysEnergyPrices($homeId:ID!) {
 `;
 
 export const gqlTomorrowsEnergyPrices = `
-query getTomorrowsEnergyPrices($homeId:ID!) {
+query getTomorrowsEnergyPrices($homeId:ID!, $resolution:PriceInfoResolution = HOURLY) {
   viewer {
     home(id:$homeId) {
       id
@@ -86,7 +86,7 @@ query getTomorrowsEnergyPrices($homeId:ID!) {
         validFrom
         validTo
         status
-        priceInfo {
+        priceInfo(resolution:$resolution) {
           tomorrow {
             total
             energy
