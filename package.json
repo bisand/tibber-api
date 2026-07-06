@@ -1,6 +1,6 @@
 {
   "name": "tibber-api",
-  "version": "5.5.2",
+  "version": "5.6.0",
   "description": "Node.js module for connecting to Tibber API and extract data from your connected homes, including realtime data from Tibber Pulse.",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -26,24 +26,24 @@
     "url": "git+https://github.com/bisand/tibber-api.git"
   },
   "dependencies": {
-    "ws": "^8.18.3"
+    "ws": "^8.21.0"
   },
   "devDependencies": {
-    "@jest/test-sequencer": "^30.2.0",
+    "@jest/test-sequencer": "^30.4.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.15.1",
+    "@types/node": "^26.1.0",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
-    "@typescript-eslint/parser": "^8.45.0",
-    "eslint": "^9.36.0",
-    "jest": "^30.2.0",
-    "jsdoc": "^4.0.4",
-    "jsdoc-to-markdown": "^9.1.2",
-    "mkver": "^4.3.0",
-    "nock": "^14.0.10",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.4.4",
-    "typescript": "^5.9.3",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
+    "eslint": "^10.6.0",
+    "jest": "^30.4.2",
+    "jsdoc": "^4.0.5",
+    "jsdoc-to-markdown": "^9.1.3",
+    "mkver": "^5.0.1",
+    "nock": "^14.0.16",
+    "prettier": "^3.9.4",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3",
     "websocket": "^1.0.35"
   },
   "directories": {
@@ -60,6 +60,9 @@
   ],
   "author": "André Biseth",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "bugs": {
     "url": "https://github.com/bisand/tibber-api/issues"
   },

@@ -104,6 +104,22 @@ test('TibberQuery - Should be created', () => {
 //     });
 // }, 30000);
 
+test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
+    const price = await tibberQuery.getCurrentEnergyPrice('96a14971-525a-4420-aae9-e5aedaa129ff');
+    expect(price).toBeDefined();
+    expect(price.total).toBeGreaterThan(0);
+    expect(price.startsAt).toBeDefined();
+    expect(new Date(String(price.startsAt)).getMinutes()).toBe(0);
+}, 30000);
+
+test('TibberQuery.getCurrentEnergyPrice() should be valid for 15 min intervals', async () => {
+    const price = await tibberQuery.getCurrentEnergyPrice('96a14971-525a-4420-aae9-e5aedaa129ff', PriceResolution.QUARTER_HOURLY);
+    expect(price).toBeDefined();
+    expect(price.total).toBeGreaterThan(0);
+    expect(price.startsAt).toBeDefined();
+    expect(new Date(String(price.startsAt)).getMinutes() % 15).toBe(0);
+}, 30000);
+
 test('TibberQuery.getTodaysEnergyPrices() should be valid', async () => {
     const prices = await tibberQuery.getTodaysEnergyPrices('96a14971-525a-4420-aae9-e5aedaa129ff');
     expect(prices).toBeDefined();
