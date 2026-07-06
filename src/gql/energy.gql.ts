@@ -1,5 +1,5 @@
 export const gqlCurrentEnergyPrices = `
-query getCurrentEnergyPrice {
+query getCurrentEnergyPrices($resolution:PriceInfoResolution = HOURLY) {
   viewer {
     homes {
       id
@@ -8,14 +8,14 @@ query getCurrentEnergyPrice {
         validFrom
         validTo
         status
-        priceInfo{
+        priceInfo(resolution:$resolution) {
           current{
             total
             energy
             tax
             startsAt
             currency
-            level            
+            level
           }
         }
       }
@@ -25,7 +25,7 @@ query getCurrentEnergyPrice {
 `;
 
 export const gqlCurrentEnergyPrice = `
-query getCurrentEnergyPrice($homeId:ID!) {
+query getCurrentEnergyPrice($homeId:ID!, $resolution:PriceInfoResolution = HOURLY) {
   viewer {
     home(id:$homeId) {
       id
@@ -34,14 +34,14 @@ query getCurrentEnergyPrice($homeId:ID!) {
         validFrom
         validTo
         status
-        priceInfo{
+        priceInfo(resolution:$resolution) {
           current{
             total
             energy
             tax
             startsAt
             currency
-            level            
+            level
           }
         }
       }

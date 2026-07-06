@@ -9,7 +9,9 @@ import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
 import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
+import { gqlUpdateHome } from '../gql/updateHome.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
+import { IUpdateHomeInput } from '../models/IUpdateHomeInput';
 import { AppScreen } from '../models/enums/AppScreen';
 import { TibberQueryBase } from './TibberQueryBase';
 
@@ -80,10 +82,11 @@ export class TibberQuery extends TibberQueryBase {
     /**
      * Get current energy price for selected home.
      * @param homeId Tibber home ID
+     * @param resolution Either HOURLY or QUARTER_HOURLY
      * @return IPrice object
      */
-    public async getCurrentEnergyPrice(homeId: string): Promise<IPrice> {
-        const variables = { homeId };
+    public async getCurrentEnergyPrice(homeId: string, resolution: string = PriceResolution.HOURLY): Promise<IPrice> {
+        const variables = { homeId, resolution };
         const result = await this.query(gqlCurrentEnergyPrice, variables);
         if (result && result.viewer && result.viewer.home) {
             const home: IHome = result.viewer.home;
@@ -97,10 +100,12 @@ export class TibberQuery extends TibberQueryBase {
 
     /**
      * Get current energy prices from all homes registered to current user
+     * @param resolution Either HOURLY or QUARTER_HOURLY
      * @return Array of IPrice
      */
-    public async getCurrentEnergyPrices(): Promise<IPrice[]> {
-        const result = await this.query(gqlCurrentEnergyPrices);
+    public async getCurrentEnergyPrices(resolution: string = PriceResolution.HOURLY): Promise<IPrice[]> {
+        const variables = { resolution };
+        const result = await this.query(gqlCurrentEnergyPrices, variables);
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             const homes: IHome[] = result.viewer.homes;
             const prices = homes.map((item: IHome) => {
@@ -204,5 +209,19 @@ export class TibberQuery extends TibberQueryBase {
         if (result.sendPushNotification || result.errors) {
             return Object.assign({} as ISendPushNotification, result);
         } else return Object.assign({}, { errors: [{ message: 'Undefined error' }] } as ISendPushNotification);
+    }
+
+    /**
+     * Update home information.
+     * @param input IUpdateHomeInput object. homeId is required, all other properties are optional.
+     * @return IHome object with the updated home.
+     */
+    public async updateHome(input: IUpdateHomeInput): Promise<IHome> {
+        const variables = { input };
+        const result = await this.query(gqlUpdateHome, variables);
+        if (result && result.updateHome) {
+            return Object.assign({} as IHome, result.updateHome);
+        }
+        return result && (result.error || result.errors) ? result : {};
     }
 }
