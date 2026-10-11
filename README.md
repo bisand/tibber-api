@@ -429,6 +429,81 @@ const prices = await tibberQuery.getEnergyPriceRange(homeId, PriceRangeResolutio
 
 > Send a notification to the tibber app. You can specify which route shoule be opened in the App when opening the message. The notification will be send to all devices registered for that tibber account. If the send is successful the response will show how many devices the message reached.
 
+## Tibber Data API
+
+The [Tibber Data API](https://data-api.tibber.com/docs/) gives access to devices paired to Tibber: electric vehicles, chargers, thermostats, heat pumps, inverters and batteries, and live measurements from Tibber Pulse and Watty. It is a separate API from the GraphQL API used by `TibberQuery` and `TibberFeed`. It does not serve prices, and it does not accept the personal access tokens used above. You need an OAuth client, created at [Manage clients](https://data-api.tibber.com/clients/manage/), and the user must log in and give consent.
+
+### TibberOAuth
+
+```typescript
+const oauth = new TibberOAuth({
+    clientId: 'your-client-id',
+    clientSecret: 'your-client-secret',
+    redirectUri: 'http://localhost:8787/callback',
+    scopes: Object.values(DataScope), // Defaults to the scopes needed to list homes.
+    userAgent: 'MyApp/1.0',
+});
+
+// 1. Send the user to the URL. Keep state and codeVerifier.
+const { url, state, codeVerifier } = oauth.createAuthorizationUrl();
+
+// 2. Tibber redirects to redirectUri with ?code=...&state=... Compare state, then exchange the code.
+const tokens = await oauth.exchangeCode(code, codeVerifier);
+
+// 3. Get a new access token when the old one has expired. TibberData does this for you.
+const newTokens = await oauth.refresh(tokens.refreshToken);
+```
+
+> Access tokens last about an hour and refresh tokens about 30 days. Tibber may replace the refresh token on every refresh, so always store the latest `ITokenSet`. A device is only visible if the access token has the scope for its category, see `DataScope`.
+
+### TibberData
+
+```typescript
+const tibberData = new TibberData({
+    tokens, // or accessToken: '...' if you handle the tokens yourself
+    oauth, // optional, enables automatic refresh of the access token
+    onTokensRefreshed: (newTokens) => saveTokens(newTokens),
+    userAgent: 'MyApp/1.0',
+});
+
+const homes = await tibberData.getHomes();
+const devices = await tibberData.getDevices(homes[0].id);
+const device = await tibberData.getDevice(homes[0].id, devices[0].id);
+```
+
+| Method | Description |
+| ------ | ----------- |
+| `getHomes(): Promise<IDataHome[]>` | Homes the user has access to. |
+| `getDevices(homeId): Promise<IDataDeviceItem[]>` | Devices in a home. |
+| `getDevice(homeId, deviceId): Promise<IDataDevice>` | A device with its attributes and current capabilities (state values with units). |
+| `getDeviceHistory(homeId, deviceId, options): Promise<IDataDeviceHistory>` | First page of history. `options` takes a `DeviceHistoryResolution` and either `since` or `until`. |
+| `getDeviceHistoryPage(link): Promise<IDataDeviceHistory>` | Another page of history, from the `next` or `prev` link of the previous page. |
+| `getLiveEventDevices(homeId): Promise<IDataLiveEventDevice[]>` | Devices that can stream live measurements right now. Their IDs are not the same as the device IDs from `getDevices`. |
+| `get(path): Promise<any>` | General GET request, for endpoints not covered above. |
+
+> Requests are retried with backoff on `429` and `5xx` responses, and the access token is refreshed once on `401`. Other failures reject with a `TibberDataError` that has the HTTP `status` and the response `body`. Only devices with resolutions in `supportedHistory` have history.
+
+### TibberDataFeed
+
+Live measurements from Tibber Pulse and Watty as Server-Sent Events. The access token needs the scope `data-api-meters-read`.
+
+```typescript
+const devices = await tibberData.getLiveEventDevices(homeId);
+const tibberDataFeed = new TibberDataFeed(tibberData, homeId, devices.map((device) => device.id));
+
+tibberDataFeed.on('data', (data: IDataLiveMeasurement) => console.log(data));
+tibberDataFeed.on('stream_error', (error: IDataStreamError) => console.log(error));
+tibberDataFeed.on('error', (error) => console.error(error));
+
+await tibberDataFeed.connect();
+```
+
+> Events: `connecting`, `connected`, `disconnected`, `data`, `ping`, `stream_error`, `heartbeat_timeout`, `error`, `warn` and `log`. The feed reconnects with backoff when the connection is lost or the server reports a transient error. It closes without reconnecting when the server reports a permanent error.
+
+> Note! Tibber allows one live feed per home. Opening a second one closes the first with the stream error `evicted`, and the evicted feed does not reconnect. Between 1 and 5 devices can be streamed per feed. Measurements from the Data API use `voltageL1`-`voltageL3`, where `TibberFeed` uses `voltagePhase1`-`voltagePhase3`.
+
+See [examples/data-api-login.ts](examples/data-api-login.ts), [examples/data-api-devices.ts](examples/data-api-devices.ts) and [examples/data-api-feed.ts](examples/data-api-feed.ts) for complete examples.
+
 ## Examples
 
 TibberFeed: typescript example.

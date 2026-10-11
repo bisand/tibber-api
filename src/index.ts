@@ -1,13 +1,24 @@
 import { TibberFeed } from './nodes/TibberFeed';
 import { TibberQuery } from './nodes/TibberQuery';
 import { TibberQueryBase } from './nodes/TibberQueryBase';
+import { TibberData } from './nodes/TibberData';
+import { TibberDataFeed } from './nodes/TibberDataFeed';
+import { TibberOAuth } from './nodes/TibberOAuth';
 import { UrlTools } from './nodes/models/tools';
 import { IConfig } from './models/IConfig';
 import { IUpdateHomeInput } from './models/IUpdateHomeInput';
 
-export { TibberFeed, TibberQuery, TibberQueryBase, UrlTools, IConfig as IConfig, IUpdateHomeInput };
+export { TibberFeed, TibberQuery, TibberQueryBase, TibberData, TibberDataFeed, TibberOAuth, UrlTools, IConfig as IConfig, IUpdateHomeInput };
 
 export * from './nodes/models/TimeoutError';
+export * from './nodes/models/TibberDataError';
+export * from './models/data/IDataConfig';
+export * from './models/data/IDataDevice';
+export * from './models/data/IDataDeviceHistory';
+export * from './models/data/IDataHome';
+export * from './models/data/IDataLiveMeasurement';
+export * from './models/data/IOAuthConfig';
+export * from './models/data/ITokenSet';
 export * from './models/IAddress';
 export * from './models/IConsumption';
 export * from './models/IContactInfo';
@@ -43,6 +54,8 @@ export * from './models/PriceRatingEntry';
 export * from './models/PriceRatingThresholdPercentages';
 export * from './models/PriceRatingType';
 export * from './models/enums/AppScreen';
+export * from './models/enums/DataScope';
+export * from './models/enums/DeviceHistoryResolution';
 export * from './models/enums/EnergyResolution';
 export * from './models/enums/HeatingSource';
 export * from './models/enums/HomeAvatar';
