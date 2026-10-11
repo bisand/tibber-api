@@ -108,12 +108,13 @@ export class TibberQuery extends TibberQueryBase {
         const result = await this.query(gqlCurrentEnergyPrices, variables);
         if (result && result.viewer && Array.isArray(result.viewer.homes)) {
             const homes: IHome[] = result.viewer.homes;
-            const prices = homes.map((item: IHome) => {
+            const prices = homes.flatMap((item: IHome) => {
                 if (item && item.currentSubscription && item.currentSubscription.priceInfo && item.currentSubscription.priceInfo.current) {
                     const price = item.currentSubscription.priceInfo.current;
                     price.homeId = item.id;
-                    return price;
+                    return [price];
                 }
+                return [];
             });
             return Object.assign([] as IPrice[], prices);
         }
@@ -178,12 +179,12 @@ export class TibberQuery extends TibberQueryBase {
         } else {
             const result = await this.query(gqlHomesConsumption, variables);
             if (result && result.viewer && Array.isArray(result.viewer.homes)) {
-                const consumptions = result.viewer.homes.map((item: IHome) => {
-                    const nodes = item.consumption?.nodes.map((node: IConsumption) => {
+                const consumptions = result.viewer.homes.flatMap((item: IHome) => {
+                    const nodes = item?.consumption?.nodes?.map((node: IConsumption) => {
                         node.homeId = item.id;
                         return node;
                     });
-                    return nodes;
+                    return nodes ?? [];
                 });
                 return Object.assign([] as IConsumption[], consumptions);
             }

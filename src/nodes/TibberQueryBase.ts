@@ -119,7 +119,10 @@ export class TibberQueryBase {
                         const parsed: any = this.JsonTryParse(body);
                         const status = res?.statusCode ?? 0;
 
-                        if (status >= 200 && status < 300) {
+                        // Tibber reports failures such as an invalid token as HTTP 200 with an errors array and no data.
+                        const hasErrorsOnly = Array.isArray(parsed.errors) && parsed.errors.length > 0 && !parsed.data;
+
+                        if (status >= 200 && status < 300 && !hasErrorsOnly) {
                             resolve(parsed.data ?? parsed);
                         } else {
                             parsed.httpCode = status;

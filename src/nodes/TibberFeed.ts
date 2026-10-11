@@ -198,6 +198,7 @@ export class TibberFeed extends EventEmitter {
         }
         this._active = value;
         if (this._active) {
+            this._isUnauthenticated = false;
             this.connectWithDelayWorker(1);
         } else {
             this.close();
@@ -251,7 +252,7 @@ export class TibberFeed extends EventEmitter {
     }
 
     private get canConnect(): boolean {
-        return Date.now() > (this._lastRetry + this._retryBackoff);
+        return Date.now() >= (this._lastRetry + this._retryBackoff);
     }
 
     /**
@@ -263,8 +264,10 @@ export class TibberFeed extends EventEmitter {
 
     /**
      * Connect to Tibber feed.
+     * If the feed stopped because the token was rejected, calling this will try again.
      */
     public async connect(): Promise<void> {
+        this._isUnauthenticated = false;
         this.connectWithDelayWorker(1);
     }
 
@@ -279,8 +282,11 @@ export class TibberFeed extends EventEmitter {
         if (this._webSocket) {
             if (this._isConnected && this._webSocket.readyState === WebSocket.OPEN) {
                 this.closeConnection();
+            } else if (this._isConnecting) {
+                this.terminateConnection();
             }
         }
+        this._isConnecting = false;
         this._isClosing = false;
         this.log('Closed Tibber Feed.');
     }
@@ -355,7 +361,10 @@ export class TibberFeed extends EventEmitter {
         const existing = this._timeouts.get(name);
         if (existing) clearTimeout(existing);
 
-        const timeout = setTimeout(fn, ms);
+        const timeout = setTimeout(() => {
+            if (this._timeouts.get(name) === timeout) this._timeouts.delete(name);
+            fn();
+        }, ms);
         this._timeouts.set(name, timeout);
     }
 
@@ -387,6 +396,8 @@ export class TibberFeed extends EventEmitter {
         }
 
         this._isConnecting = true;
+        // True once a websocket has been created; _isConnecting then stays set until it is acknowledged or fails.
+        let socketPending = false;
         try {
             if (!this.canConnect) {
                 this.log(`Skipping connect attempt: waiting for backoff (retryBackoff: ${this._retryBackoff} ms, lastRetry: ${this._lastRetry})`);
@@ -405,13 +416,10 @@ export class TibberFeed extends EventEmitter {
                     const homeId = this._config.homeId ?? '';
                     this._realTimeConsumptionEnabled = await this._tibberQuery.getRealTimeEnabled(homeId);
                 } catch (error: any) {
-                    if (
-                        error?.httpCode === 400 &&
-                        Array.isArray(error?.errors) &&
-                        error.errors.some((x: any) => x?.extensions?.code === 'UNAUTHENTICATED')
-                    ) {
+                    if (this.isUnauthenticatedError(error)) {
                         this._isUnauthenticated = true;
                         this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
+                        return;
                     } else if (error?.httpCode === 429 || error?.statusCode === 429) {
                         // Too many requests: set a long backoff (e.g., 10 minutes)
                         const cooldown = 10 * 60 * 1000 + this.getRandomInt(60 * 1000); // 10-11 min
@@ -426,7 +434,6 @@ export class TibberFeed extends EventEmitter {
                         this.error(`Error checking real-time consumption status.\n${JSON.stringify(error)}`);
                     }
                     this.incrementFailedAttempts();
-                    this.updateBackoff(error);
                     return;
                 }
             }
@@ -434,7 +441,6 @@ export class TibberFeed extends EventEmitter {
             if (!this._realTimeConsumptionEnabled) {
                 this.warn(`Unable to connect. Real Time Consumption is not enabled.`);
                 this.incrementFailedAttempts();
-                this.updateBackoff();
                 return;
             }
 
@@ -454,6 +460,7 @@ export class TibberFeed extends EventEmitter {
                 if (this._webSocket) {
                     this.terminateConnection();
                 }
+                this._isConnecting = false;
 
                 this.incrementFailedAttempts();
                 this.updateBackoff();
@@ -464,7 +471,9 @@ export class TibberFeed extends EventEmitter {
             }, this._feedConnectionTimeout);
 
             await this.internalConnect();
+            socketPending = true;
         } catch (error: any) {
+            this.cancelTimeout('connection_timeout');
             // Detect 429 Too Many Requests
             if (error?.httpCode === 429 || /429/.test(error?.message)) {
                 const cooldown = Math.max(this._retryBackoff, 10 * 60 * 1000); // 10 minutes
@@ -479,14 +488,13 @@ export class TibberFeed extends EventEmitter {
 
             this.error(error);
             this.incrementFailedAttempts();
-            this.updateBackoff(error);
-            if (!this._isConnected && this._active) {
-                this.updateBackoff();
-                this.connectWithDelayWorker(this._retryBackoff);
-            }
         } finally {
-            this._isConnecting = false;
+            if (!socketPending) this._isConnecting = false;
         }
+    }
+
+    private isUnauthenticatedError(error: any): boolean {
+        return Array.isArray(error?.errors) && error.errors.some((x: any) => x?.extensions?.code === 'UNAUTHENTICATED');
     }
 
     private updateBackoff(error?: any) {
@@ -503,10 +511,11 @@ export class TibberFeed extends EventEmitter {
     private incrementFailedAttempts() {
         const now = Date.now();
         const STABLE_CONNECTION_THRESHOLD = 5 * 60 * 1000; // 5 minutes
-        if (now - this._lastConnectedAt > STABLE_CONNECTION_THRESHOLD) {
-            // Connection was stable, reset backoff
+        if (this._lastConnectedAt > 0 && now - this._lastConnectedAt > STABLE_CONNECTION_THRESHOLD) {
+            // Connection was stable, reset backoff. Only once per connection, so repeated failures still back off.
             this._connectionAttempts = 0;
             this._retryBackoff = this._backoffDelayBase;
+            this._lastConnectedAt = 0;
         }
         this._failedAttempts++;
         if (this._failedAttempts >= this._maxFailedConnectionAttempts) {
@@ -524,7 +533,6 @@ export class TibberFeed extends EventEmitter {
         this._isConnecting = false;
         this._isConnected = false;
         this._isClosing = false;
-        this._isUnauthenticated = false;
         this._realTimeConsumptionEnabled = null;
         this._connectionAttempts = 0;
         this._retryBackoff = this._backoffDelayBase;
@@ -579,8 +587,8 @@ export class TibberFeed extends EventEmitter {
             } catch (error) {
                 this.error(error);
             }
-            // Only schedule another reconnect if not connected and still active
-            if (!this._isConnected && this._active) {
+            // Only schedule another reconnect if the attempt failed, nothing else has scheduled one, and still active
+            if (!this._isConnected && !this._isConnecting && !this._isUnauthenticated && !this._timeouts.has('connect') && this._active) {
                 this.updateBackoff();
                 this.connectWithDelayWorker(this._retryBackoff, true);
             }
@@ -607,12 +615,19 @@ export class TibberFeed extends EventEmitter {
                 }
             };
 
+            // Never leave a previous socket open; Tibber limits the number of open websockets per token.
+            if (this._webSocket) {
+                try {
+                    this._webSocket.terminate();
+                } catch (e) { }
+            }
+
             const ws = this._webSocketFactory
                 ? this._webSocketFactory(url.href, ['graphql-transport-ws'], options)
                 : new WebSocket(url.href, ['graphql-transport-ws'], options);
 
-            this.attachWebSocketHandlers(ws);
             this._webSocket = ws;
+            this.attachWebSocketHandlers(ws);
         } catch (error) {
             this.error(error);
             throw error;
@@ -620,10 +635,11 @@ export class TibberFeed extends EventEmitter {
     }
 
     private attachWebSocketHandlers(ws: WebSocket): void {
-        ws.onopen = this.onWebSocketOpen.bind(this);
-        ws.onmessage = this.onWebSocketMessage.bind(this);
-        ws.onclose = this.onWebSocketClose.bind(this);
-        ws.onerror = this.onWebSocketError.bind(this);
+        // Ignore events from sockets that have been replaced.
+        ws.onopen = (event) => { if (ws === this._webSocket) this.onWebSocketOpen(event); };
+        ws.onmessage = (event) => { if (ws === this._webSocket) this.onWebSocketMessage(event); };
+        ws.onclose = (event) => { if (ws === this._webSocket) this.onWebSocketClose(event); };
+        ws.onerror = (event) => { if (ws === this._webSocket) this.onWebSocketError(event); };
     }
 
 
@@ -645,8 +661,19 @@ export class TibberFeed extends EventEmitter {
      */
     private onWebSocketClose(event: WebSocket.CloseEvent) {
         this._isConnected = false;
+        this._isConnecting = false;
+        // 4401/4403: the server rejected the token. Tibber requires that we do not retry with the same token.
+        if (event?.code === 4401 || event?.code === 4403) {
+            this._isUnauthenticated = true;
+            this.cancelTimeout('heartbeat');
+            this.cancelTimeout('connect');
+            this.cancelTimeout('connection_timeout');
+            this.error(`Unauthenticated! Invalid token. Please provide a valid token and try again.`);
+            this.emit('disconnected', 'Disconnected from Tibber feed.');
+            return;
+        }
         this.emit('disconnected', 'Disconnected from Tibber feed.');
-        if (this._active && this._autoReconnect) {
+        if (this._active && this._autoReconnect && !this._timeouts.has('connect')) {
             this.updateBackoff();
             this.connectWithDelayWorker(this._retryBackoff, true, 'auto-reconnect after disconnect');
         }
@@ -668,6 +695,7 @@ export class TibberFeed extends EventEmitter {
                     break;
                 case GQL.CONNECTION_ACK:
                     this._isConnected = true;
+                    this._isConnecting = false;
                     this._lastConnectedAt = Date.now(); // Track when we last connected
                     this.resetFailedAttempts();
                     this.cancelTimeout('connection_timeout');
@@ -745,6 +773,7 @@ export class TibberFeed extends EventEmitter {
         this.stopSubscription();
         this._webSocket.close(1000, 'Normal Closure');
         this._webSocket.terminate();
+        this._isConnected = false;
     }
 
     /**
@@ -754,6 +783,7 @@ export class TibberFeed extends EventEmitter {
         this.stopSubscription();
         this._webSocket.terminate();
         this._isConnected = false;
+        this._isConnecting = false;
     }
 
     /**
