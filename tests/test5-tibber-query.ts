@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import { TibberQuery } from '../src/index'
 import nock from 'nock'
 import { EnergyResolution, PriceRangeResolution } from '../src/index'

@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import * as url from 'url';
 import { IConfig, TibberFeed } from '../src/index';
 import { WebSocketServer } from 'ws';
@@ -45,7 +44,7 @@ beforeAll(async () => {
     });
     
     server.on('connection', socket => {
-        let heartbeatInterval: NodeJS.Timeout | null = null;
+        const heartbeatInterval: NodeJS.Timeout | null = null;
         
         socket.on('message', (msg: string) => {
             let obj = JSON.parse(msg);

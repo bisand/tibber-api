@@ -1,6 +1,4 @@
-/* eslint-env mocha */
-import { TibberQuery, IConfig } from '../src/index';
-import { PriceResolution } from '../src/models/enums/PriceResolution';
+import { TibberQuery, IConfig, UrlTools, AppScreen, EnergyResolution, PriceResolution } from '../src/index';
 
 const config: IConfig = {
     active: false,
@@ -31,78 +29,65 @@ test('TibberQuery - Should be created', () => {
     }).toBeDefined();
 });
 
-// test('TibberQuery.getWebsocketSubscriptionUrl() should be valid', async () => {
-//     const url = await tibberQuery.getWebsocketSubscriptionUrl();
-//     expect(url).toBeDefined();
-//     const urlTools = new UrlTools();
-//     expect(urlTools.validateUrl(url.href)).toBe(true);
-// }, 30000);
+test('TibberQuery.getWebsocketSubscriptionUrl() should be valid', async () => {
+    const url = await tibberQuery.getWebsocketSubscriptionUrl();
+    expect(url).toBeDefined();
+    const urlTools = new UrlTools();
+    expect(urlTools.validateUrl(url.href)).toBe(true);
+}, 30000);
 
-// test('TibberQuery.getHomes() should be valid', async () => {
-//     const homes = await tibberQuery.getHomes();
-//     expect(homes).toBeDefined();
-//     expect(homes.length).toBeGreaterThan(0);
-//     homes.forEach((home) => {
-//         expect(home).toBeDefined();
-//         expect(home.address).toBeDefined();
-//         expect(home.owner).toBeDefined();
-//         expect(home.meteringPointData).toBeDefined();
-//         expect(home.features).toBeDefined();
-//     });
-// }, 30000);
+test('TibberQuery.getHomes() should be valid', async () => {
+    const homes = await tibberQuery.getHomes();
+    expect(homes).toBeDefined();
+    expect(homes.length).toBeGreaterThan(0);
+    homes.forEach((home) => {
+        expect(home).toBeDefined();
+        expect(home.address).toBeDefined();
+        expect(home.owner).toBeDefined();
+        expect(home.meteringPointData).toBeDefined();
+        expect(home.features).toBeDefined();
+    });
+}, 30000);
 
-// test('TibberQuery.getHomesComplete() should be valid', async () => {
-//     const homes = await tibberQuery.getHomesComplete();
-//     expect(homes).toBeDefined();
-//     expect(homes.length).toBeGreaterThan(0);
-//     homes.forEach((home) => {
-//         expect(home).toBeDefined();
-//         expect(home.address).toBeDefined();
-//         expect(home.owner).toBeDefined();
-//         expect(home.meteringPointData).toBeDefined();
-//         expect(home.currentSubscription).toBeDefined();
-//         expect(home.subscriptions).toBeDefined();
-//         expect(home.features).toBeDefined();
-//     });
-// }, 30000);
+test('TibberQuery.getHomesComplete() should be valid', async () => {
+    const homes = await tibberQuery.getHomesComplete();
+    expect(homes).toBeDefined();
+    expect(homes.length).toBeGreaterThan(0);
+    homes.forEach((home) => {
+        expect(home).toBeDefined();
+        expect(home.address).toBeDefined();
+        expect(home.owner).toBeDefined();
+        expect(home.meteringPointData).toBeDefined();
+        expect(home.currentSubscription).toBeDefined();
+        expect(home.subscriptions).toBeDefined();
+        expect(home.features).toBeDefined();
+    });
+}, 30000);
 
-// test('TibberQuery.getConsumption() with homeId should be valid', async () => {
-//     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, '96a14971-525a-4420-aae9-e5aedaa129ff');
-//     expect(consumption).toBeDefined();
-//     expect(consumption.length).toEqual(10);
-// }, 30000);
+test('TibberQuery.getConsumption() with homeId should be valid', async () => {
+    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10, '96a14971-525a-4420-aae9-e5aedaa129ff');
+    expect(consumption).toBeDefined();
+    expect(consumption.length).toEqual(10);
+}, 30000);
 
-// test('TibberQuery.getConsumption() should be valid', async () => {
-//     const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
-//     expect(consumption).toBeDefined();
-//     consumption.forEach((con) => {
-//         const conObj = Object.assign([] as IConsumption[], con);
-//         expect(conObj.length).toEqual(10);
-//     });
-// }, 30000);
+test('TibberQuery.getConsumption() should be valid', async () => {
+    const consumption = await tibberQuery.getConsumption(EnergyResolution.HOURLY, 10);
+    expect(consumption).toBeDefined();
+    expect(consumption.length).toBeGreaterThan(0);
+    consumption.forEach((con) => {
+        expect(con.homeId).toBeDefined();
+        expect(con.from).toBeDefined();
+    });
+}, 30000);
 
-// test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
-//     const price = await tibberQuery.getCurrentEnergyPrice('96a14971-525a-4420-aae9-e5aedaa129ff');
-//     expect(price).toBeDefined();
-// }, 30000);
-
-// test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
-//     const prices = await tibberQuery.getCurrentEnergyPrices();
-//     expect(prices).toBeDefined();
-//     expect(prices.length).toBeGreaterThan(0);
-//     prices.forEach((price) => {
-//         expect(price.total).toBeGreaterThan(0);
-//     });
-// }, 30000);
-
-// test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
-//     const prices = await tibberQuery.getCurrentEnergyPrices();
-//     expect(prices).toBeDefined();
-//     expect(prices.length).toBeGreaterThan(0);
-//     prices.forEach((price) => {
-//         expect(price.total).toBeGreaterThan(0);
-//     });
-// }, 30000);
+test('TibberQuery.getCurrentEnergyPrices() should be valid', async () => {
+    const prices = await tibberQuery.getCurrentEnergyPrices();
+    expect(prices).toBeDefined();
+    expect(prices.length).toBeGreaterThan(0);
+    prices.forEach((price) => {
+        expect(price.total).toBeGreaterThan(0);
+    });
+}, 30000);
 
 test('TibberQuery.getCurrentEnergyPrice() should be valid', async () => {
     const price = await tibberQuery.getCurrentEnergyPrice('96a14971-525a-4420-aae9-e5aedaa129ff');
@@ -162,12 +147,8 @@ test('TibberQuery.getTomorrowsEnergyPrices() should be valid for 15 min interval
     }
 }, 30000);
 
-// test('TibberQuery.sendPushNotification() should return error when using demo user', async () => {
-//     const message = 'TEST_MESSAGE';
-//     const title = 'TEST_TITLE';
-//     const screenToOpen = AppScreen.HOME;
-
-//     process.nextTick(() => { });
-//     const result: ISendPushNotification = await tibberQuery.sendPushNotification(title, message, screenToOpen);
-//     if (result.errors != undefined) result.errors.map((m) => expect(m.message).toContain('operation not allowed for demo user'));
-// }, 30000);
+test('TibberQuery.sendPushNotification() should be rejected when using demo user', async () => {
+    await expect(tibberQuery.sendPushNotification('TEST_MESSAGE', 'TEST_TITLE', AppScreen.HOME)).rejects.toMatchObject({
+        errors: [{ message: 'operation not allowed for demo user' }],
+    });
+}, 30000);

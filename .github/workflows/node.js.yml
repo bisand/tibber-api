@@ -16,9 +16,9 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [lts/*]
+        node-version: [18, 20, 22, 24]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-      fail-fast: true
+      fail-fast: false
       max-parallel: 1
 
 
@@ -32,3 +32,17 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js lts/*
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run lint

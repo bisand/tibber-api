@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import { TibberFeed, IConfig, TibberQuery } from '../src/index';
 
 const config: IConfig = {

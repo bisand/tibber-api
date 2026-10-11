@@ -1,4 +1,4 @@
-import { version } from '../../Version';
+import { version } from '../../package.json';
 import { IConfig } from '../models/IConfig';
 
 export class HeaderManager {

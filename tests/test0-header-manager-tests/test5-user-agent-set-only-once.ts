@@ -1,13 +1,12 @@
 import { HeaderManager } from '../../src/tools/HeaderManager';
 import { IConfig } from '../../src/models/IConfig';
-import { version } from '../../Version';
+import { version } from '../../package.json';
 
 // FILE: src/nodes/HeaderManager.test.ts
 
 
 describe('HeaderManager', () => {
 	const defaultUserAgent = `bisand/tibber-api/${version}`;
-	const userAgentMaxLength = 255 - defaultUserAgent.length - 1;
 
 	let config: IConfig;
 

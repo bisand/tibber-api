@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import { UrlTools } from '../src/index';
 
 const urlTools = new UrlTools();
