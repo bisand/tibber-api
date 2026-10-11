@@ -11,6 +11,7 @@
     "json",
     "node"
   ],
+  "modulePathIgnorePatterns": ["<rootDir>/lib/"],
   "testSequencer": "./test-sequencer.js",
   "detectOpenHandles": true
 }

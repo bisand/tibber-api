@@ -1,6 +1,6 @@
 import { HeaderManager } from '../../src/tools/HeaderManager';
 import { IConfig } from '../../src/models/IConfig';
-import { version } from '../../Version';
+import { version } from '../../package.json';
 
 // FILE: src/nodes/HeaderManager.test.ts
 
