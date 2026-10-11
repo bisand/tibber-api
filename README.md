@@ -345,6 +345,75 @@ getConsumption(resolution: EnergyResolution, lastCount: number, homeId?: string)
 
 > Get consumption for selected home, or all homes if homeId is not provided. EnergyResolution describes interval for data and lastCount specifies number of records to retrieve, returning the last number of records in the dataset.
 
+### getConsumptionPage
+
+```typescript
+/**
+ * Get a page of energy consumption for selected home, including page info with totals and cursors.
+ * @param homeId Tibber home ID
+ * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+ * @param paging Which records to return. Either first or last is required.
+ * @return IHomeConsumptionConnection object
+ */
+getConsumptionPage(homeId: string, resolution: EnergyResolution, paging: IEnergyPagingOptions): Promise<IHomeConsumptionConnection>
+```
+
+> Get consumption for selected home together with `pageInfo` (totals, count and cursors). `paging` takes `first` or `last`, optionally `before` or `after` (a cursor from `pageInfo` or a `Date`) and `filterEmptyNodes`. Tibber limits each request to 744 hourly, 31 daily, 52 weekly, 12 monthly or 1 annual records. For longer periods, page backwards by passing `pageInfo.startCursor` as `before`. Note that `before` does not include the record at the cursor, while `after` does.
+
+```typescript
+const page = await tibberQuery.getConsumptionPage(homeId, EnergyResolution.HOURLY, { first: 744, after: new Date('2026-09-01T00:00:00+02:00') });
+```
+
+### getProduction
+
+```typescript
+/**
+ * Get energy production for one or more homes.
+ * Returns an array of IProduction
+ * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+ * @param lastCount Return the last number of records
+ * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
+ * @return Array of IProduction
+ */
+getProduction(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IProduction[]>
+```
+
+> Get production for selected home, or all homes if homeId is not provided. Works the same way as [getConsumption](#getConsumption).
+
+### getProductionPage
+
+```typescript
+/**
+ * Get a page of energy production for selected home, including page info with totals and cursors.
+ * @param homeId Tibber home ID
+ * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+ * @param paging Which records to return. Either first or last is required.
+ * @return IHomeProductionConnection object
+ */
+getProductionPage(homeId: string, resolution: EnergyResolution, paging: IEnergyPagingOptions): Promise<IHomeProductionConnection>
+```
+
+> Get production for selected home together with `pageInfo`. Works the same way as [getConsumptionPage](#getConsumptionPage).
+
+### getEnergyPriceRange
+
+```typescript
+/**
+ * Get historical energy prices for selected home, including page info with min/max and cursors.
+ * @param homeId Tibber home ID
+ * @param resolution PriceRangeResolution. Valid values: DAILY, HOURLY, QUARTER_HOURLY
+ * @param paging Which records to return. Either first or last is required.
+ * @return ISubscriptionPriceConnection object
+ */
+getEnergyPriceRange(homeId: string, resolution: PriceRangeResolution, paging: IPagingOptions): Promise<ISubscriptionPriceConnection>
+```
+
+> Get historical energy prices for selected home. `paging` takes `first` or `last` and optionally `before` or `after` (a cursor from `pageInfo` or a `Date`). Tibber limits each request to 672 quarter-hourly, 744 hourly or 31 daily records. `before` does not include the record at the cursor, while `after` does. With `QUARTER_HOURLY`, Tibber works in whole hours: use a multiple of 4 for `first` and `last`, and expect cursors to be rounded down to the hour. Prices from before Tibber supported quarter-hourly prices are returned hourly, even with `QUARTER_HOURLY`.
+
+```typescript
+const prices = await tibberQuery.getEnergyPriceRange(homeId, PriceRangeResolution.QUARTER_HOURLY, { first: 96, after: new Date('2026-10-10T00:00:00+02:00') });
+```
+
 ### sendPushNotification
 
 ```typescript
@@ -460,6 +529,8 @@ const config: IConfig = {
     averagePower: true,
     maxPower: true,
     powerProduction: true,
+    powerReactive: true,
+    powerProductionReactive: true,
     minPowerProduction: true,
     maxPowerProduction: true,
     lastMeterProduction: true,

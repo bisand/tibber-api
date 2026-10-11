@@ -101,3 +101,40 @@ query getTomorrowsEnergyPrices($homeId:ID!, $resolution:PriceInfoResolution = HO
   }
 }
 `;
+
+export const gqlEnergyPriceRange = `
+query getEnergyPriceRange($homeId:ID!, $resolution:PriceInfoRangeResolution!, $first:Int, $last:Int, $before:String, $after:String) {
+  viewer {
+    home(id:$homeId) {
+      id
+      currentSubscription {
+        id
+        priceInfoRange(resolution:$resolution, first:$first, last:$last, before:$before, after:$after) {
+          pageInfo {
+            startCursor
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            resolution
+            currency
+            count
+            precision
+            minEnergy
+            minTotal
+            maxEnergy
+            maxTotal
+          }
+          nodes {
+            total
+            energy
+            tax
+            startsAt
+            currency
+            level
+          }
+        }
+      }
+    }
+  }
+}
+`;

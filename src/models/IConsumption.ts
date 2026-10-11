@@ -6,7 +6,9 @@ export interface IConsumption {
     unitPriceVAT: number;
     consumption: number;
     consumptionUnit: string;
+    /** @deprecated use cost instead */
     totalCost: number;
+    /** @deprecated use cost instead */
     unitCost: number;
     cost: number;
     currency: string;

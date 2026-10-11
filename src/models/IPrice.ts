@@ -5,5 +5,6 @@ export interface IPrice {
     energy?: number;
     tax?: number;
     startsAt?: string;
+    currency?: string;
     level?: PriceLevel;
 }

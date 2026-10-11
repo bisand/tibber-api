@@ -150,6 +150,12 @@ export class TibberFeed extends EventEmitter {
         if (this._config.powerProduction || returnAllFields) {
             this._gql += 'powerProduction ';
         }
+        if (this._config.powerReactive || returnAllFields) {
+            this._gql += 'powerReactive ';
+        }
+        if (this._config.powerProductionReactive || returnAllFields) {
+            this._gql += 'powerProductionReactive ';
+        }
         if (this._config.minPowerProduction || returnAllFields) {
             this._gql += 'minPowerProduction ';
         }

@@ -13,6 +13,8 @@ export interface ILiveMeasurement {
     averagePower: number;
     maxPower: number;
     powerProduction: number;
+    powerReactive: number;
+    powerProductionReactive: number;
     minPowerProduction: number;
     maxPowerProduction: number;
     lastMeterProduction: number;
