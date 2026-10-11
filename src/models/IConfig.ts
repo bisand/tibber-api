@@ -20,6 +20,8 @@ export interface IConfig {
     averagePower?: boolean;
     maxPower?: boolean;
     powerProduction?: boolean;
+    powerReactive?: boolean;
+    powerProductionReactive?: boolean;
     minPowerProduction?: boolean;
     maxPowerProduction?: boolean;
     lastMeterProduction?: boolean;

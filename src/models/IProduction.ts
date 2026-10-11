@@ -1,4 +1,5 @@
 export interface IProduction {
+    homeId?: string;
     from: string;
     to: string;
     unitPrice: number;

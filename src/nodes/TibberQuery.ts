@@ -3,11 +3,19 @@ import { IHome } from '../models/IHome';
 import { IPrice } from '../models/IPrice';
 import { EnergyResolution } from '../models/enums/EnergyResolution';
 import { PriceResolution } from '../models/enums/PriceResolution';
+import { PriceRangeResolution } from '../models/enums/PriceRangeResolution';
 import { IConsumption } from '../models/IConsumption';
-import { gqlHomesConsumption, gqlHomeConsumption } from '../gql/consumption.gql';
+import { IProduction } from '../models/IProduction';
+import { IPagingOptions } from '../models/IPagingOptions';
+import { IEnergyPagingOptions } from '../models/IEnergyPagingOptions';
+import { IHomeConsumptionConnection } from '../models/IHomeConsumptionConnection';
+import { IHomeProductionConnection } from '../models/IHomeProductionConnection';
+import { ISubscriptionPriceConnection } from '../models/ISubscriptionPriceConnection';
+import { gqlHomesConsumption, gqlHomeConsumption, gqlHomeConsumptionPage } from '../gql/consumption.gql';
+import { gqlHomesProduction, gqlHomeProduction, gqlHomeProductionPage } from '../gql/production.gql';
 import { gqlHomes, gqlHomesComplete } from '../gql/homes.gql';
 import { gqlHome, gqlHomeComplete } from '../gql/home.gql';
-import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices } from '../gql/energy.gql';
+import { gqlCurrentEnergyPrice, gqlTodaysEnergyPrices, gqlTomorrowsEnergyPrices, gqlCurrentEnergyPrices, gqlEnergyPriceRange } from '../gql/energy.gql';
 import { gqlSendPushNotification } from '../gql/sendPushNotification.gql';
 import { gqlUpdateHome } from '../gql/updateHome.gql';
 import { ISendPushNotification } from '../models/ISendPushNotification';
@@ -190,6 +198,86 @@ export class TibberQuery extends TibberQueryBase {
             }
             return result && result.error ? result : [];
         }
+    }
+
+    /**
+     * Get a page of energy consumption for selected home, including page info with totals and cursors.
+     * Tibber limits the number of records per request (744 hourly, 31 daily, 52 weekly, 12 monthly, 1 annual).
+     * To get the previous page, use pageInfo.startCursor as paging.before.
+     * @param homeId Tibber home ID
+     * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+     * @param paging Which records to return. Either first or last is required.
+     * @return IHomeConsumptionConnection object
+     */
+    public async getConsumptionPage(homeId: string, resolution: EnergyResolution, paging: IEnergyPagingOptions): Promise<IHomeConsumptionConnection> {
+        const variables = { homeId, resolution, ...this.getPagingVariables(paging), filterEmptyNodes: paging.filterEmptyNodes };
+        const result = await this.query(gqlHomeConsumptionPage, variables);
+        return Object.assign({ nodes: [] } as unknown as IHomeConsumptionConnection, result?.viewer?.home?.consumption);
+    }
+
+    /**
+     * Get energy production for one or more homes.
+     * Returns an array of IProduction
+     * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+     * @param lastCount Return the last number of records
+     * @param homeId Tibber home ID. Optional parameter. Empty parameter will return all registered homes.
+     * @return Array of IProduction
+     */
+    public async getProduction(resolution: EnergyResolution, lastCount: number, homeId?: string): Promise<IProduction[]> {
+        const variables = { homeId, resolution, lastCount };
+        if (homeId) {
+            const result = await this.query(gqlHomeProduction, variables);
+            return Object.assign([] as IProduction[], result?.viewer?.home?.production?.nodes ?? []);
+        } else {
+            const result = await this.query(gqlHomesProduction, variables);
+            const homes: IHome[] = Array.isArray(result?.viewer?.homes) ? result.viewer.homes : [];
+            return homes.flatMap((item: IHome) => {
+                const nodes = item?.production?.nodes?.map((node: IProduction) => {
+                    node.homeId = item.id;
+                    return node;
+                });
+                return nodes ?? [];
+            });
+        }
+    }
+
+    /**
+     * Get a page of energy production for selected home, including page info with totals and cursors.
+     * Tibber limits the number of records per request (744 hourly, 31 daily, 52 weekly, 12 monthly, 1 annual).
+     * To get the previous page, use pageInfo.startCursor as paging.before.
+     * @param homeId Tibber home ID
+     * @param resolution EnergyResolution. Valid values: HOURLY, DAILY, WEEKLY, MONTHLY, ANNUAL
+     * @param paging Which records to return. Either first or last is required.
+     * @return IHomeProductionConnection object
+     */
+    public async getProductionPage(homeId: string, resolution: EnergyResolution, paging: IEnergyPagingOptions): Promise<IHomeProductionConnection> {
+        const variables = { homeId, resolution, ...this.getPagingVariables(paging), filterEmptyNodes: paging.filterEmptyNodes };
+        const result = await this.query(gqlHomeProductionPage, variables);
+        return Object.assign({ nodes: [] } as unknown as IHomeProductionConnection, result?.viewer?.home?.production);
+    }
+
+    /**
+     * Get historical energy prices for selected home, including page info with min/max and cursors.
+     * Tibber limits the number of records per request (672 quarter-hourly, 744 hourly, 31 daily).
+     * With QUARTER_HOURLY, Tibber works in whole hours: use a multiple of 4 for first and last.
+     * To get the previous page, use pageInfo.startCursor as paging.before.
+     * @param homeId Tibber home ID
+     * @param resolution PriceRangeResolution. Valid values: DAILY, HOURLY, QUARTER_HOURLY
+     * @param paging Which records to return. Either first or last is required.
+     * @return ISubscriptionPriceConnection object
+     */
+    public async getEnergyPriceRange(homeId: string, resolution: PriceRangeResolution, paging: IPagingOptions): Promise<ISubscriptionPriceConnection> {
+        const variables = { homeId, resolution, ...this.getPagingVariables(paging) };
+        const result = await this.query(gqlEnergyPriceRange, variables);
+        return Object.assign({ nodes: [] } as unknown as ISubscriptionPriceConnection, result?.viewer?.home?.currentSubscription?.priceInfoRange);
+    }
+
+    /**
+     * Convert paging options to GQL variables. Tibber cursors are Base64 encoded ISO 8601 timestamps.
+     */
+    private getPagingVariables(paging: IPagingOptions) {
+        const toCursor = (value?: string | Date) => (value instanceof Date ? Buffer.from(value.toISOString()).toString('base64') : value);
+        return { first: paging.first, last: paging.last, before: toCursor(paging.before), after: toCursor(paging.after) };
     }
 
     /**

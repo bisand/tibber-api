@@ -4,5 +4,6 @@ export interface IPriceInfo {
     current?: IPrice;
     today?: IPrice[];
     tomorrow?: IPrice[];
-    range?: ISubscriptionPriceConnection; // Should be SubscriptionPriceConnection
+    /** @deprecated use priceInfoRange on the subscription instead */
+    range?: ISubscriptionPriceConnection;
 }
