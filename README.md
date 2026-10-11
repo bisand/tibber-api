@@ -15,6 +15,17 @@ This Node.js module is used for communication with [Tibber API](https://develope
 >
 > **`Breaking changes!`**
 >
+> Version 6 introduces breaking changes in **TibberQuery** and **TibberFeed**.
+>
+> - All `TibberQuery` methods now reject when the Tibber API returns an error, for example an invalid token. Earlier versions returned an empty result, and `sendPushNotification` and `updateHome` returned the errors in the result. Use `try`/`catch` or `.catch()` and read `errors` on the rejected object.
+> - `TibberFeed` stops reconnecting when the token is rejected and emits an `error` event. Call `connect()` to try again with a valid token.
+> - `getConsumption()` without `homeId` returns a flat list with `homeId` on each record, instead of one list per home.
+> - `PriceResolution.DAILY` is removed, as the price methods never accepted it. Use `PriceRangeResolution.DAILY` with `getEnergyPriceRange()`.
+
+> **Note**
+>
+> **`Breaking changes!`**
+>
 > Version 5 introduces breaking changes in **TibberFeed**. Due to the fact that [Tibber also has introduced breaking changes in their API](https://developer.tibber.com/docs/overview#breaking-websocket-change) we had to do some small changes.
 >
 >Instead of changing the whole implementation, the only noticable change is done to the [constructor](#TibberFeed) of `TibberFeed` which takes a `TibberQuery` instead of and `IConfig` object and uses the config from the provided `TibberQuery`. See example below.
